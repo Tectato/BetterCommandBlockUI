@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "vectorientation",
   "version": "${version}",
 
   "name": "Vectorientation",
@@ -25,7 +25,7 @@
   "depends": {
     "fabricloader": ">=0.7.4",
     "fabric": "*",
-    "minecraft": "1.17"
+    "minecraft": "1.17.x"
   },
   "suggests": {
     "another-mod": "*"

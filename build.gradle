@@ -20,12 +20,12 @@ repositories {
 
 dependencies {
 	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:1.17"
-    mappings "net.fabricmc:yarn:1.17+build.10:v2"
-    modImplementation "net.fabricmc:fabric-loader:0.11.5"
+	minecraft "com.mojang:minecraft:1.17.1"
+    mappings "net.fabricmc:yarn:1.17.1+build.24:v2"
+    modImplementation "net.fabricmc:fabric-loader:0.11.6"
             
     //Fabric api
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.35.1+1.17"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.37.0+1.17"
 	//modImplementation ":g4mespeed:1.1.3:mc1.16.5-release"
 
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
