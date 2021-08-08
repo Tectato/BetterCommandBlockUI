@@ -36,18 +36,23 @@ public class FallingBlockRendererMixin {
 			)
 	public void addRotation(FallingBlockEntity fallingBlockEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo info) {
 		Vec3f vel = new Vec3f(fallingBlockEntity.getVelocity());
-		float speed = Vectorientation.squetch ? (float) Math.sqrt(vel.getX() * vel.getX() + vel.getY() * vel.getY() + vel.getZ() * vel.getZ()) : 0;
+		float y = vel.getY();
+		//if(Math.abs(y) > .04D * g) {
+			y -= .04D * g;
+			y *= .98D;
+			//}
+		float speed = Vectorientation.squetch ? (float) Math.sqrt(vel.getX() * vel.getX() + y * y + vel.getZ() * vel.getZ()) : 0;
 		vel.normalize();
-		float angle = (float) Math.acos(vel.getY());
+		float angle = (float) Math.acos((y));
 		vel = new Vec3f(-1 * vel.getZ(), 0, vel.getX());
 		vel.normalize();
 		Quaternion rot = new Quaternion(vel, -angle, false);
-		matrixStack.translate(0.5D, 0.0D, 0.5D);
+		matrixStack.translate(0.5D, 0.5D, 0.5D);
 		matrixStack.multiply(rot);
 		if(Vectorientation.squetch) {
 			speed += 0.75f;
 			matrixStack.scale(1/speed, speed, 1/speed);
 		}
-		matrixStack.translate(-0.5D, 0.0D, -0.5D);
+		matrixStack.translate(-0.5D, -0.5D, -0.5D);
 	}
 }
