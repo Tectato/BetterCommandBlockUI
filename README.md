@@ -1,2 +1,2 @@
-# Vectorientation
-A clientside minecraft mod for enhancing the visuals of falling blocks
+# Better Command Block UI
+A clientside minecraft mod for providing a more usable Command Block UI
