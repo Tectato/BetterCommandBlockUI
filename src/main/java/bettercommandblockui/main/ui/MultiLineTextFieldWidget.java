@@ -194,7 +194,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             String visibleLine = line.substring(Math.min(horizontalOffset, line.length() - 1));
             String trimmedLine = textRenderer.trimToWidth(visibleLine, (int) (x - (this.x + 5)));
             boolean characterClicked = trimmedLine.length() < visibleLine.length();
-            int offset = (characterClicked ? 1 : 0) + horizontalOffset + trimmedLine.length() - lineOffsets.get(lineIndex);
+            int offset = /*(characterClicked ? 1 : 0) +*/ horizontalOffset + trimmedLine.length() - lineOffsets.get(lineIndex);
 
             return textOffsets.get(lineIndex) + Math.max(offset, 0);
         }
