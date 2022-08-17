@@ -156,8 +156,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int currentOffset = 0;
         int firstOffset = lineOffsets.get(lineIndex); // Great variable names, I know
         if(textColors.size() > 1) {
-            for (int i = 0; i < textColors.size()-1; i++) {
-                int nextColorStart = textColors.get(i+1).getRight();
+            for (int i = 0; i < textColors.size(); i++) {
+                int nextColorStart = (i+1)<textColors.size() ? textColors.get(i+1).getRight() : Integer.MAX_VALUE;
                 if (nextColorStart > startOffset+currentOffset) {
                     String substring = content.substring(currentOffset, Math.min(firstOffset + (nextColorStart-startOffset), content.length()));
                     textRenderer.drawWithShadow(
