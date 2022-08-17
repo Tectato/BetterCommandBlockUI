@@ -1,31 +1,31 @@
 {
   "schemaVersion": 1,
-  "id": "vectorientation",
+  "id": "bettercommandblockui",
   "version": "${version}",
 
-  "name": "Vectorientation",
-  "description": "Rotates falling blocks into the direction they're heading",
+  "name": "BetterCommandBlockUI",
+  "description": "Provides a more usable UI for command blocks",
   "authors": [
     "Tec"
   ],
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/bettercommandblockui/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "vectorientation.main.Vectorientation"
+      "bettercommandblockui.main.BetterCommandBlockUI"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "bettercommandblockui.mixins.json"
   ],
 
   "depends": {
     "fabricloader": ">=0.7.4",
     "fabric": "*",
-    "minecraft": "1.17.x"
+    "minecraft": "1.19.x"
   },
   "suggests": {
     "another-mod": "*"
