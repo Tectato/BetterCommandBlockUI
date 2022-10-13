@@ -12,9 +12,9 @@
   "license": "CC0-1.0",
   "icon": "assets/bettercommandblockui/icon.png",
 
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
-    "main": [
+    "client": [
       "bettercommandblockui.main.BetterCommandBlockUI"
     ]
   },

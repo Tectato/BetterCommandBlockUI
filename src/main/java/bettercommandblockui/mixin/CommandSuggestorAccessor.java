@@ -3,7 +3,7 @@ package bettercommandblockui.mixin;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.context.SuggestionContext;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
+import net.minecraft.client.gui.screen.CommandSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.command.CommandSource;
@@ -15,13 +15,13 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 import java.util.List;
 
-@Mixin(ChatInputSuggestor.class)
+@Mixin(CommandSuggestor.class)
 public interface CommandSuggestorAccessor{
     @Invoker("provideRenderText")
     OrderedText invokeProvideRenderText(String original, int firstCharacterIndex);
 
     @Accessor
-    ChatInputSuggestor.SuggestionWindow getWindow();
+    CommandSuggestor.SuggestionWindow getWindow();
 
     @Accessor
     List<OrderedText> getMessages();

@@ -48,14 +48,14 @@ public class ScrollbarWidget extends ClickableWidget {
             RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-            this.drawTexture(matrices, this.x, this.y, 0, 0, this.width / 2, this.height, 256, 30);
-            this.drawTexture(matrices, this.x + this.width / 2, this.y, 256 - this.width / 2, 0, this.width / 2, this.height, 256, 30);
+            drawTexture(matrices, this.x, this.y, 0, 0, this.width / 2, this.height, 256, 30);
+            drawTexture(matrices, this.x + this.width / 2, this.y, 256 - this.width / 2, 0, this.width / 2, this.height, 256, 30);
         } else {
             RenderSystem.setShaderTexture(0, SCROLLBAR_VERTICAL);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-            this.drawTexture(matrices, this.x, this.y, 0, 0, this.width, this.height / 2, 30 , 256);
-            this.drawTexture(matrices, this.x, this.y + height / 2, 0, 256 - this.height / 2, this.width, this.height / 2, 30 , 256);
+            drawTexture(matrices, this.x, this.y, 0, 0, this.width, this.height / 2, 30 , 256);
+            drawTexture(matrices, this.x, this.y + height / 2, 0, 256 - this.height / 2, this.width, this.height / 2, 30 , 256);
         }
     }
 
@@ -71,18 +71,21 @@ public class ScrollbarWidget extends ClickableWidget {
         if(horizontal){
             RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
 
-            this.drawTexture(matrices, this.x + (int)(pos * (length - barLength)), this.y, 0, 10 + i * 10, barLength / 2, this.height, 256, 30);
-            this.drawTexture(matrices, this.x + (int)(pos * (length - barLength)) +  barLength / 2, this.y, 256 - barLength / 2, 10 + i * 10, barLength / 2, this.height, 256, 30);
+            drawTexture(matrices, this.x + (int)(pos * (length - barLength)), this.y, 0, 10 + i * 10, barLength / 2, this.height, 256, 30);
+            drawTexture(matrices, this.x + (int)(pos * (length - barLength)) +  barLength / 2, this.y, 256 - barLength / 2, 10 + i * 10, barLength / 2, this.height, 256, 30);
         } else {
             RenderSystem.setShaderTexture(0, SCROLLBAR_VERTICAL);
 
-            this.drawTexture(matrices, this.x, this.y + (int)(pos * (length - barLength)), 10 + i * 10, 0, this.width, barLength / 2, 30, 256);
-            this.drawTexture(matrices, this.x, this.y + (int)(pos * (length - barLength)) +  barLength / 2, 10 + i * 10, 256 - barLength / 2, this.width, barLength / 2, 30, 256);
+            drawTexture(matrices, this.x, this.y + (int)(pos * (length - barLength)), 10 + i * 10, 0, this.width, barLength / 2, 30, 256);
+            drawTexture(matrices, this.x, this.y + (int)(pos * (length - barLength)) +  barLength / 2, 10 + i * 10, 256 - barLength / 2, this.width, barLength / 2, 30, 256);
         }
     }
 
     @Override
     protected boolean clicked(double mouseX, double mouseY){
+        if (!this.visible) {
+            return false;
+        }
         return checkHovered(mouseX, mouseY);
     }
 
@@ -107,7 +110,20 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (this.isValidClickButton(button)) {
+            this.dragging = false;
+            this.onRelease(mouseX, mouseY);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public void onClick(double mouseX, double mouseY) {
+        if (!this.visible) {
+            return;
+        }
         dragging = true;
         prevMouseX = mouseX;
         prevMouseY = mouseY;
@@ -115,6 +131,9 @@ public class ScrollbarWidget extends ClickableWidget {
 
     @Override
     public void onRelease(double mouseX, double mouseY) {
+        if (!this.visible) {
+            return;
+        }
         dragging = false;
     }
 

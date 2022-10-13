@@ -11,7 +11,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
+import net.minecraft.client.gui.screen.CommandSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
 import net.minecraft.client.gui.screen.ingame.CommandBlockScreen;
@@ -61,6 +61,17 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
 
     public static BetterCommandBlockScreen instance;
 
+    private static int buttonHeight = 20;
+    private static int sliderHeight = 10;
+    private static int textHeight = 10;
+
+    private static int cycleButtonWidth = buttonHeight;
+
+    private static int buttonMargin = 10;
+    private static int textMargin = 5;
+    private static int screenMarginX = 40;
+    private static int screenMarginY = 20;
+
     public BetterCommandBlockScreen(MinecraftClient client, CommandBlockBlockEntity blockEntity, CommandBlockExecutor commandExecutor) {
         super(blockEntity);
         this.blockEntity = blockEntity;
@@ -79,15 +90,21 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
     public void init(){
         assert this.client != null;
         this.client.keyboard.setRepeatEvents(true);
-        this.doneButton = this.addDrawableChild(new ButtonWidget(this.width / 2 - 4 - 150, this.height / 4 + 120 + 12, 150, 20, ScreenTexts.DONE, button -> this.commitAndClose()));
-        this.cancelButton = this.addDrawableChild(new ButtonWidget(this.width / 2 + 4, this.height / 4 + 120 + 12, 150, 20, ScreenTexts.CANCEL, button -> this.close()));
+
+        int textBoxHeight = this.height - (2*screenMarginY + textHeight + textMargin + buttonHeight + 2*buttonMargin + sliderHeight);
+        int textBoxWidth = this.width - (2*screenMarginX + 2*cycleButtonWidth + 2*buttonMargin);
+
+        int lowerButtonWidth = Math.min((textBoxWidth/2) - buttonMargin/2, 160);
+        this.doneButton = this.addDrawableChild(new ButtonWidget(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight, ScreenTexts.DONE, button -> this.commitAndClose()));
+        this.cancelButton = this.addDrawableChild(new ButtonWidget(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight, ScreenTexts.CANCEL, button -> this.close()));
+
         boolean bl = this.commandExecutor.isTrackingOutput();
 
         Text[] trackOutputTooltips = {
                 Text.of("Tracking Output"),
                 Text.of("Ignoring Output")
         };
-        this.toggleTrackingOutputButton = this.addDrawableChild(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + 150 + 10, this.height/2 - 30, 20, 20, Text.of(""), (button) -> {
+        this.toggleTrackingOutputButton = this.addDrawableChild(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + (textBoxWidth/2 + buttonMargin + buttonMargin/2), this.height/2 - (buttonHeight + buttonMargin), cycleButtonWidth, buttonHeight, Text.of(""), (button) -> {
             this.trackOutput = ((CyclingTexturedButtonWidget<Boolean>)button).getValue();
             this.commandExecutor.setTrackOutput(trackOutput);
             this.setPreviousOutputText(trackOutput);
@@ -97,13 +114,13 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
                 Text.of("Command"),
                 Text.of("Output")
         };
-        this.showOutputButton = this.addDrawableChild(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + 150 + 10, this.height/2, 20, 20, Text.of(""), (button) -> {
+        this.showOutputButton = this.addDrawableChild(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + (textBoxWidth/2 + buttonMargin + buttonMargin/2), this.height/2, cycleButtonWidth, buttonHeight, Text.of(""), (button) -> {
             this.showOutput = ((CyclingTexturedButtonWidget<Boolean>)button).getValue();
             this.consoleCommandTextField.setVisible(!showOutput);
             this.previousOutputTextField.setVisible(showOutput);
         }, client.currentScreen, BUTTON_OUTPUT, 0, new Boolean[]{false, true}, outputTooltips));
 
-        this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width / 2 - 150, 50, 300, 120, (Text)Text.translatable("advMode.command"), this){
+        this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, (Text)Text.translatable("advMode.command"), this){
             @Override
             protected MutableText getNarrationMessage() {
                 return super.getNarrationMessage().append(accessor.getCommandSuggestor().getNarration());
@@ -121,7 +138,7 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
         this.addSelectableChild(this.consoleCommandTextField);
         this.setInitialFocus(this.consoleCommandTextField);
         this.consoleCommandTextField.setTextFieldFocused(true);
-        this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width / 2 - 150, 50, 300, 20, Text.translatable("advMode.previousOutput"), this);
+        this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, Text.translatable("advMode.previousOutput"), this);
         this.previousOutputTextField.setMaxLength(32500);
         this.previousOutputTextField.setEditable(false);
         this.previousOutputTextField.setVisible(false);
@@ -132,16 +149,18 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
         this.consoleCommandTextField.setText(commandExecutor.getCommand());
 
         if(!minecart){
+            int sideButtonX = this.width / 2 - (cycleButtonWidth + buttonMargin + textBoxWidth/2);
+
             Text[] modeTooltips = {
                     Text.translatable("advMode.mode.redstone"),
                     Text.translatable("advMode.mode.sequence"),
                     Text.translatable("advMode.mode.auto")};
             this.modeButton = this.addDrawableChild(
                     new CyclingTexturedButtonWidget<CommandBlockBlockEntity.Type>(
-                            this.width / 2 - 175,
-                            this.height/2 - 40,
-                            20,
-                            20,
+                            sideButtonX,
+                            this.height/2 - (buttonHeight + buttonHeight/2 + buttonMargin),
+                            cycleButtonWidth,
+                            buttonHeight,
                             Text.of(""),
                             (button -> this.mode = ((CyclingTexturedButtonWidget<CommandBlockBlockEntity.Type>)button).getValue()),
                             client.currentScreen,
@@ -156,10 +175,10 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
                     Text.translatable("advMode.mode.conditional")};
             this.conditionalModeButton = this.addDrawableChild(
                     new CyclingTexturedButtonWidget<Boolean>(
-                            this.width / 2 - 175,
-                            this.height/2 - 10,
-                            20,
-                            20,
+                            sideButtonX,
+                            this.height/2 - buttonHeight/2,
+                            cycleButtonWidth,
+                            buttonHeight,
                             Text.of(""),
                             (button -> this.conditional = ((CyclingTexturedButtonWidget<Boolean>)button).getValue()),
                             client.currentScreen,
@@ -174,10 +193,10 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
                     Text.translatable("advMode.mode.autoexec.bat")};
             this.redstoneTriggerButton = this.addDrawableChild(
                     new CyclingTexturedButtonWidget<Boolean>(
-                            this.width / 2 - 175,
-                            this.height/2 + 20,
-                            20,
-                            20,
+                            sideButtonX,
+                            this.height/2 + buttonHeight/2 + buttonMargin,
+                            cycleButtonWidth,
+                            buttonHeight,
                             Text.of(""),
                             (button -> this.autoActivate = ((CyclingTexturedButtonWidget<Boolean>)button).getValue()),
                             client.currentScreen,
@@ -206,6 +225,9 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
         if(button == 0) {
+            if(showOutput){
+                return this.previousOutputTextField.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+            }
             return this.consoleCommandTextField.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
         }
         return false;
@@ -214,6 +236,9 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button){
         if(button == 0){
+            if(showOutput){
+                return this.previousOutputTextField.mouseReleased(mouseX, mouseY, button);
+            }
             return this.consoleCommandTextField.mouseReleased(mouseX, mouseY, button);
         }
         return false;
@@ -222,7 +247,11 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if(keyCode == 340 || keyCode == 344){
-            this.consoleCommandTextField.keyPressed(keyCode, scanCode, modifiers);
+            if(showOutput){
+                this.previousOutputTextField.keyPressed(keyCode, scanCode, modifiers);
+            } else {
+                this.consoleCommandTextField.keyPressed(keyCode, scanCode, modifiers);
+            }
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
@@ -230,7 +259,11 @@ public class BetterCommandBlockScreen extends CommandBlockScreen {
     @Override
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
         if(keyCode == 340 || keyCode == 344){
-            this.consoleCommandTextField.keyReleased(keyCode, scanCode, modifiers);
+            if(showOutput){
+                this.previousOutputTextField.keyReleased(keyCode, scanCode, modifiers);
+            } else {
+                this.consoleCommandTextField.keyReleased(keyCode, scanCode, modifiers);
+            }
         }
         return super.keyReleased(keyCode, scanCode, modifiers);
     }

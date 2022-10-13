@@ -11,7 +11,7 @@ import com.mojang.brigadier.suggestion.Suggestion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
+import net.minecraft.client.gui.screen.CommandSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
@@ -24,7 +24,7 @@ import net.minecraft.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultiLineCommandSuggestor extends ChatInputSuggestor {
+public class MultiLineCommandSuggestor extends CommandSuggestor {
     private CommandSuggestorAccessor accessor;
     private Pair<Integer, Integer> startPos;
     private int x, y;

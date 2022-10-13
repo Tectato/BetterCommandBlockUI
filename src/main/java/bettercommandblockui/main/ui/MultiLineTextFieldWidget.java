@@ -12,19 +12,19 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class MultiLineTextFieldWidget extends TextFieldWidget implements Element {
-    private static final int visibleLines = 11;
-
     private BetterCommandBlockScreen screen;
     private ScrollbarWidget scrollX, scrollY;
     private List<String> lines;
     private List<Integer> lineOffsets, textOffsets;
     private List<Pair<Style, Integer>> textColors;
+    private int visibleLines = 11;
     private int scrolledLines = 0;
     private int horizontalOffset = 0;
     private int maxLineWidth = 30;
@@ -39,6 +39,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         this.lines = new LinkedList<String>();
         this.lineOffsets = new LinkedList<Integer>();
         this.textOffsets = new LinkedList<Integer>();
+        this.visibleLines = (height-4) / 10;
         this.scrolledLines = 0;
         this.screen = screen;
         this.scrollX = new ScrollbarWidget(x, y + height + 1, width, 10, Text.of(""), this, true);
@@ -52,7 +53,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isVisible()) {
             return;
         }
-        if (((TextFieldWidgetAccessor)this).invokeDrawsBackground()) {
+        if (accessor.invokeDrawsBackground()) {
             color = this.isFocused() ? -1 : -6250336;
             TextFieldWidget.fill(matrices, this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, color);
             TextFieldWidget.fill(matrices, this.x, this.y, this.x + this.width, this.y + this.height, -16777216);
@@ -429,19 +430,34 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (accessor.getChangedListener() != null) {
             accessor.getChangedListener().accept(newText);
         }
-        if(hasCommandSuggestor){
-            if(formatText) this.formatText(newText);
-            scrollY.setScale(lines.size() / (double)visibleLines);
-            scrollX.setScale((double)maxLineWidth / 20.0d);
+        if(hasCommandSuggestor) {
+            if (formatText) this.formatText(newText);
         } else {
-            scrollY.setScale(1.0d);
-            scrollX.setScale((double)accessor.getTextRenderer().getWidth(newText) / 20.0d);
+            this.setUnformattedText(newText);
         }
+        scrollY.setScale(lines.size() / (double)visibleLines);
+        scrollX.setScale((double)maxLineWidth / 20.0d);
+    }
 
+    private void setUnformattedText(String text){
+        textColors = new LinkedList<>();
+        textColors.add(new Pair<>(Style.EMPTY.withColor(Formatting.GRAY), 0));
+
+        lines = new LinkedList<>();
+        lines.add(text);
+        lineOffsets = new LinkedList<>();
+        lineOffsets.add(0);
+        textOffsets = new LinkedList<>();
+        textOffsets.add(0);
+
+        maxLineWidth = 0;
+        for(String line : lines){
+            maxLineWidth = Math.max(line.length(), maxLineWidth);
+        }
     }
 
     private void formatText(String text) {
-        this.textColors = suggestor.getColors(text, 0);
+        textColors = suggestor.getColors(text, 0);
 
         lines = new LinkedList<String>();
         lineOffsets = new LinkedList<Integer>();
@@ -524,12 +540,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button){
-        scrollX.mouseClicked(mouseX, mouseY, button);
-        scrollY.mouseClicked(mouseX, mouseY, button);
-
         if (!this.isVisible()) {
             return false;
         }
+        scrollX.mouseClicked(mouseX, mouseY, button);
+        scrollY.mouseClicked(mouseX, mouseY, button);
+
         boolean bl = mouseX >= (double)this.x && mouseX < (double)(this.x + this.width) && mouseY >= (double)this.y && mouseY < (double)(this.y + this.height);
         if (accessor.getFocusUnlocked()) {
             this.setTextFieldFocused(bl);
@@ -543,6 +559,9 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount){
+        if (!this.isVisible()) {
+            return false;
+        }
         screen.scroll(amount);
         if(LShiftPressed || RShiftPressed){
             scrollX.scroll(amount);
@@ -554,12 +573,18 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
     @Override
     public void mouseMoved(double mouseX, double mouseY) {
+        if (!this.isVisible()) {
+            return;
+        }
         scrollX.mouseMoved(mouseX, mouseY);
         scrollY.mouseMoved(mouseX, mouseY);
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
+        if (!this.isVisible()) {
+            return false;
+        }
         scrollX.onDrag(mouseX, mouseY, deltaX, deltaY);
         scrollY.onDrag(mouseX, mouseY, deltaX, deltaY);
         return true;
@@ -567,6 +592,9 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button){
+        if (!this.isVisible()) {
+            return false;
+        }
         scrollX.onRelease(mouseX, mouseY);
         scrollY.onRelease(mouseX, mouseY);
         return true;
