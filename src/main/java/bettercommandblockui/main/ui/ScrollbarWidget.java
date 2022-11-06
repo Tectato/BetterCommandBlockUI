@@ -37,6 +37,7 @@ public class ScrollbarWidget extends ClickableWidget {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         if (!this.visible) {
+            this.dragging = false;
             return;
         }
         this.hovered = checkHovered(mouseX, mouseY);
