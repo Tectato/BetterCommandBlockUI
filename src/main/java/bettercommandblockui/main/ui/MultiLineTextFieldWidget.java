@@ -19,6 +19,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
+import org.lwjgl.system.CallbackI;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -180,6 +181,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if(textColors.size() > 1) {
             for (int i = 0; i < textColors.size(); i++) {
                 if(currentOffset >= content.length()) break;
+
                 int nextColorStart = (i+1)<textColors.size() ? textColors.get(i+1).getRight() : Integer.MAX_VALUE;
                 if (nextColorStart > startOffset+currentOffset) {
                     String substring = content.substring(currentOffset, clamp(firstOffset + (nextColorStart-(startOffset+horizontalOffset)), currentOffset,content.length()));
