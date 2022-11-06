@@ -21,15 +21,17 @@ public class ScrollbarWidget extends ClickableWidget {
     private double prevMouseX = 0.0d;
     private double prevMouseY = 0.0d;
     private double pos = 0.0d;
-    private double scale = 1.0d;
-    private int length = 0;
+    private double scale;
+    private int length;
+    private int barLength;
 
     public ScrollbarWidget(int x, int y, int width, int height, Text message, MultiLineTextFieldWidget textField, boolean horizontal) {
         super(x, y, width, height, message);
         this.textField = textField;
         this.horizontal = horizontal;
-        this.length = horizontal?width:height;
         this.scale = 1.0d;
+        this.length = horizontal?width:height;
+        this.barLength =  (int) ((double)length / scale);
     }
 
     @Override
@@ -66,7 +68,6 @@ public class ScrollbarWidget extends ClickableWidget {
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
         int i = (this.hovered || this.dragging)?1:0;
-        int barLength = (int) ((double)length / scale);
 
         if(horizontal){
             RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
@@ -154,26 +155,22 @@ public class ScrollbarWidget extends ClickableWidget {
     public void onDrag(double mouseX, double mouseY, double distX, double distY){
         if(dragging) {
             if (horizontal) {
-                pos = Math.min(Math.max(pos + 2*distX/length, 0), 1);
+                pos = Math.min(Math.max(pos + distX/(length-barLength), 0), 1);
                 textField.setHorizontalOffset(pos);
             } else {
-                pos = Math.min(Math.max(pos + 2*distY/length, 0), 1);
+                pos = Math.min(Math.max(pos + distY/(length-barLength), 0), 1);
                 textField.setScroll(pos);
             }
         }
     }
 
-    public void scroll(double amount){
-        pos = Math.min(Math.max(pos - amount/4, 0), 1);
-        if(horizontal) {
-            textField.setHorizontalOffset(pos);
-        } else {
-            textField.setScroll(pos);
-        }
-    }
-
     public void setScale(double newScale){
         this.scale = Math.max(newScale,1);
+        this.barLength = (int) ((double)length / scale);
+    }
+
+    public void updatePos(double newPos){
+        this.pos = Math.max(Math.min(newPos,1),0);
     }
 
     @Override

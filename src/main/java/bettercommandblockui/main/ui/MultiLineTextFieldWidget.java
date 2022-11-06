@@ -1,6 +1,7 @@
 package bettercommandblockui.main.ui;
 
 import bettercommandblockui.main.BetterCommandBlockScreen;
+import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.mixin.TextFieldWidgetAccessor;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
@@ -12,11 +13,13 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 public class MultiLineTextFieldWidget extends TextFieldWidget implements Element {
     private BetterCommandBlockScreen screen;
@@ -24,10 +27,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     private List<String> lines;
     private List<Integer> lineOffsets, textOffsets;
     private List<Pair<Style, Integer>> textColors;
+    private boolean stringParameter = false;
     private int visibleLines = 11;
     private int scrolledLines = 0;
     private int horizontalOffset = 0;
     private int maxLineWidth = 30;
+    private final int visibleChars = 20;
     private Pair<Integer, Integer> cursorPosPreference;
     private boolean LShiftPressed, RShiftPressed = false;
     private boolean hasCommandSuggestor = false;
@@ -153,20 +158,29 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     private void drawColoredLine(MatrixStack matrices, String content, int x, int y, int lineIndex){
         TextRenderer textRenderer = accessor.getTextRenderer();
         int renderOffset = 0;
-        int startOffset = textOffsets.get(lineIndex)+horizontalOffset;
+        int startOffset = textOffsets.get(lineIndex);
         int currentOffset = 0;
         int firstOffset = lineOffsets.get(lineIndex); // Great variable names, I know
         if(textColors.size() > 1) {
             for (int i = 0; i < textColors.size(); i++) {
+                if(currentOffset >= content.length()) break;
                 int nextColorStart = (i+1)<textColors.size() ? textColors.get(i+1).getRight() : Integer.MAX_VALUE;
                 if (nextColorStart > startOffset+currentOffset) {
-                    String substring = content.substring(currentOffset, Math.min(firstOffset + (nextColorStart-startOffset), content.length()));
+                    String substring = content.substring(currentOffset, clamp(firstOffset + (nextColorStart-(startOffset+horizontalOffset)), currentOffset,content.length()));
+
+                    int color;
+                    try{
+                        color = textColors.get(i).getLeft().getColor().getRgb();
+                    } catch (IndexOutOfBoundsException e){
+                        color = TextColor.fromFormatting(Formatting.GRAY).getRgb();
+                    }
+
                     textRenderer.drawWithShadow(
                             matrices,
                             substring,
                             x + renderOffset,
                             y,
-                            textColors.get(i).getLeft().getColor().getRgb()
+                            color
                     );
                     currentOffset += substring.length();
                     renderOffset += textRenderer.getWidth(substring);
@@ -175,7 +189,13 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 if(currentOffset > content.length()) break;
             }
         } else {
-            textRenderer.drawWithShadow(matrices, content, x, y, textColors.get(0).getLeft().getColor().getRgb());
+            int color;
+            try{
+                color = textColors.get(0).getLeft().getColor().getRgb();
+            } catch (IndexOutOfBoundsException e){
+                color = TextColor.fromFormatting(Formatting.GRAY).getRgb();
+            }
+            textRenderer.drawWithShadow(matrices, content, x, y, color);
         }
     }
 
@@ -435,8 +455,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         } else {
             this.setUnformattedText(newText);
         }
-        scrollY.setScale(lines.size() / (double)visibleLines);
-        scrollX.setScale((double)maxLineWidth / 20.0d);
+        scrollY.setScale((lines.size()) / (double)visibleLines);
+        scrollX.setScale((double)(maxLineWidth) / visibleChars);
     }
 
     private void setUnformattedText(String text){
@@ -457,7 +477,11 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     private void formatText(String text) {
-        textColors = suggestor.getColors(text, 0);
+        textColors = new LinkedList<>();
+        List<Pair<Integer,Integer>> colorIndices = suggestor.getColors(text, 0);
+        Stack<Integer> colorStack = new Stack<>();
+        int currentColorListIndex = 0;
+        int currentHighlightColor = 0;
 
         lines = new LinkedList<String>();
         lineOffsets = new LinkedList<Integer>();
@@ -466,6 +490,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int linestart = 0;
         int parenthesesDepth = 0;
         int currentIndex = 0;
+        boolean metaString = false;
+        boolean escapeChar = false;
 
         // Commented out code adds line breaks after every color change as well
 //        int colorIndex = 1;
@@ -478,6 +504,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         char current;
         String currentPrefix = "";
         while(currentIndex < textArr.length){
+            while(currentColorListIndex < colorIndices.size() && colorIndices.get(currentColorListIndex).getRight() < currentIndex){
+                colorStack.push(colorIndices.get(currentColorListIndex).getLeft());
+                currentColorListIndex++;
+            }
             current = textArr[currentIndex];
 //            if(currentIndex >= colorStart-1){
 //                colorIndex++;
@@ -494,33 +524,80 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 //                linestart = currentIndex + 1;
 //                currentPrefix = "";
 //            } else {
-                switch (current) {
-                    case '{':
-                    case '[':
-                        lines.add((" ".repeat(parenthesesDepth)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
-                        lineOffsets.add(parenthesesDepth);
-                        textOffsets.add(linestart - currentPrefix.length());
-                        parenthesesDepth++;
-                        linestart = currentIndex + 1;
-                        currentPrefix = "";
-                        break;
-                    case '}':
-                    case ']':
-                        lines.add((" ".repeat(parenthesesDepth)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart)));
-                        lineOffsets.add(parenthesesDepth);
-                        textOffsets.add(linestart - currentPrefix.length());
-                        parenthesesDepth = Math.max(parenthesesDepth - 1, 0);
-                        linestart = currentIndex + 1;
+                if(!metaString) {
+                    switch (current) {
+                        case '"':
+                            if(!escapeChar){
+                                metaString = true;
+                            }
+                            break;
+                        case '{':
+                        case '[':
+                            if (currentColorListIndex > 0) {
+                                currentHighlightColor = colorIndices.get(currentColorListIndex - 1).getLeft();
+                                colorStack.push(currentHighlightColor);
+                                if (currentHighlightColor != 0) {
+                                    colorIndices.add(currentColorListIndex, new Pair<>(getHighlightColorIndex(currentHighlightColor + 1), currentIndex));
+                                    currentColorListIndex++;
+                                }
+                            }
 
-                        currentPrefix = String.valueOf(current);
-                        break;
-                    case ',':
-                        lines.add((" ".repeat(parenthesesDepth)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
-                        lineOffsets.add(parenthesesDepth);
-                        textOffsets.add(linestart - currentPrefix.length());
-                        linestart = currentIndex + 1;
-                        currentPrefix = "";
-                        break;
+                            String previousLine = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
+                            if (previousLine.length() > 0) {
+                                lines.add((" ".repeat(parenthesesDepth)) + previousLine);
+                                lineOffsets.add(parenthesesDepth);
+                                textOffsets.add(linestart - currentPrefix.length());
+                            }
+                            lines.add((" ".repeat(parenthesesDepth)) + String.valueOf(current));
+                            lineOffsets.add(parenthesesDepth);
+                            textOffsets.add(currentIndex);
+                            parenthesesDepth++;
+                            linestart = currentIndex + 1;
+                            currentPrefix = "";
+                            break;
+                        case '}':
+                        case ']':
+                            if (colorIndices.get(currentColorListIndex).getLeft() != 0) {
+                                colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), currentIndex + 1));
+                                currentColorListIndex++;
+                            }
+
+                            lines.add((" ".repeat(parenthesesDepth)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart)));
+                            lineOffsets.add(parenthesesDepth);
+                            textOffsets.add(linestart - currentPrefix.length());
+                            parenthesesDepth = Math.max(parenthesesDepth - 1, 0);
+                            linestart = currentIndex + 1;
+                            currentPrefix = String.valueOf(current);
+                            break;
+                        case ',':
+                            // Check for following spaces, makes for consistent indentation
+                            int tempCurrentIndex = currentIndex + 1;
+                            if (tempCurrentIndex < textArr.length) {
+                                char tempCurrent = textArr[tempCurrentIndex];
+                                while (tempCurrentIndex < textArr.length - 1 && tempCurrent == ' ') {
+                                    ++tempCurrentIndex;
+                                    tempCurrent = textArr[tempCurrentIndex];
+                                }
+                                currentIndex = tempCurrentIndex - 1;
+                            }
+
+                            lines.add((" ".repeat(parenthesesDepth)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
+                            lineOffsets.add(parenthesesDepth);
+                            textOffsets.add(linestart - currentPrefix.length());
+                            linestart = currentIndex + 1;
+                            currentPrefix = "";
+                            break;
+                    }
+                } else {
+                    if(!escapeChar) {
+                        if (current == '"') {
+                            metaString = false;
+                        } else if (current == '\\'){
+                            escapeChar = true;
+                        }
+                    } else {
+                        escapeChar = false;
+                    }
                 }
             //}
             currentIndex++;
@@ -532,10 +609,21 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             }
         }
 
+        for(Pair<Integer,Integer> p : colorIndices){
+            textColors.add(new Pair<>(suggestor.getColor(p.getLeft()),p.getRight()));
+        }
+
         maxLineWidth = 0;
         for(String line : lines){
             maxLineWidth = Math.max(line.length(), maxLineWidth);
         }
+    }
+
+    private int getHighlightColorIndex(int i){
+        int index = i - 2;
+        int count = suggestor.getHighlighColorCount();
+        if(index < 0) index+= count;
+        return (index % count) + 2;
     }
 
     @Override
@@ -564,9 +652,11 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         screen.scroll(amount);
         if(LShiftPressed || RShiftPressed){
-            scrollX.scroll(amount);
+            horizontalOffset = clamp(horizontalOffset-(int)amount*BetterCommandBlockUI.SCROLL_STEP_X, 0, maxLineWidth-20);
+            scrollX.updatePos((double)horizontalOffset / (maxLineWidth-20));
         } else {
-            scrollY.scroll(amount);
+            scrolledLines = clamp(scrolledLines-(int)amount*BetterCommandBlockUI.SCROLL_STEP_Y, 0, lines.size()-visibleLines);
+            scrollY.updatePos((double)scrolledLines / (lines.size() - visibleLines));
         }
         return true;
     }
@@ -646,8 +736,16 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     public void setHorizontalOffset(double value){
-        this.horizontalOffset = (int)Math.max(Math.floor((maxLineWidth-20) * value),0);
+        this.horizontalOffset = (int)Math.max(Math.floor((maxLineWidth - visibleChars) * value),0);
         if(hasCommandSuggestor) this.suggestor.refreshRenderPos();
+    }
+
+    private int clamp(int i, int min, int max){
+        return Math.max(Math.min(i,max),min);
+    }
+
+    private double clamp(double i, double min, double max){
+        return Math.max(Math.min(i,max),min);
     }
 
     private void printStackTrace(){

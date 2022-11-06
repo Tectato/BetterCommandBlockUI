@@ -2,6 +2,7 @@ package bettercommandblockui.main.ui;
 
 import bettercommandblockui.mixin.CommandSuggestorAccessor;
 import bettercommandblockui.mixin.SuggestionWindowAccessor;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.context.CommandContextBuilder;
@@ -19,12 +20,16 @@ import net.minecraft.client.util.math.Rect2i;
 import net.minecraft.command.CommandSource;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Style;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class MultiLineCommandSuggestor extends CommandSuggestor {
+    private static final List<Style> HIGHLIGHT_STYLES = Stream.of(Formatting.RED, Formatting.GRAY, Formatting.AQUA, Formatting.YELLOW, Formatting.GREEN, Formatting.LIGHT_PURPLE, Formatting.GOLD).map(Style.EMPTY::withColor).collect(ImmutableList.toImmutableList());
+
     private CommandSuggestorAccessor accessor;
     private Pair<Integer, Integer> startPos;
     private int x, y;
@@ -80,14 +85,25 @@ public class MultiLineCommandSuggestor extends CommandSuggestor {
         }
     }
 
-    public List<Pair<Style,Integer>> getColors(String original, int firstCharacterIndex) {
+    public Style getColor(int colorIndex){
+        return HIGHLIGHT_STYLES.get(colorIndex);
+    }
+
+    /**
+     * @return List of (colorIndex, startIndex)-Pairs.
+     * Color Indices:
+     *  0   - Error
+     *  1   - Info
+     *  2-7 - Highlight
+     */
+    public List<Pair<Integer,Integer>> getColors(String original, int firstCharacterIndex) {
         if(accessor.getParse() == null){
-            return new ArrayList<Pair<Style,Integer>>();
+            return new ArrayList<Pair<Integer,Integer>>();
         }
         ParseResults<CommandSource> parse = accessor.getParse();
 
         int m;
-        ArrayList<Pair<Style,Integer>> list = Lists.newArrayList();
+        ArrayList<Pair<Integer,Integer>> list = Lists.newArrayList();
         int i = 0;
         int colorIndex = -1;
         CommandContextBuilder<CommandSource> commandContextBuilder = parse.getContext().getLastChild();
@@ -99,21 +115,25 @@ public class MultiLineCommandSuggestor extends CommandSuggestor {
             if ((k = Math.max(parsedArgument.getRange().getStart() - firstCharacterIndex, 0)) >= original.length()) break;
             int l = Math.min(parsedArgument.getRange().getEnd() - firstCharacterIndex, original.length());
             if (l <= 0) continue;
-            list.add(new Pair<>(accessor.getINFO_STYLE(), i));
-            list.add(new Pair<>(accessor.getHIGHLIGHT_STYLES().get(colorIndex), k));
+            list.add(new Pair<>(1, i));
+            list.add(new Pair<>(colorIndex + 2, k));
             i = l;
         }
         if (parse.getReader().canRead() && (m = Math.max(parse.getReader().getCursor() - firstCharacterIndex, 0)) < original.length()) {
             int n = Math.min(m + parse.getReader().getRemainingLength(), original.length());
-            list.add(new Pair<>(accessor.getINFO_STYLE(), i));
-            list.add(new Pair<>(accessor.getERROR_STYLE(), m));
+            list.add(new Pair<>(1, i));
+            list.add(new Pair<>(0, m));
             i = n;
         }
-        list.add(new Pair<>(accessor.getINFO_STYLE(), i));
+        list.add(new Pair<>(1, i));
         return list;
     }
 
     public void setY(int newY){
         this.y = newY;
+    }
+
+    public int getHighlighColorCount(){
+        return HIGHLIGHT_STYLES.size() - 2;
     }
 }

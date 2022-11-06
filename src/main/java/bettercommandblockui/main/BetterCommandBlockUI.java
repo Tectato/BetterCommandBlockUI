@@ -18,6 +18,9 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final Identifier SCROLLBAR_HORIZONTAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_horizontal.png");
     public static final Identifier SCROLLBAR_VERTICAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_vertical.png");
 
+    public static int SCROLL_STEP_X = 4;
+    public static int SCROLL_STEP_Y = 2;
+
     private static KeyBinding areaSelectionInput;
 
     @Override
