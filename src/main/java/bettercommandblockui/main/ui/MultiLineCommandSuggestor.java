@@ -22,6 +22,7 @@ import net.minecraft.text.OrderedText;
 import net.minecraft.text.Style;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
+import org.lwjgl.system.CallbackI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,28 +105,28 @@ public class MultiLineCommandSuggestor extends CommandSuggestor {
 
         int m;
         ArrayList<Pair<Integer,Integer>> list = Lists.newArrayList();
-        int i = 0;
+        list.add(new Pair<>(1,0));
         int colorIndex = -1;
-        CommandContextBuilder<CommandSource> commandContextBuilder = parse.getContext().getLastChild();
-        for (ParsedArgument<CommandSource, ?> parsedArgument : commandContextBuilder.getArguments().values()) {
-            int k;
-            if (++colorIndex >= accessor.getHIGHLIGHT_STYLES().size()) {
-                colorIndex = 0;
+        CommandContextBuilder<CommandSource> commandContextBuilder = parse.getContext();
+        do {
+            for (ParsedArgument<CommandSource, ?> parsedArgument : commandContextBuilder.getArguments().values()) {
+                int k;
+                colorIndex = bumpColorIndex(colorIndex);
+                if ((k = Math.max(parsedArgument.getRange().getStart() - firstCharacterIndex, 0)) >= original.length())
+                    break;
+                int l = Math.min(parsedArgument.getRange().getEnd() - firstCharacterIndex, original.length());
+                if (l <= 0) continue;
+                list.add(new Pair<>(colorIndex + 2, k));
+                list.add(new Pair<>(1, l));
             }
-            if ((k = Math.max(parsedArgument.getRange().getStart() - firstCharacterIndex, 0)) >= original.length()) break;
-            int l = Math.min(parsedArgument.getRange().getEnd() - firstCharacterIndex, original.length());
-            if (l <= 0) continue;
-            list.add(new Pair<>(1, i));
-            list.add(new Pair<>(colorIndex + 2, k));
-            i = l;
-        }
+            commandContextBuilder = commandContextBuilder.getChild();
+        } while (commandContextBuilder != null);
+
+
         if (parse.getReader().canRead() && (m = Math.max(parse.getReader().getCursor() - firstCharacterIndex, 0)) < original.length()) {
             int n = Math.min(m + parse.getReader().getRemainingLength(), original.length());
-            list.add(new Pair<>(1, i));
             list.add(new Pair<>(0, m));
-            i = n;
         }
-        list.add(new Pair<>(1, i));
         return list;
     }
 
@@ -135,5 +136,9 @@ public class MultiLineCommandSuggestor extends CommandSuggestor {
 
     public int getHighlighColorCount(){
         return HIGHLIGHT_STYLES.size() - 2;
+    }
+
+    private int bumpColorIndex(int colorIndex){
+        return (colorIndex + 1) % getHighlighColorCount();
     }
 }

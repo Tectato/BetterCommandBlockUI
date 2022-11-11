@@ -557,7 +557,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                             break;
                         case '}':
                         case ']':
-                            if (colorIndices.get(currentColorListIndex).getLeft() != 0) {
+                            if (colorIndices.get(currentColorListIndex - 1).getLeft() != 0) {
                                 colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), currentIndex + 1));
                                 currentColorListIndex++;
                             }
