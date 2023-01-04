@@ -8,6 +8,7 @@ import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.packet.c2s.play.UpdateCommandBlockC2SPacket;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.CommandBlockExecutor;
 
@@ -45,9 +46,9 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         int sideButtonX = this.width / 2 - (cycleButtonWidth + buttonMargin + textBoxWidth/2);
 
         Text[] modeTooltips = {
-                Text.translatable("advMode.mode.redstone"),
-                Text.translatable("advMode.mode.sequence"),
-                Text.translatable("advMode.mode.auto")};
+                new TranslatableText("advMode.mode.redstone"),
+                new TranslatableText("advMode.mode.sequence"),
+                new TranslatableText("advMode.mode.auto")};
         this.modeButton = this.addDrawableChild(
                 new CyclingTexturedButtonWidget<CommandBlockBlockEntity.Type>(
                         sideButtonX,
@@ -64,8 +65,8 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                 ));
 
         Text[] conditionalTooltips = {
-                Text.translatable("advMode.mode.unconditional"),
-                Text.translatable("advMode.mode.conditional")};
+                new TranslatableText("advMode.mode.unconditional"),
+                new TranslatableText("advMode.mode.conditional")};
         this.conditionalModeButton = this.addDrawableChild(
                 new CyclingTexturedButtonWidget<Boolean>(
                         sideButtonX,
@@ -82,8 +83,8 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                 ));
 
         Text[] activeTooltips = {
-                Text.translatable("advMode.mode.redstoneTriggered"),
-                Text.translatable("advMode.mode.autoexec.bat")};
+                new TranslatableText("advMode.mode.redstoneTriggered"),
+                new TranslatableText("advMode.mode.autoexec.bat")};
         this.redstoneTriggerButton = this.addDrawableChild(
                 new CyclingTexturedButtonWidget<Boolean>(
                         sideButtonX,

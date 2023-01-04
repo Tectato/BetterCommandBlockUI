@@ -1,17 +1,13 @@
 package bettercommandblockui.main.ui;
 
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextContent;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-public class CyclingTooltipSupplier implements ButtonWidget.NarrationSupplier {
+public class CyclingTooltipSupplier implements ButtonWidget.TooltipSupplier {
     private Screen screen;
     private Text[] tooltips;
     private int currentIndex;
@@ -34,12 +30,13 @@ public class CyclingTooltipSupplier implements ButtonWidget.NarrationSupplier {
         return currentIndex;
     }
 
-    public Tooltip getTooltip() {
-        return Tooltip.of(tooltips[currentIndex]);
+    @Override
+    public void onTooltip(ButtonWidget button, MatrixStack matrices, int mouseX, int mouseY) {
+        this.screen.renderTooltip(matrices, tooltips[currentIndex], mouseX, mouseY);
     }
 
     @Override
-    public MutableText createNarrationMessage(Supplier<MutableText> textSupplier) {
-        return MutableText.of(TextContent.EMPTY);
+    public void supply(Consumer<Text> consumer) {
+        consumer.accept(tooltips[currentIndex]);
     }
 }

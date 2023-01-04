@@ -6,16 +6,17 @@ import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
 import bettercommandblockui.mixin.ScreenAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
+import net.minecraft.client.gui.screen.CommandSuggestor;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.CommandBlockExecutor;
 import org.lwjgl.glfw.GLFW;
@@ -24,9 +25,9 @@ import static bettercommandblockui.main.BetterCommandBlockUI.BUTTON_OUTPUT;
 import static bettercommandblockui.main.BetterCommandBlockUI.BUTTON_TRACK_OUTPUT;
 
 public abstract class AbstractBetterCommandBlockScreen extends Screen {
-    protected static final Text SET_COMMAND_TEXT = Text.translatable("advMode.setCommand");
-    protected static final Text COMMAND_TEXT = Text.translatable("advMode.command");
-    protected static final Text PREVIOUS_OUTPUT_TEXT = Text.translatable("advMode.previousOutput");
+    protected static final Text SET_COMMAND_TEXT = new TranslatableText("advMode.setCommand");
+    protected static final Text COMMAND_TEXT = new TranslatableText("advMode.command");
+    protected static final Text PREVIOUS_OUTPUT_TEXT = new TranslatableText("advMode.previousOutput");
 
     protected TextFieldWidget consoleCommandTextField;
     protected TextFieldWidget previousOutputTextField;
@@ -37,7 +38,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected CyclingTexturedButtonWidget<Boolean> showOutputButton;
 
     protected CommandBlockExecutor commandExecutor;
-    protected ChatInputSuggestor commandSuggestor;
+    protected CommandSuggestor commandSuggestor;
     protected boolean showOutput = false;
     protected boolean trackOutput = true;
 
@@ -64,9 +65,8 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         int textBoxWidth = this.width - (2*screenMarginX + 2*cycleButtonWidth + 2*buttonMargin);
 
         int lowerButtonWidth = Math.min((textBoxWidth/2) - buttonMargin/2, 160);
-        this.doneButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> this.commitAndClose()).dimensions(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
-        this.cancelButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.CANCEL, button -> this.close()).dimensions(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
-
+        this.doneButton = this.addDrawableChild(new ButtonWidget(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight, ScreenTexts.DONE, button -> this.commitAndClose()));
+        this.cancelButton = this.addDrawableChild(new ButtonWidget(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight, ScreenTexts.CANCEL, button -> this.close()));
         boolean bl = this.commandExecutor.isTrackingOutput();
 
         Text[] trackOutputTooltips = {
@@ -90,7 +90,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.previousOutputTextField.setVisible(showOutput);
         }, client.currentScreen, BUTTON_OUTPUT, 0, new Boolean[]{false, true}, outputTooltips));
 
-        this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, (Text)Text.translatable("advMode.command"), this){
+        this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, new TranslatableText("advMode.command"), this){
             @Override
             protected MutableText getNarrationMessage() {
                 return super.getNarrationMessage().append(commandSuggestor.getNarration());
@@ -107,7 +107,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.addSelectableChild(this.consoleCommandTextField);
         this.setInitialFocus(this.consoleCommandTextField);
         this.consoleCommandTextField.setTextFieldFocused(true);
-        this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, Text.translatable("advMode.previousOutput"), this);
+        this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, new TranslatableText("advMode.previousOutput"), this);
         this.previousOutputTextField.setMaxLength(32500);
         this.previousOutputTextField.setEditable(false);
         this.previousOutputTextField.setVisible(false);

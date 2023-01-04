@@ -756,6 +756,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         return Math.max(Math.min(i,max),min);
     }
 
+    public int getX(){return this.x;}
+
+    public int getY(){return this.y;}
+
     private void printStackTrace(){
         try{
             int[] i = {};
