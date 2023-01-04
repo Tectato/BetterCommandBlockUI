@@ -165,13 +165,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         suggestor.render(matrices, mouseX, mouseY);
     }
 
-    private int getY() {
-        return y;
-    }
-    private int getX() {
-        return x;
-    }
-
     private void drawColoredLine(MatrixStack matrices, String content, int x, int y, int lineIndex){
         TextRenderer textRenderer = accessor.getTextRenderer();
         int renderOffset = 0;
@@ -812,6 +805,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     private double clamp(double i, double min, double max){
         return Math.max(Math.min(i,max),min);
     }
+
+    public int getX(){return this.x;}
+
+    public int getY(){return this.y;}
 
     private void printStackTrace(){
         try{

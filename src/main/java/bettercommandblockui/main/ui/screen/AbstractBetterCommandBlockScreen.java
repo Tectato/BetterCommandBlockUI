@@ -10,16 +10,17 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.CommandSuggestor;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.CommandBlockExecutor;
 import org.lwjgl.glfw.GLFW;
@@ -27,9 +28,9 @@ import org.lwjgl.glfw.GLFW;
 import static bettercommandblockui.main.BetterCommandBlockUI.*;
 
 public abstract class AbstractBetterCommandBlockScreen extends Screen {
-    protected static final Text SET_COMMAND_TEXT = Text.translatable("advMode.setCommand");
-    protected static final Text COMMAND_TEXT = Text.translatable("advMode.command");
-    protected static final Text PREVIOUS_OUTPUT_TEXT = Text.translatable("advMode.previousOutput");
+    protected static final Text SET_COMMAND_TEXT = new TranslatableText("advMode.setCommand");
+    protected static final Text COMMAND_TEXT = new TranslatableText("advMode.command");
+    protected static final Text PREVIOUS_OUTPUT_TEXT = new TranslatableText("advMode.previousOutput");
 
     protected TextFieldWidget consoleCommandTextField;
     protected TextFieldWidget previousOutputTextField;
@@ -44,8 +45,8 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     protected CommandBlockExecutor commandExecutor;
     protected CommandSuggestor commandSuggestor;
-    protected boolean trackOutput = true;
     protected boolean showOutput = false;
+    protected boolean trackOutput = true;
     protected boolean showSideWindow = false;
 
     protected static int buttonHeight = 20;
@@ -115,7 +116,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                 Text.of("Tools"))
         );
 
-        this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, (Text)Text.translatable("advMode.command"), this){
+        this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, new TranslatableText("advMode.command"), this){
             @Override
             protected MutableText getNarrationMessage() {
                 return super.getNarrationMessage().append(commandSuggestor.getNarration());
@@ -132,7 +133,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.addSelectableChild(this.consoleCommandTextField);
         this.setInitialFocus(this.consoleCommandTextField);
         this.consoleCommandTextField.setTextFieldFocused(true);
-        this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, Text.translatable("advMode.previousOutput"), this);
+        this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, new TranslatableText("advMode.previousOutput"), this);
         this.previousOutputTextField.setMaxLength(32500);
         this.previousOutputTextField.setEditable(false);
         this.previousOutputTextField.setVisible(false);
