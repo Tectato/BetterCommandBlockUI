@@ -50,19 +50,19 @@ public class ScrollbarWidget extends ClickableWidget {
             RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-            drawTexture(matrices, this.x, this.y, 0, 0, this.width / 2, this.height, 256, 30);
-            drawTexture(matrices, this.x + this.width / 2, this.y, 256 - this.width / 2, 0, this.width / 2, this.height, 256, 30);
+            drawTexture(matrices, this.getX(), this.getY(), 0, 0, this.width / 2, this.height, 256, 30);
+            drawTexture(matrices, this.getX() + this.width / 2, this.getY(), 256 - this.width / 2, 0, this.width / 2, this.height, 256, 30);
         } else {
             RenderSystem.setShaderTexture(0, SCROLLBAR_VERTICAL);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-            drawTexture(matrices, this.x, this.y, 0, 0, this.width, this.height / 2, 30 , 256);
-            drawTexture(matrices, this.x, this.y + height / 2, 0, 256 - this.height / 2, this.width, this.height / 2, 30 , 256);
+            drawTexture(matrices, this.getX(), this.getY(), 0, 0, this.width, this.height / 2, 30 , 256);
+            drawTexture(matrices, this.getX(), this.getY() + height / 2, 0, 256 - this.height / 2, this.width, this.height / 2, 30 , 256);
         }
     }
 
     private void renderSlider(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -72,13 +72,13 @@ public class ScrollbarWidget extends ClickableWidget {
         if(horizontal){
             RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
 
-            drawTexture(matrices, this.x + (int)(pos * (length - barLength)), this.y, 0, 10 + i * 10, barLength / 2, this.height, 256, 30);
-            drawTexture(matrices, this.x + (int)(pos * (length - barLength)) +  barLength / 2, this.y, 256 - barLength / 2, 10 + i * 10, barLength / 2, this.height, 256, 30);
+            drawTexture(matrices, this.getX() + (int)(pos * (length - barLength)), this.getY(), 0, 10 + i * 10, barLength / 2, this.height, 256, 30);
+            drawTexture(matrices, this.getX() + (int)(pos * (length - barLength)) +  barLength / 2, this.getY(), 256 - barLength / 2, 10 + i * 10, barLength / 2, this.height, 256, 30);
         } else {
             RenderSystem.setShaderTexture(0, SCROLLBAR_VERTICAL);
 
-            drawTexture(matrices, this.x, this.y + (int)(pos * (length - barLength)), 10 + i * 10, 0, this.width, barLength / 2, 30, 256);
-            drawTexture(matrices, this.x, this.y + (int)(pos * (length - barLength)) +  barLength / 2, 10 + i * 10, 256 - barLength / 2, this.width, barLength / 2, 30, 256);
+            drawTexture(matrices, this.getX(), this.getY() + (int)(pos * (length - barLength)), 10 + i * 10, 0, this.width, barLength / 2, 30, 256);
+            drawTexture(matrices, this.getX(), this.getY() + (int)(pos * (length - barLength)) +  barLength / 2, 10 + i * 10, 256 - barLength / 2, this.width, barLength / 2, 30, 256);
         }
     }
 
@@ -93,9 +93,9 @@ public class ScrollbarWidget extends ClickableWidget {
     private boolean checkHovered(double mouseX, double mouseY){
         int barLength = (int) ((double)length / scale);
         if(horizontal){
-            return mouseX >= this.x + pos * (length-barLength) && mouseY >= this.y && mouseX < this.x + pos * (length-barLength) + barLength && mouseY < this.y + this.height;
+            return mouseX >= this.getX() + pos * (length-barLength) && mouseY >= this.getY() && mouseX < this.getX() + pos * (length-barLength) + barLength && mouseY < this.getY() + this.height;
         } else {
-            return mouseX >= this.x && mouseY >= this.y + pos * (length-barLength) && mouseX < this.x + this.width && mouseY < this.y + pos * (length-barLength) + barLength;
+            return mouseX >= this.getX() && mouseY >= this.getY() + pos * (length-barLength) && mouseX < this.getX() + this.width && mouseY < this.getY() + pos * (length-barLength) + barLength;
         }
     }
 
@@ -184,7 +184,7 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public void appendNarrations(NarrationMessageBuilder builder) {
+    public void appendClickableNarrations(NarrationMessageBuilder builder) {
 
     }
 }

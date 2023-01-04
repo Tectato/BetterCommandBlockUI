@@ -63,8 +63,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         if (accessor.invokeDrawsBackground()) {
             color = this.isFocused() ? -1 : -6250336;
-            TextFieldWidget.fill(matrices, this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, color);
-            TextFieldWidget.fill(matrices, this.x, this.y, this.x + this.width, this.y + this.height, -16777216);
+            TextFieldWidget.fill(matrices, this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
+            TextFieldWidget.fill(matrices, this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, -16777216);
         }
 
         color = accessor.getEditable() ? accessor.getEditableColor() : accessor.getUneditableColor();
@@ -80,11 +80,11 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     line = line.substring(horizontalOffset);
                     line = accessor.getTextRenderer().trimToWidth(line, this.getInnerWidth());
 
-                    this.drawColoredLine(matrices, line, this.x + 5, this.y + 10 * (i - scrolledLines) + 5, i);
+                    this.drawColoredLine(matrices, line, this.getX() + 5, this.getY() + 10 * (i - scrolledLines) + 5, i);
                 }
             }
         } else {
-            this.drawRawText(matrices, accessor.getText(), this.x + 5, this.y + 5, color);
+            this.drawRawText(matrices, accessor.getText(), this.getX() + 5, this.getY() + 5, color);
         }
 
         scrollX.render(matrices, mouseX, mouseY, delta);
@@ -124,9 +124,9 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
         for (int i = firstSelectedLine; i <= lastSelectedLine; i++) {
             if(i < scrolledLines || i >= scrolledLines+visibleLines) continue;
-            int x1 = this.x + 5;
+            int x1 = this.getX() + 5;
             int x2 = x1;
-            int y = this.y + 10 * (i - scrolledLines) + 5;
+            int y = this.getY() + 10 * (i - scrolledLines) + 5;
 
             String visibleLine = lines.get(i).substring(Math.min(horizontalOffset,lines.get(i).length()));
             if (i == firstSelectedLine) {
@@ -212,13 +212,16 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     private int pointToIndex(double x, double y){
         if(lines.size() > 0) {
             TextRenderer textRenderer = accessor.getTextRenderer();
-            int lineIndex = (int) Math.floor((y - (this.y + 5)) / 10) + scrolledLines;
+            int lineIndex = (int) Math.floor((y - (this.getY() + 5)) / 10) + scrolledLines;
             lineIndex = Math.max(Math.min(lineIndex, lines.size() - 1), 0);
             String line = lines.get(lineIndex);
-            String visibleLine = line.substring(Math.min(horizontalOffset, line.length() - 1));
-            String trimmedLine = textRenderer.trimToWidth(visibleLine, (int) (x - (this.x + 5)));
-            boolean characterClicked = trimmedLine.length() < visibleLine.length();
-            int offset = /*(characterClicked ? 1 : 0) +*/ horizontalOffset + trimmedLine.length() - lineOffsets.get(lineIndex);
+            int offset = 0;
+            if(line.length() > 0) {
+                String visibleLine = line.substring(Math.min(horizontalOffset, line.length() - 1));
+                String trimmedLine = textRenderer.trimToWidth(visibleLine, (int) (x - (this.getX() + 5)));
+                boolean characterClicked = trimmedLine.length() < visibleLine.length();
+                offset = /*(characterClicked ? 1 : 0) +*/ horizontalOffset + trimmedLine.length() - lineOffsets.get(lineIndex);
+            }
 
             return textOffsets.get(lineIndex) + Math.max(offset, 0);
         }
@@ -241,11 +244,11 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         Pair<Integer,Integer> output = indexToLineAndOffset(index);
         int x,y;
         try {
-            x = this.x + 5 + accessor.getTextRenderer().getWidth(lines.get(output.getLeft()).substring(horizontalOffset, output.getRight()));
+            x = this.getX() + 5 + accessor.getTextRenderer().getWidth(lines.get(output.getLeft()).substring(horizontalOffset, output.getRight()));
         } catch(Exception e){
             x = 0;
         }
-        y = this.y + 5 + 10 * (output.getLeft()-scrolledLines);
+        y = this.getY() + 5 + 10 * (output.getLeft()-scrolledLines);
         return new Pair<>(x,y);
     }
 
@@ -637,7 +640,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         scrollX.mouseClicked(mouseX, mouseY, button);
         scrollY.mouseClicked(mouseX, mouseY, button);
 
-        boolean bl = mouseX >= (double)this.x && mouseX < (double)(this.x + this.width) && mouseY >= (double)this.y && mouseY < (double)(this.y + this.height);
+        boolean bl = mouseX >= (double) this.getX() && mouseX < (double)(this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double)(this.getY() + this.height);
         if (accessor.getFocusUnlocked()) {
             this.setTextFieldFocused(bl);
         }

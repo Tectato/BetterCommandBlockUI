@@ -6,7 +6,7 @@ import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
 import bettercommandblockui.mixin.ScreenAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.screen.CommandSuggestor;
+import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -37,7 +37,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected CyclingTexturedButtonWidget<Boolean> showOutputButton;
 
     protected CommandBlockExecutor commandExecutor;
-    protected CommandSuggestor commandSuggestor;
+    protected ChatInputSuggestor commandSuggestor;
     protected boolean showOutput = false;
     protected boolean trackOutput = true;
 
@@ -59,14 +59,13 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     @Override
     public void init(){
         assert this.client != null;
-        this.client.keyboard.setRepeatEvents(true);
 
         int textBoxHeight = this.height - (2*screenMarginY + textHeight + textMargin + buttonHeight + 2*buttonMargin + sliderHeight);
         int textBoxWidth = this.width - (2*screenMarginX + 2*cycleButtonWidth + 2*buttonMargin);
 
         int lowerButtonWidth = Math.min((textBoxWidth/2) - buttonMargin/2, 160);
-        this.doneButton = this.addDrawableChild(new ButtonWidget(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight, ScreenTexts.DONE, button -> this.commitAndClose()));
-        this.cancelButton = this.addDrawableChild(new ButtonWidget(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight, ScreenTexts.CANCEL, button -> this.close()));
+        this.doneButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> this.commitAndClose()).dimensions(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
+        this.cancelButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.CANCEL, button -> this.close()).dimensions(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
 
         boolean bl = this.commandExecutor.isTrackingOutput();
 
