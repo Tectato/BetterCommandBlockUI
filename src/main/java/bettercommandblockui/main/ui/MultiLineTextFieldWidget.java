@@ -1,6 +1,7 @@
 package bettercommandblockui.main.ui;
 
-import bettercommandblockui.main.BetterCommandBlockScreen;
+import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
+import bettercommandblockui.main.ui.screen.BetterCommandBlockScreen;
 import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.mixin.TextFieldWidgetAccessor;
 import net.minecraft.SharedConstants;
@@ -22,7 +23,10 @@ import java.util.List;
 import java.util.Stack;
 
 public class MultiLineTextFieldWidget extends TextFieldWidget implements Element {
-    private BetterCommandBlockScreen screen;
+    private final int indentationFactor = BetterCommandBlockUI.INDENTATION_FACTOR;
+    private final int visibleChars = 20;
+
+    private AbstractBetterCommandBlockScreen screen;
     private ScrollbarWidget scrollX, scrollY;
     private List<String> lines;
     private List<Integer> lineOffsets, textOffsets;
@@ -32,14 +36,13 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     private int scrolledLines = 0;
     private int horizontalOffset = 0;
     private int maxLineWidth = 30;
-    private final int visibleChars = 20;
     private Pair<Integer, Integer> cursorPosPreference;
     private boolean LShiftPressed, RShiftPressed = false;
     private boolean hasCommandSuggestor = false;
     private MultiLineCommandSuggestor suggestor;
     private TextFieldWidgetAccessor accessor = (TextFieldWidgetAccessor)this;
 
-    public MultiLineTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, Text text, BetterCommandBlockScreen screen) {
+    public MultiLineTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, Text text, AbstractBetterCommandBlockScreen screen) {
         super(textRenderer, x, y, width, height, text);
         this.lines = new LinkedList<String>();
         this.lineOffsets = new LinkedList<Integer>();
@@ -544,12 +547,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
                             String previousLine = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
                             if (previousLine.length() > 0) {
-                                lines.add((" ".repeat(parenthesesDepth)) + previousLine);
-                                lineOffsets.add(parenthesesDepth);
+                                lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + previousLine);
+                                lineOffsets.add(parenthesesDepth*indentationFactor);
                                 textOffsets.add(linestart - currentPrefix.length());
                             }
-                            lines.add((" ".repeat(parenthesesDepth)) + String.valueOf(current));
-                            lineOffsets.add(parenthesesDepth);
+                            lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + String.valueOf(current));
+                            lineOffsets.add(parenthesesDepth*indentationFactor);
                             textOffsets.add(currentIndex);
                             parenthesesDepth++;
                             linestart = currentIndex + 1;
@@ -562,8 +565,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                                 currentColorListIndex++;
                             }
 
-                            lines.add((" ".repeat(parenthesesDepth)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart)));
-                            lineOffsets.add(parenthesesDepth);
+                            lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart)));
+                            lineOffsets.add(parenthesesDepth*indentationFactor);
                             textOffsets.add(linestart - currentPrefix.length());
                             parenthesesDepth = Math.max(parenthesesDepth - 1, 0);
                             linestart = currentIndex + 1;
@@ -581,8 +584,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                                 currentIndex = tempCurrentIndex - 1;
                             }
 
-                            lines.add((" ".repeat(parenthesesDepth)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
-                            lineOffsets.add(parenthesesDepth);
+                            lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
+                            lineOffsets.add(parenthesesDepth*indentationFactor);
                             textOffsets.add(linestart - currentPrefix.length());
                             linestart = currentIndex + 1;
                             currentPrefix = "";
@@ -603,8 +606,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             currentIndex++;
 
             if(currentIndex >= textArr.length){ //Print missing end parentheses
-                lines.add((" ".repeat(parenthesesDepth)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart)));
-                lineOffsets.add(parenthesesDepth);
+                lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart)));
+                lineOffsets.add(parenthesesDepth*indentationFactor);
                 textOffsets.add(linestart-currentPrefix.length());
             }
         }

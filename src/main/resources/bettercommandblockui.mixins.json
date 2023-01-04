@@ -16,7 +16,8 @@
     "ScreenAccessor",
     "CommandSuggestorAccessor",
     "SuggestionWindowAccessor",
-    "CommandBlockMixin"
+    "CommandBlockMixin",
+    "CommandBlockExecutorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

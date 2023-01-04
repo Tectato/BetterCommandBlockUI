@@ -1,6 +1,6 @@
 package bettercommandblockui.mixin;
 
-import bettercommandblockui.main.BetterCommandBlockScreen;
+import bettercommandblockui.main.ui.screen.BetterCommandBlockScreen;
 import net.minecraft.block.CommandBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
