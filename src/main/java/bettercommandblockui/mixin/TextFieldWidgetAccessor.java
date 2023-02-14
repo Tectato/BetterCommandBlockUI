@@ -7,6 +7,7 @@ import org.checkerframework.checker.units.qual.A;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
+import net.minecraft.client.util.math.MatrixStack;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -18,7 +19,7 @@ public interface TextFieldWidgetAccessor {
     boolean invokeDrawsBackground();
 
     @Invoker("drawSelectionHighlight")
-    void invokeDrawSelectionHighlight(int x1, int y1, int x2, int y2);
+    void invokeDrawSelectionHighlight(MatrixStack matrices, int x1, int y1, int x2, int y2);
 
     @Invoker("getMaxLength")
     int invokeGetMaxLength();

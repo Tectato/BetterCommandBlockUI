@@ -151,7 +151,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             } else {
                 x2 += this.getInnerWidth();
             }
-            accessor.invokeDrawSelectionHighlight(x1, y, x2, y + 10);
+            accessor.invokeDrawSelectionHighlight(matrices, x1, y, x2, y + 10);
         }
 
         matrices.translate(0.0, 0.0, 0.1);
