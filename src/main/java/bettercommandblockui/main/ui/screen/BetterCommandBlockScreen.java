@@ -135,7 +135,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         assert this.client != null;
         Objects.requireNonNull(this.client.getNetworkHandler()).sendPacket(
                 new UpdateCommandBlockC2SPacket(
-                        new BlockPos(commandExecutor.getPos()),
+                        BlockPos.ofFloored(commandExecutor.getPos()),
                         this.consoleCommandTextField.getText(),
                         this.mode,
                         this.trackOutput,

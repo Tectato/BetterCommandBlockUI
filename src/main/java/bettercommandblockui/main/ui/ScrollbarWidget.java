@@ -35,6 +35,11 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
+    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta){
+        render(matrices, mouseX, mouseY, delta);
+    }
+
+    @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         if (!this.visible) {
             return;

@@ -2,6 +2,7 @@ package bettercommandblockui.mixin;
 
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.OrderedText;
 import org.checkerframework.checker.units.qual.A;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,7 +19,7 @@ public interface TextFieldWidgetAccessor {
     boolean invokeDrawsBackground();
 
     @Invoker("drawSelectionHighlight")
-    void invokeDrawSelectionHighlight(int x1, int y1, int x2, int y2);
+    void invokeDrawSelectionHighlight(MatrixStack matrices, int x1, int y1, int x2, int y2);
 
     @Invoker("getMaxLength")
     int invokeGetMaxLength();

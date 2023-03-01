@@ -151,7 +151,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             } else {
                 x2 += this.getInnerWidth();
             }
-            accessor.invokeDrawSelectionHighlight(x1, y, x2, y + 10);
+            accessor.invokeDrawSelectionHighlight(matrices, x1, y, x2, y + 10);
         }
 
         matrices.translate(0.0, 0.0, 0.1);
@@ -642,7 +642,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
         boolean bl = mouseX >= (double) this.getX() && mouseX < (double)(this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double)(this.getY() + this.height);
         if (accessor.getFocusUnlocked()) {
-            this.setTextFieldFocused(bl);
+            this.setFocused(bl);
         }
         if(this.isFocused() && bl && button == 0) {
             this.setCursor(pointToIndex(mouseX, mouseY));
