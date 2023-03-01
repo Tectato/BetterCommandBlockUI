@@ -66,6 +66,7 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
 
     public void setIndex(int index){
         this.tooltipSupplier.setIndex(index);
+        this.setTooltip(tooltipSupplier.getTooltip());
     }
 
     @Override
