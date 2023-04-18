@@ -66,6 +66,7 @@ public class MultiLineCommandSuggestor extends ChatInputSuggestor {
         int cursor = Math.max(textField.getCursor(),1);
         try {
             SuggestionContext<CommandSource> suggestionContext = accessor.getParse().getContext().findSuggestionContext(cursor);
+            //System.out.println(suggestionContext.startPos);
             Pair<Integer, Integer> selectionPos = textField.getCharacterPos(suggestionContext.startPos);
             this.x = selectionPos.getLeft() - 1;
             this.y = selectionPos.getRight() + 9;

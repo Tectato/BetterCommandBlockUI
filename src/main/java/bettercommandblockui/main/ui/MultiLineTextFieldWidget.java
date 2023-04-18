@@ -220,7 +220,9 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 String visibleLine = line.substring(Math.min(horizontalOffset, line.length() - 1));
                 String trimmedLine = textRenderer.trimToWidth(visibleLine, (int) (x - (this.getX() + 5)));
                 boolean characterClicked = trimmedLine.length() < visibleLine.length();
+                boolean lineEndLeftOfWindow = horizontalOffset > line.length()-1;
                 offset = /*(characterClicked ? 1 : 0) +*/ horizontalOffset + trimmedLine.length() - lineOffsets.get(lineIndex);
+                //offset -= lineEndLeftOfWindow ? 1 : 0;
             }
 
             return textOffsets.get(lineIndex) + Math.max(offset, 0);
@@ -646,6 +648,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         if(this.isFocused() && bl && button == 0) {
             this.setCursor(pointToIndex(mouseX, mouseY));
+            cursorPosPreference = new Pair<>((int)mouseX, (int)mouseY);
             return true;
         }
         return false;
@@ -697,38 +700,68 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     private void moveCursorVertical(int delta){
-        TextRenderer textRenderer = accessor.getTextRenderer();
-        int lineIndex = Math.max(0,Math.min(lines.size()-1,cursorPosPreference.getLeft()+delta));
-        String prevLine = lines.get(cursorPosPreference.getLeft());
-        String newLine = lines.get(lineIndex);
-        String trimmedNewLine = textRenderer.trimToWidth(
-                newLine,
-                textRenderer.getWidth(
-                        prevLine.substring(
-                                0,
-                                Math.max(0,
-                                    Math.min(
-                                            prevLine.length()-1,
-                                            cursorPosPreference.getRight()
-                                    )
-                                )
-                        )
-                )
-        );
-        int offset = trimmedNewLine.length()-1;
+        Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPosWithOffset(0));
+        int yPreference = getY() + 5 + (lineAndOffset.getLeft() - scrolledLines) * 10;
+        cursorPosPreference.setRight(yPreference + delta * 10);
+        int index = pointToIndex(cursorPosPreference.getLeft(), cursorPosPreference.getRight());
+        setCursor(index);
 
-        cursorPosPreference.setLeft(lineIndex);
-        setCursor(textOffsets.get(lineIndex)+offset);
+        updateScrollPositions();
     }
 
     @Override
     public void moveCursor(int offset) {
+        TextRenderer textRenderer = accessor.getTextRenderer();
         this.setCursor(accessor.invokeGetCursorPosWithOffset(offset));
-        cursorPosPreference = indexToLineAndOffset(accessor.invokeGetCursorPosWithOffset(0));
+        Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPosWithOffset(0));
+        String line = lines.get(lineAndOffset.getLeft());
+        int xPreference = getX() + textRenderer.getWidth(line.substring(0,Math.min(line.length()-1,lineAndOffset.getRight())));
+        cursorPosPreference = new Pair<>(xPreference, this.getY() + 10 * (lineAndOffset.getLeft() - scrolledLines));
+
+        updateScrollPositions();
+    }
+
+    private void updateScrollPositions(){
+        TextRenderer textRenderer = accessor.getTextRenderer();
+
+        Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPosWithOffset(0));
+        String line = lines.get(lineAndOffset.getLeft());
+        int maxIndex = line.length()-1;
+        boolean lineEndLeftOfWindow = horizontalOffset > lineAndOffset.getRight();
+        int xPos;
+        if(lineEndLeftOfWindow){
+            int extension = 1 + horizontalOffset - lineAndOffset.getRight();
+            line += "_".repeat(extension);
+            maxIndex += extension;
+            xPos = textRenderer.getWidth(line.substring(clamp(lineAndOffset.getRight(), 0, maxIndex), clamp(horizontalOffset, 0, maxIndex))) * -1;
+        } else {
+            xPos = textRenderer.getWidth(line.substring(clamp(horizontalOffset, 0, maxIndex), clamp(lineAndOffset.getRight(), 0, maxIndex)));
+        }
+
+        int textWidth = getWidth() - 8;
+        if(xPos <= 0){
+            //Not exact, but I won't go 1 character at a time and check if it's far enough
+            horizontalOffset = clamp(horizontalOffset + xPos/5, 0, maxLineWidth-20);
+            scrollX.updatePos((double)horizontalOffset / (maxLineWidth-20));
+        } else if (xPos >= textWidth){
+            horizontalOffset = clamp(horizontalOffset + (xPos-textWidth)/5, 0, maxLineWidth-20);
+            scrollX.updatePos((double)horizontalOffset / (maxLineWidth-20));
+        }
+
+
+        int lineIndex = lineAndOffset.getLeft();
+        if(lineIndex < scrolledLines){
+            scrolledLines = clamp(scrolledLines - (scrolledLines - lineIndex), 0, lines.size()-visibleLines);
+            scrollY.updatePos((double)scrolledLines / (lines.size() - visibleLines));
+        } else if(lineIndex >= scrolledLines + visibleLines){
+            scrolledLines = clamp(scrolledLines + 1 + ((lineIndex - scrolledLines) - visibleLines), 0, lines.size()-visibleLines);
+            scrollY.updatePos((double)scrolledLines / (lines.size() - visibleLines));
+        }
     }
 
     @Override
     public void setCursor(int cursor) {
+        //System.out.println(cursor);
         this.setSelectionStart(cursor);
         if (!accessor.getSelecting()) {
             this.setSelectionEnd(accessor.getSelectionStart());
