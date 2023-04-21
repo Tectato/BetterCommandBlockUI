@@ -4,6 +4,8 @@ import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import bettercommandblockui.main.ui.screen.BetterCommandBlockScreen;
 import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.mixin.TextFieldWidgetAccessor;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -122,6 +124,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
         matrices.translate(0.0,0.0,0.1);
 
+        RenderSystem.enableColorLogicOp();
+        RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
         for (int i = firstSelectedLine; i <= lastSelectedLine; i++) {
             if(i < scrolledLines || i >= scrolledLines+visibleLines) continue;
             int x1 = this.getX() + 5;
@@ -136,6 +140,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     if (renderVerticalCursor) {
                         DrawableHelper.fill(matrices, x1, y - 1, x1 + 1, y + 1 + accessor.getTextRenderer().fontHeight, -3092272);
                     } else {
+                        RenderSystem.disableColorLogicOp();
                         accessor.getTextRenderer().drawWithShadow(matrices, "_", (float)x1, (float)y, -3092272);
                     }
                 }
@@ -153,6 +158,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             }
             accessor.invokeDrawSelectionHighlight(matrices, x1, y, x2, y + 10);
         }
+        RenderSystem.disableColorLogicOp();
 
         matrices.translate(0.0, 0.0, 0.1);
         suggestor.render(matrices, mouseX, mouseY);
@@ -217,12 +223,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             String line = lines.get(lineIndex);
             int offset = 0;
             if(line.length() > 0) {
-                String visibleLine = line.substring(Math.min(horizontalOffset, line.length() - 1));
+                String visibleLine = line.substring(Math.min(horizontalOffset, line.length()));
                 String trimmedLine = textRenderer.trimToWidth(visibleLine, (int) (x - (this.getX() + 5)));
                 boolean characterClicked = trimmedLine.length() < visibleLine.length();
                 boolean lineEndLeftOfWindow = horizontalOffset > line.length()-1;
-                offset = /*(characterClicked ? 1 : 0) +*/ horizontalOffset + trimmedLine.length() - lineOffsets.get(lineIndex);
-                //offset -= lineEndLeftOfWindow ? 1 : 0;
+                int lineOffset = lineOffsets.get(lineIndex);
+                offset = Math.min(horizontalOffset + trimmedLine.length() - lineOffset, (line.length() - lineOffset));
             }
 
             return textOffsets.get(lineIndex) + Math.max(offset, 0);
@@ -278,6 +284,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         this.setSelectionStart(i + l);
         this.setSelectionEnd(accessor.getSelectionStart());
         this.onChanged(accessor.getText(), true);
+        this.updateScrollPositions();
     }
 
     private void erase(int offset) {
@@ -287,6 +294,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             this.eraseCharacters(offset);
         }
         this.onChanged(accessor.getText(), true);
+        this.updateScrollPositions();
     }
 
     @Override
@@ -639,6 +647,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isVisible()) {
             return false;
         }
+
         scrollX.mouseClicked(mouseX, mouseY, button);
         scrollY.mouseClicked(mouseX, mouseY, button);
 
@@ -659,7 +668,9 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isVisible()) {
             return false;
         }
-        screen.scroll(amount);
+        if(screen.scroll(amount)){
+            return true;
+        }
         if(LShiftPressed || RShiftPressed){
             horizontalOffset = clamp(horizontalOffset-(int)amount*BetterCommandBlockUI.SCROLL_STEP_X, 0, maxLineWidth-20);
             scrollX.updatePos((double)horizontalOffset / (maxLineWidth-20));
@@ -739,9 +750,9 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
 
         int textWidth = getWidth() - 8;
-        if(xPos <= 0){
+        if(xPos <= 5){
             //Not exact, but I won't go 1 character at a time and check if it's far enough
-            horizontalOffset = clamp(horizontalOffset + xPos/5, 0, maxLineWidth-20);
+            horizontalOffset = clamp(horizontalOffset + (xPos-10)/5, 0, maxLineWidth-20);
             scrollX.updatePos((double)horizontalOffset / (maxLineWidth-20));
         } else if (xPos >= textWidth){
             horizontalOffset = clamp(horizontalOffset + (xPos-textWidth)/5, 0, maxLineWidth-20);

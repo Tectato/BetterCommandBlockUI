@@ -133,8 +133,16 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         setButtonsActive(true);
     }
 
-    public void scroll(double amount){
-        commandSuggestor.mouseScrolled(MathHelper.clamp(amount, -1.0, 1.0));
+    public boolean scroll(double amount){
+        return commandSuggestor.mouseScrolled(MathHelper.clamp(amount, -1.0, 1.0));
+    }
+
+    public boolean mouseClicked(double mouseX, double mouseY, int button){
+        boolean clicked = commandSuggestor.mouseClicked(mouseX, mouseY, button);
+        if(!clicked){
+            consoleCommandTextField.mouseClicked(mouseX,mouseY,button);
+        }
+        return super.mouseClicked(mouseX,mouseY,button);
     }
 
     @Override
