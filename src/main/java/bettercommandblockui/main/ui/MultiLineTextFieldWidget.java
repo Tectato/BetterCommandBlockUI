@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Stack;
 
 public class MultiLineTextFieldWidget extends TextFieldWidget implements Element {
-    private final int indentationFactor = BetterCommandBlockUI.INDENTATION_FACTOR;
     private final int visibleChars = 20;
+    private int indentationFactor = BetterCommandBlockUI.INDENTATION_FACTOR;
 
     private AbstractBetterCommandBlockScreen screen;
     private ScrollbarWidget scrollX, scrollY;
@@ -228,7 +228,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 boolean characterClicked = trimmedLine.length() < visibleLine.length();
                 boolean lineEndLeftOfWindow = horizontalOffset > line.length()-1;
                 int lineOffset = lineOffsets.get(lineIndex);
+                boolean offsetClicked = trimmedLine.length() < (lineOffset-horizontalOffset);
                 offset = Math.min(horizontalOffset + trimmedLine.length() - lineOffset, (line.length() - lineOffset));
+                offset = Math.max(offset, 0);
+                offset += offsetClicked ? 1 : 0;
             }
 
             return textOffsets.get(lineIndex) + Math.max(offset, 0);
@@ -372,6 +375,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             case 263: {
                 if (Screen.hasControlDown()) {
                     this.setCursor(this.getWordSkipPosition(-1));
+                    updateScrollPositions();
                 } else {
                     this.moveCursor(-1);
                 }
@@ -388,6 +392,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             case 262: {
                 if (Screen.hasControlDown()) {
                     this.setCursor(this.getWordSkipPosition(1));
+                    updateScrollPositions();
                 } else {
                     this.moveCursor(1);
                 }
@@ -411,10 +416,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             }
             case 268: {
                 this.setCursorToStart();
+                updateScrollPositions();
                 return true;
             }
             case 269: {
                 this.setCursorToEnd();
+                updateScrollPositions();
                 return true;
             }
         }
@@ -462,6 +469,11 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         this.setText(text);
     }
 
+    public void refreshFormatting(){
+        indentationFactor = BetterCommandBlockUI.INDENTATION_FACTOR;
+        setRawText(getText());
+    }
+
     private void onChanged(String newText, boolean formatText) {
         if (accessor.getChangedListener() != null) {
             accessor.getChangedListener().accept(newText);
@@ -493,6 +505,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     private void formatText(String text) {
+        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
         textColors = new LinkedList<>();
         List<Pair<Integer,Integer>> colorIndices = suggestor.getColors(text, 0);
         Stack<Integer> colorStack = new Stack<>();
@@ -509,14 +522,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         boolean metaString = false;
         boolean escapeChar = false;
 
-        // Commented out code adds line breaks after every color change as well
-//        int colorIndex = 1;
-//        int colorStart = 0;
-//        if(colorIndex >= textColors.size()){
-//            colorStart = Integer.MAX_VALUE;
-//        } else {
-//            colorStart = textColors.get(colorIndex).getRight();
-//        }
         char current;
         String currentPrefix = "";
         while(currentIndex < textArr.length){
@@ -524,98 +529,87 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 colorStack.push(colorIndices.get(currentColorListIndex).getLeft());
                 currentColorListIndex++;
             }
-            current = textArr[currentIndex];
-//            if(currentIndex >= colorStart-1){
-//                colorIndex++;
-//                if(colorIndex >= textColors.size()){
-//                    colorStart = Integer.MAX_VALUE;
-//                } else {
-//                    Pair<Style,Integer> color = textColors.get(colorIndex);
-//                    if(color.getLeft().getColor().getName().equals("gray")) colorIndex++;
-//                    colorStart = colorIndex<textColors.size()?textColors.get(colorIndex).getRight():Integer.MAX_VALUE;
-//                }
-//                lines.add((" ".repeat(parenthesesDepth)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
-//                lineOffsets.add(parenthesesDepth);
-//                textOffsets.add(linestart - currentPrefix.length());
-//                linestart = currentIndex + 1;
-//                currentPrefix = "";
-//            } else {
-                if(!metaString) {
-                    switch (current) {
-                        case '"':
-                            if(!escapeChar){
-                                metaString = true;
-                            }
-                            break;
-                        case '{':
-                        case '[':
-                            if (currentColorListIndex > 0) {
-                                currentHighlightColor = colorIndices.get(currentColorListIndex - 1).getLeft();
-                                colorStack.push(currentHighlightColor);
-                                if (currentHighlightColor != 0) {
-                                    colorIndices.add(currentColorListIndex, new Pair<>(getHighlightColorIndex(currentHighlightColor + 1), currentIndex));
-                                    currentColorListIndex++;
-                                }
-                            }
 
-                            String previousLine = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
-                            if (previousLine.length() > 0) {
-                                lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + previousLine);
-                                lineOffsets.add(parenthesesDepth*indentationFactor);
-                                textOffsets.add(linestart - currentPrefix.length());
-                            }
-                            lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + String.valueOf(current));
-                            lineOffsets.add(parenthesesDepth*indentationFactor);
-                            textOffsets.add(currentIndex);
-                            parenthesesDepth++;
-                            linestart = currentIndex + 1;
-                            currentPrefix = "";
-                            break;
-                        case '}':
-                        case ']':
-                            if (colorIndices.get(currentColorListIndex - 1).getLeft() != 0) {
-                                colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), currentIndex + 1));
+            current = textArr[currentIndex];
+            if(!metaString) {
+                switch (current) {
+                    case '"':
+                        if(!escapeChar){
+                            metaString = true;
+                        }
+                        break;
+                    case '{':
+                    case '[':
+                        if (currentColorListIndex > 0) {
+                            currentHighlightColor = colorIndices.get(currentColorListIndex - 1).getLeft();
+                            colorStack.push(currentHighlightColor);
+                            if (currentHighlightColor != 0) {
+                                colorIndices.add(currentColorListIndex, new Pair<>(getHighlightColorIndex(currentHighlightColor + 1), currentIndex));
                                 currentColorListIndex++;
                             }
+                        }
 
-                            lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart)));
+                        String previousLine = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
+                        if (previousLine.length() > 0) {
+                            lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + previousLine);
                             lineOffsets.add(parenthesesDepth*indentationFactor);
                             textOffsets.add(linestart - currentPrefix.length());
-                            parenthesesDepth = Math.max(parenthesesDepth - 1, 0);
-                            linestart = currentIndex + 1;
-                            currentPrefix = String.valueOf(current);
-                            break;
-                        case ',':
-                            // Check for following spaces, makes for consistent indentation
-                            int tempCurrentIndex = currentIndex + 1;
-                            if (tempCurrentIndex < textArr.length) {
-                                char tempCurrent = textArr[tempCurrentIndex];
-                                while (tempCurrentIndex < textArr.length - 1 && tempCurrent == ' ') {
-                                    ++tempCurrentIndex;
-                                    tempCurrent = textArr[tempCurrentIndex];
-                                }
-                                currentIndex = tempCurrentIndex - 1;
+                        }
+                        lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + current);
+                        lineOffsets.add(parenthesesDepth*indentationFactor);
+                        textOffsets.add(currentIndex);
+                        parenthesesDepth++;
+                        linestart = currentIndex + 1;
+                        currentPrefix = "";
+                        break;
+                    case '}':
+                    case ']':
+                        if (colorIndices.get(currentColorListIndex - 1).getLeft() != 0) {
+                            colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), currentIndex + 1));
+                            currentColorListIndex++;
+                        }
+
+                        String offset = " ".repeat(parenthesesDepth*indentationFactor);
+                        String line = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
+                        if(line.length() > 0){
+                            lines.add(offset + line);
+                            lineOffsets.add(parenthesesDepth*indentationFactor);
+                            textOffsets.add(linestart - currentPrefix.length());
+                        }
+                        parenthesesDepth = Math.max(parenthesesDepth - 1, 0);
+                        linestart = currentIndex + 1;
+                        currentPrefix = String.valueOf(current);
+                        break;
+                    case ',':
+                        // Check for following spaces, makes for consistent indentation
+                        int tempCurrentIndex = currentIndex + 1;
+                        if (tempCurrentIndex < textArr.length) {
+                            char tempCurrent = textArr[tempCurrentIndex];
+                            while (tempCurrentIndex < textArr.length - 1 && tempCurrent == ' ') {
+                                ++tempCurrentIndex;
+                                tempCurrent = textArr[tempCurrentIndex];
                             }
+                            currentIndex = tempCurrentIndex - 1;
+                        }
 
-                            lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
-                            lineOffsets.add(parenthesesDepth*indentationFactor);
-                            textOffsets.add(linestart - currentPrefix.length());
-                            linestart = currentIndex + 1;
-                            currentPrefix = "";
-                            break;
+                        lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
+                        lineOffsets.add(parenthesesDepth*indentationFactor);
+                        textOffsets.add(linestart - currentPrefix.length());
+                        linestart = currentIndex + 1;
+                        currentPrefix = "";
+                        break;
+                }
+            } else {
+                if(!escapeChar) {
+                    if (current == '"') {
+                        metaString = false;
+                    } else if (current == '\\'){
+                        escapeChar = true;
                     }
                 } else {
-                    if(!escapeChar) {
-                        if (current == '"') {
-                            metaString = false;
-                        } else if (current == '\\'){
-                            escapeChar = true;
-                        }
-                    } else {
-                        escapeChar = false;
-                    }
+                    escapeChar = false;
                 }
-            //}
+            }
             currentIndex++;
 
             if(currentIndex >= textArr.length){ //Print missing end parentheses
@@ -623,6 +617,17 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 lineOffsets.add(parenthesesDepth*indentationFactor);
                 textOffsets.add(linestart-currentPrefix.length());
             }
+
+            /*String currentLine = (" ".repeat(parenthesesDepth * indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
+            //Wraparound
+            if(textRenderer.getWidth(currentPrefix) > getWidth() - 10) {
+                System.out.println(currentLine);
+                lines.add(currentLine);
+                lineOffsets.add(parenthesesDepth * indentationFactor);
+                textOffsets.add(linestart - currentPrefix.length());
+                linestart = currentIndex + 1;
+                currentPrefix = "";
+            }*/
         }
 
         for(Pair<Integer,Integer> p : colorIndices){

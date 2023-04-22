@@ -3,14 +3,17 @@ package bettercommandblockui.main.ui.screen;
 import bettercommandblockui.main.ui.CyclingTexturedButtonWidget;
 import bettercommandblockui.main.ui.MultiLineCommandSuggestor;
 import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
+import bettercommandblockui.main.ui.SideWindow;
 import bettercommandblockui.mixin.ScreenAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
+import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.ScreenTexts;
@@ -20,8 +23,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.CommandBlockExecutor;
 import org.lwjgl.glfw.GLFW;
 
-import static bettercommandblockui.main.BetterCommandBlockUI.BUTTON_OUTPUT;
-import static bettercommandblockui.main.BetterCommandBlockUI.BUTTON_TRACK_OUTPUT;
+import static bettercommandblockui.main.BetterCommandBlockUI.*;
 
 public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected static final Text SET_COMMAND_TEXT = Text.translatable("advMode.setCommand");
@@ -35,11 +37,15 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected ButtonWidget cancelButton;
     protected CyclingTexturedButtonWidget<Boolean> toggleTrackingOutputButton;
     protected CyclingTexturedButtonWidget<Boolean> showOutputButton;
+    protected TexturedButtonWidget showSideWindowButton;
+
+    protected SideWindow sideWindow;
 
     protected CommandBlockExecutor commandExecutor;
     protected ChatInputSuggestor commandSuggestor;
-    protected boolean showOutput = false;
     protected boolean trackOutput = true;
+    protected boolean showOutput = false;
+    protected boolean showSideWindow = false;
 
     protected static int buttonHeight = 20;
     protected static int sliderHeight = 10;
@@ -90,6 +96,26 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.previousOutputTextField.setVisible(showOutput);
         }, client.currentScreen, BUTTON_OUTPUT, 0, new Boolean[]{false, true}, outputTooltips));
 
+        this.showSideWindowButton = this.addDrawableChild(new TexturedButtonWidget(
+                this.width - (buttonMargin + cycleButtonWidth),
+                this.height - (buttonMargin + cycleButtonWidth),
+                cycleButtonWidth,
+                buttonHeight,
+                0,
+                20,
+                20,
+                BUTTON_SIDE_WINDOW,
+                20,
+                60,
+                (button) -> {
+                    this.showSideWindow = !this.showSideWindow;
+                    this.sideWindow.setVisible(this.showSideWindow);
+                },
+                Text.of("Tools"))
+        );
+        Tooltip showSideWindowTooltip = Tooltip.of(Text.of("Tools"));
+        this.showSideWindowButton.setTooltip(showSideWindowTooltip);
+
         this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, (Text)Text.translatable("advMode.command"), this){
             @Override
             protected MutableText getNarrationMessage() {
@@ -116,6 +142,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.setPreviousOutputText(bl);
 
         this.consoleCommandTextField.setText(commandExecutor.getCommand());
+
+        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, (this.height/8), this.width/4, 6*this.height/8, (MultiLineTextFieldWidget) consoleCommandTextField, this));
+        this.sideWindow.setVisible(this.showSideWindow);
     }
 
     @Override
@@ -138,9 +167,11 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     }
 
     public boolean mouseClicked(double mouseX, double mouseY, int button){
-        boolean clicked = commandSuggestor.mouseClicked(mouseX, mouseY, button);
-        if(!clicked){
-            consoleCommandTextField.mouseClicked(mouseX,mouseY,button);
+        if(showSideWindow && sideWindow.mouseClicked(mouseX, mouseY, button)) return true;
+        if(commandSuggestor.mouseClicked(mouseX, mouseY, button)) return true;
+        if(consoleCommandTextField.mouseClicked(mouseX,mouseY,button)) {
+            setFocused(consoleCommandTextField);
+            return true;
         }
         return super.mouseClicked(mouseX,mouseY,button);
     }
@@ -148,6 +179,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
         if(button == 0) {
+            if(showSideWindow && sideWindow.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) return true;
             if(showOutput){
                 return this.previousOutputTextField.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
             }
@@ -169,8 +201,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if(keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT){
-            if(showOutput){
+        if(showSideWindow && sideWindow.keyPressed(keyCode,scanCode,modifiers)) return true;
+        if(keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
+            if (showOutput) {
                 this.previousOutputTextField.keyPressed(keyCode, scanCode, modifiers);
             } else {
                 this.consoleCommandTextField.keyPressed(keyCode, scanCode, modifiers);
@@ -203,6 +236,8 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     @Override
     public boolean charTyped(char c, int modifiers){
+        if(showSideWindow && sideWindow.charTyped(c, modifiers)) return true;
+        if(showOutput) return false;
         return this.consoleCommandTextField.charTyped(c, modifiers);
     }
 

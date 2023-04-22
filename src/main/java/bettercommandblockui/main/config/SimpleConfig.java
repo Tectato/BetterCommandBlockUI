@@ -32,14 +32,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.util.*;
 
 public class SimpleConfig {
 
     private static final Logger LOGGER = LogManager.getLogger("SimpleConfig");
     private final HashMap<String, String> config = new HashMap<>();
     private final ConfigRequest request;
+    private Set<String> edited;
     private boolean broken = false;
 
     public interface DefaultConfig {
@@ -52,7 +52,7 @@ public class SimpleConfig {
 
     public static class ConfigRequest {
 
-        private final File file;
+        private File file;
         private final String filename;
         private DefaultConfig provider;
 
@@ -134,7 +134,38 @@ public class SimpleConfig {
         }
     }
 
+    private void writeConfig() throws IOException {
+        Scanner reader = new Scanner( request.file );
+        Path path = FabricLoader.getInstance().getConfigDir();
+
+        String newConfig = "";
+
+        for( int line = 0; reader.hasNextLine(); line ++ ) {
+            String entry = reader.nextLine();
+            if(!entry.isEmpty() && !entry.startsWith("#")){
+                String[] parts = entry.split("=", 2);
+                if( parts.length == 2 && edited.contains(parts[0])) {
+                    newConfig += (parts[0]+"="+config.get(parts[0])+"\n");
+                    edited.remove(parts[0]);
+                } else {
+                    newConfig += (entry) + "\n";
+                }
+            } else {
+                newConfig += (entry) + "\n";
+            }
+        }
+        reader.close();
+
+        request.file.delete();
+        request.file.getParentFile().mkdirs();
+        Files.createFile( request.file.toPath() );
+        PrintWriter writer = new PrintWriter(request.file, "UTF-8");
+        writer.write( newConfig );
+        writer.close();
+    }
+
     private SimpleConfig( ConfigRequest request ) {
+        this.edited = new HashSet<>();
         this.request = request;
         String identifier = "Config '" + request.filename + "'";
 
@@ -172,6 +203,20 @@ public class SimpleConfig {
     @Deprecated
     public String get( String key ) {
         return config.get( key );
+    }
+
+    public void set(String key, String value){
+        config.replace(key, value);
+        edited.add(key);
+    }
+
+    public void writeToFile(){
+        try {
+            writeConfig();
+        } catch (IOException e){
+            System.out.println("Could not write to config file!");
+            e.printStackTrace();
+        }
     }
 
     /**

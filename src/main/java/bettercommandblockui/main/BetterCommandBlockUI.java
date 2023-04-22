@@ -18,12 +18,21 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final Identifier BUTTON_TRACK_OUTPUT = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_track_output.png");
     public static final Identifier SCROLLBAR_HORIZONTAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_horizontal.png");
     public static final Identifier SCROLLBAR_VERTICAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_vertical.png");
+    public static final Identifier BUTTON_SIDE_WINDOW = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_side_window.png");
+    public static final Identifier BUTTON_COPY = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_copy.png");
+    public static final Identifier SLIDER = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider.png");
+    public static final Identifier SLIDER_NOTCH = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_notch.png");
+    public static final Identifier SLIDER_PICK = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_pick.png");
 
     private static SimpleConfig CONFIG = SimpleConfig.of("betterCommandBlockUI").provider(BetterCommandBlockUI::provider).request();
 
-    public static int SCROLL_STEP_X = CONFIG.getOrDefault("scroll_step_horizontal", 4);
-    public static int SCROLL_STEP_Y = CONFIG.getOrDefault("scroll_step_vertical", 2);
-    public static int INDENTATION_FACTOR = CONFIG.getOrDefault("indentation_spaces", 2);
+    public static final String VAR_SCROLL_X = "scroll_step_horizontal";
+    public static final String VAR_SCROLL_Y = "scroll_step_vertical";
+    public static final String VAR_INDENTATION = "indentation_spaces";
+
+    public static int SCROLL_STEP_X = CONFIG.getOrDefault(VAR_SCROLL_X, 4);
+    public static int SCROLL_STEP_Y = CONFIG.getOrDefault(VAR_SCROLL_Y, 2);
+    public static int INDENTATION_FACTOR = CONFIG.getOrDefault(VAR_INDENTATION, 2);
 
     private static KeyBinding areaSelectionInput;
 
@@ -43,6 +52,15 @@ public class BetterCommandBlockUI implements ClientModInitializer {
         });
 
         System.out.println("[BCBUI] Initialized.");
+    }
+
+    public static void setConfig(String key, String value){
+        CONFIG.set(key, value);
+        CONFIG.writeToFile();
+
+        if(key.equals(VAR_INDENTATION)) INDENTATION_FACTOR = CONFIG.getOrDefault(key, 2);
+        if(key.equals(VAR_SCROLL_X)) SCROLL_STEP_X = CONFIG.getOrDefault(key, 4);
+        if(key.equals(VAR_SCROLL_Y)) SCROLL_STEP_Y = CONFIG.getOrDefault(key, 2);
     }
 
     private static String provider(String filename){
