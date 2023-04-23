@@ -133,7 +133,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.consoleCommandTextField.setChangedListener(this::onCommandChanged);
         this.addSelectableChild(this.consoleCommandTextField);
         this.setInitialFocus(this.consoleCommandTextField);
-        this.consoleCommandTextField.setFocused(true);
+        this.consoleCommandTextField.setTextFieldFocused(true);
         this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, Text.translatable("advMode.previousOutput"), this);
         this.previousOutputTextField.setMaxLength(32500);
         this.previousOutputTextField.setEditable(false);
@@ -276,7 +276,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.renderBackground(matrices);
-        AbstractCommandBlockScreen.drawCenteredTextWithShadow(matrices, this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
+        AbstractCommandBlockScreen.drawCenteredTextWithShadow(matrices, this.textRenderer, SET_COMMAND_TEXT.asOrderedText(), this.width / 2, 20, 0xFFFFFF);
         if(showOutput){
             AbstractCommandBlockScreen.drawTextWithShadow(matrices, this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
             this.previousOutputTextField.render(matrices, mouseX, mouseY, delta);

@@ -11,7 +11,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
-import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -43,7 +42,6 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
     TextRenderer textRenderer;
 
     List<ClickableWidget> widgets;
-    List<Element> elements;
 
     public SideWindow(int x, int y, int width, int height, MultiLineTextFieldWidget commandField, Screen screen){
         this.x = x;
@@ -183,7 +181,7 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
 
         fill(matrices, x, y, x+width, y+height, 0xB0000000);
 
-        drawBorder(matrices, x-1, y-1, width+4, height+2, 0xFFFFFFFF);
+        //drawBorder(matrices, x-1, y-1, width+4, height+2, 0xFFFFFFFF);
 
         this.textRenderer.drawWithShadow(matrices, piFractionInputText, x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
         this.piFractionInput.render(matrices, mouseX, mouseY, delta);
@@ -203,24 +201,21 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
         this.formatStrings.render(matrices, mouseX, mouseY, delta);
     }
 
-    Widget addWidget(ClickableWidget widget){
+    private void drawBorder(MatrixStack matrices, int x, int y, int width, int height, int color){
+        fill(matrices, x, y, x, y+height, color);
+        fill(matrices, x, y, x+width, y, color);
+        fill(matrices, x, y+height, x+width, y+height, color);
+        fill(matrices, x+width, y, x+width, y+height, color);
+    }
+
+    ClickableWidget addWidget(ClickableWidget widget){
         widgets.add(widget);
         return widget;
     }
 
     public void setVisible(boolean value){
         this.visible = value;
-        this.piFractionInput.setFocused(value);
-    }
-
-    @Override
-    public void setFocused(boolean focused) {
-
-    }
-
-    @Override
-    public boolean isFocused() {
-        return false;
+        this.piFractionInput.setTextFieldFocused(value);
     }
 
     @Override

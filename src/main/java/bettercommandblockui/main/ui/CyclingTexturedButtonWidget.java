@@ -83,7 +83,7 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
         this.drawTexture(matrices, this.getX(), this.getY(), this.width, this.height, ((CyclingTooltipSupplier)this.tooltipSupplier).getCurrentIndex()*20, i*20, 20, 20, 20 * this.values.length, 60);
         //this.renderBackground(matrices, minecraftClient, mouseX, mouseY);
         int j = this.active ? 0xFFFFFF : 0xA0A0A0;
-        ClickableWidget.drawCenteredTextWithShadow(matrices, textRenderer, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0f) << 24);
+        ClickableWidget.drawCenteredTextWithShadow(matrices, textRenderer, this.getMessage().asOrderedText(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0f) << 24);
     }
 
     @Override
