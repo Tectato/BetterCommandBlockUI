@@ -48,12 +48,12 @@ public class CyclingTexturedButtonWidget<T> extends ButtonWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {/*
+    public void onClick(double mouseX, double mouseY) {
         if(mouseX > getX() && mouseX <= getX() + getWidth() && mouseY > getY() && mouseY <= getY() + getHeight()){
             ((CyclingTooltipSupplier)this.tooltipSupplier).incrementIndex();
             //this.setTooltip(tooltipSupplier.getTooltip());
             action.onPress(this);
-        }*/
+        }
     }
 
     public T getValue(){
