@@ -268,7 +268,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             commandExecutor.setLastOutput(null);
         }
         assert this.client != null;
-        this.client.setScreen(null);
+        close();
     }
 
     abstract protected void syncSettingsToServer(CommandBlockExecutor commandExecutor);
