@@ -11,7 +11,7 @@ import com.mojang.brigadier.context.SuggestionContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
+import net.minecraft.client.gui.screen.CommandSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class MultiLineCommandSuggestor extends ChatInputSuggestor {
+public class MultiLineCommandSuggestor extends CommandSuggestor {
     private static final List<Style> HIGHLIGHT_STYLES = Stream.of(Formatting.RED, Formatting.GRAY, Formatting.AQUA, Formatting.YELLOW, Formatting.GREEN, Formatting.LIGHT_PURPLE, Formatting.GOLD).map(Style.EMPTY::withColor).collect(ImmutableList.toImmutableList());
 
     private CommandSuggestorAccessor accessor;

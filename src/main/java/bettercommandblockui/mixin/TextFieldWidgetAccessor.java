@@ -19,7 +19,7 @@ public interface TextFieldWidgetAccessor {
     boolean invokeDrawsBackground();
 
     @Invoker("drawSelectionHighlight")
-    void invokeDrawSelectionHighlight(MatrixStack matrices, int x1, int y1, int x2, int y2);
+    void invokeDrawSelectionHighlight(int x1, int y1, int x2, int y2);
 
     @Invoker("getMaxLength")
     int invokeGetMaxLength();

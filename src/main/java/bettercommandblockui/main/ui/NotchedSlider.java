@@ -101,7 +101,7 @@ public class NotchedSlider extends ClickableWidget {
     }
 
     @Override
-    protected void appendClickableNarrations(NarrationMessageBuilder builder) {
+    public void appendNarrations(NarrationMessageBuilder builder) {
 
     }
 
@@ -193,5 +193,12 @@ public class NotchedSlider extends ClickableWidget {
 
     double snap(double x, double step){
         return Math.round(x / step)*step;
+    }
+
+    private int getX(){
+        return x;
+    }
+    private int getY(){
+        return y;
     }
 }

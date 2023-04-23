@@ -156,12 +156,19 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             } else {
                 x2 += this.getInnerWidth();
             }
-            accessor.invokeDrawSelectionHighlight(matrices, x1, y, x2, y + 10);
+            accessor.invokeDrawSelectionHighlight(x1, y, x2, y + 10);
         }
         RenderSystem.disableColorLogicOp();
 
         matrices.translate(0.0, 0.0, 0.1);
         suggestor.render(matrices, mouseX, mouseY);
+    }
+
+    private int getY() {
+        return y;
+    }
+    private int getX() {
+        return x;
     }
 
     private void drawColoredLine(MatrixStack matrices, String content, int x, int y, int lineIndex){

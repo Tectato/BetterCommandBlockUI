@@ -67,7 +67,7 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     private void renderSlider(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -189,7 +189,14 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public void appendClickableNarrations(NarrationMessageBuilder builder) {
+    public void appendNarrations(NarrationMessageBuilder builder) {
 
+    }
+
+    private int getX(){
+        return x;
+    }
+    private int getY(){
+        return y;
     }
 }

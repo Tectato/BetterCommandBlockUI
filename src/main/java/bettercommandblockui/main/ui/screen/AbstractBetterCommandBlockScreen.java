@@ -8,10 +8,9 @@ import bettercommandblockui.main.ui.SideWindow;
 import bettercommandblockui.mixin.ScreenAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
+import net.minecraft.client.gui.screen.CommandSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
-import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
@@ -19,6 +18,7 @@ import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.CommandBlockExecutor;
@@ -43,7 +43,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected SideWindow sideWindow;
 
     protected CommandBlockExecutor commandExecutor;
-    protected ChatInputSuggestor commandSuggestor;
+    protected CommandSuggestor commandSuggestor;
     protected boolean trackOutput = true;
     protected boolean showOutput = false;
     protected boolean showSideWindow = false;
@@ -71,8 +71,8 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         int textBoxWidth = this.width - (2*screenMarginX + 2*cycleButtonWidth + 2*buttonMargin);
 
         int lowerButtonWidth = Math.min((textBoxWidth/2) - buttonMargin/2, 160);
-        this.doneButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> this.commitAndClose()).dimensions(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
-        this.cancelButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.CANCEL, button -> this.close()).dimensions(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
+        this.doneButton = this.addDrawableChild(new ButtonWidget(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight, ScreenTexts.DONE, button -> this.commitAndClose()));
+        this.cancelButton = this.addDrawableChild(new ButtonWidget(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight, ScreenTexts.CANCEL, button -> this.close()));
 
         boolean bl = this.commandExecutor.isTrackingOutput();
 
@@ -114,8 +114,6 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                 },
                 Text.of("Tools"))
         );
-        Tooltip showSideWindowTooltip = Tooltip.of(Text.of("Tools"));
-        this.showSideWindowButton.setTooltip(showSideWindowTooltip);
 
         this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, (Text)Text.translatable("advMode.command"), this){
             @Override
@@ -133,7 +131,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.consoleCommandTextField.setChangedListener(this::onCommandChanged);
         this.addSelectableChild(this.consoleCommandTextField);
         this.setInitialFocus(this.consoleCommandTextField);
-        this.consoleCommandTextField.setFocused(true);
+        this.consoleCommandTextField.setTextFieldFocused(true);
         this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, Text.translatable("advMode.previousOutput"), this);
         this.previousOutputTextField.setMaxLength(32500);
         this.previousOutputTextField.setEditable(false);
@@ -268,7 +266,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             commandExecutor.setLastOutput(null);
         }
         assert this.client != null;
-        this.client.setScreen(null);
+        close();
     }
 
     abstract protected void syncSettingsToServer(CommandBlockExecutor commandExecutor);
@@ -276,7 +274,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.renderBackground(matrices);
-        AbstractCommandBlockScreen.drawCenteredTextWithShadow(matrices, this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
+        AbstractCommandBlockScreen.drawCenteredTextWithShadow(matrices, this.textRenderer, SET_COMMAND_TEXT.asOrderedText(), this.width / 2, 20, 0xFFFFFF);
         if(showOutput){
             AbstractCommandBlockScreen.drawTextWithShadow(matrices, this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
             this.previousOutputTextField.render(matrices, mouseX, mouseY, delta);

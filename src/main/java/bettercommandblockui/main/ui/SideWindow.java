@@ -11,7 +11,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
-import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -162,7 +161,7 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
                 (button)->{
                     BetterCommandBlockUI.setConfig(
                             BetterCommandBlockUI.VAR_FORMAT_STRINGS,
-                            String.valueOf(button.getValue())
+                            String.valueOf(((CyclingTexturedButtonWidget)button).getValue())
                     );
                     this.commandField.refreshFormatting();
                 },
@@ -178,23 +177,23 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         if(!visible) return;
-        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         fill(matrices, x, y, x+width, y+height, 0xB0000000);
 
-        drawBorder(matrices, x-1, y-1, width+4, height+2, 0xFFFFFFFF);
+        //drawBorder(matrices, x-1, y-1, width+4, height+2, 0xFFFFFFFF);
 
-        this.textRenderer.drawWithShadow(matrices, piFractionInputText, x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
+        this.textRenderer.drawWithShadow(matrices, piFractionInputText, x + leftMargin, piFractionInput.y, 0xFFFFFFFF);
         this.piFractionInput.render(matrices, mouseX, mouseY, delta);
         this.piSlider.render(matrices, mouseX, mouseY, delta);
         this.piCopyButton.render(matrices, mouseX, mouseY, delta);
 
-        this.textRenderer.drawWithShadow(matrices, indentationInputText, x + leftMargin, indentationInput.getY() - 12, 0xFFFFFFFF);
-        this.textRenderer.drawWithShadow(matrices, wraparoundInputText, x + leftMargin, wraparoundInput.getY() - 12, 0xFFFFFFFF);
-        this.textRenderer.drawWithShadow(matrices, scrollXInputText, x + leftMargin, scrollXInput.getY() - 12, 0xFFFFFFFF);
-        this.textRenderer.drawWithShadow(matrices, scrollYInputText, x + leftMargin, scrollYInput.getY() - 12, 0xFFFFFFFF);
-        this.textRenderer.drawWithShadow(matrices, formatStringsText, x + leftMargin, formatStrings.getY() - 12, 0xFFFFFFFF);
+        this.textRenderer.drawWithShadow(matrices, indentationInputText, x + leftMargin, indentationInput.y - 12, 0xFFFFFFFF);
+        this.textRenderer.drawWithShadow(matrices, wraparoundInputText, x + leftMargin, wraparoundInput.y - 12, 0xFFFFFFFF);
+        this.textRenderer.drawWithShadow(matrices, scrollXInputText, x + leftMargin, scrollXInput.y - 12, 0xFFFFFFFF);
+        this.textRenderer.drawWithShadow(matrices, scrollYInputText, x + leftMargin, scrollYInput.y - 12, 0xFFFFFFFF);
+        this.textRenderer.drawWithShadow(matrices, formatStringsText, x + leftMargin, formatStrings.y - 12, 0xFFFFFFFF);
 
         this.indentationInput.render(matrices, mouseX, mouseY, delta);
         this.wraparoundInput.render(matrices, mouseX, mouseY, delta);
@@ -203,24 +202,21 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
         this.formatStrings.render(matrices, mouseX, mouseY, delta);
     }
 
-    Widget addWidget(ClickableWidget widget){
+    private void drawBorder(MatrixStack matrices, int x, int y, int width, int height, int color){
+        fill(matrices, x, y, x, y+height, color);
+        fill(matrices, x, y, x+width, y, color);
+        fill(matrices, x, y+height, x+width, y+height, color);
+        fill(matrices, x+width, y, x+width, y+height, color);
+    }
+
+    ClickableWidget addWidget(ClickableWidget widget){
         widgets.add(widget);
         return widget;
     }
 
     public void setVisible(boolean value){
         this.visible = value;
-        this.piFractionInput.setFocused(value);
-    }
-
-    @Override
-    public void setFocused(boolean focused) {
-
-    }
-
-    @Override
-    public boolean isFocused() {
-        return false;
+        this.piFractionInput.setTextFieldFocused(value);
     }
 
     @Override
