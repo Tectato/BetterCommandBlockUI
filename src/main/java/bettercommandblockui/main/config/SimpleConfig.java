@@ -121,6 +121,7 @@ public class SimpleConfig {
         for( int line = 1; reader.hasNextLine(); line ++ ) {
             parseConfigEntry( reader.nextLine(), line );
         }
+        reader.close();
     }
 
     private void parseConfigEntry( String entry, int line ) {
@@ -136,11 +137,9 @@ public class SimpleConfig {
 
     private void writeConfig() throws IOException {
         Scanner reader = new Scanner( request.file );
-        Path path = FabricLoader.getInstance().getConfigDir();
-
         String newConfig = "";
 
-        for( int line = 0; reader.hasNextLine(); line ++ ) {
+        while(reader.hasNextLine()) {
             String entry = reader.nextLine();
             if(!entry.isEmpty() && !entry.startsWith("#")){
                 String[] parts = entry.split("=", 2);
@@ -215,6 +214,17 @@ public class SimpleConfig {
             writeConfig();
         } catch (IOException e){
             System.out.println("Could not write to config file!");
+            e.printStackTrace();
+        }
+    }
+
+    public void reconstructFile(){
+        edited.addAll(config.keySet());
+        try {
+            Files.deleteIfExists(request.file.toPath());
+            createConfig();
+            writeToFile();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

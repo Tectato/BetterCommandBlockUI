@@ -34,12 +34,16 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
     String indentationInputText = "Indentation: ";
     String scrollXInputText = "Scroll speed X: ";
     String scrollYInputText = "Scroll speed Y: ";
-    TextFieldWidget piFractionInput, indentationInput, scrollXInput, scrollYInput;
+    String wraparoundInputText = "Wraparound width: ";
+    String formatStringsText = "Format strings: ";
+    TextFieldWidget piFractionInput, indentationInput, scrollXInput, scrollYInput, wraparoundInput;
+    CyclingTexturedButtonWidget<Boolean> formatStrings;
     NotchedSlider piSlider;
     TexturedButtonWidget piCopyButton;
     TextRenderer textRenderer;
 
     List<ClickableWidget> widgets;
+    List<Element> elements;
 
     public SideWindow(int x, int y, int width, int height, MultiLineTextFieldWidget commandField, Screen screen){
         this.x = x;
@@ -93,7 +97,7 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
                 }
         ));
 
-        posY += 40;
+        posY += 30;
         this.indentationInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 60, 10, Text.of("")));
         this.indentationInput.setChangedListener((input)->{
             try {
@@ -105,6 +109,19 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
             }
         });
         this.indentationInput.setText(String.valueOf(BetterCommandBlockUI.INDENTATION_FACTOR));
+
+        posY += 30;
+        this.wraparoundInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 80, 10, Text.of("")));
+        this.wraparoundInput.setChangedListener((input)->{
+            try {
+                int inputInt = Math.min(Math.max(Integer.parseInt(input),10),1600);
+                BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_WRAPAROUND, String.valueOf(inputInt));
+                this.commandField.refreshFormatting();
+            } catch (NumberFormatException e){
+                BetterCommandBlockUI.WRAPAROUND_WIDTH = 200;
+            }
+        });
+        this.wraparoundInput.setText(String.valueOf(BetterCommandBlockUI.WRAPAROUND_WIDTH));
 
         posY += 30;
         this.scrollXInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 60, 10, Text.of("")));
@@ -129,6 +146,33 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
             }
         });
         this.scrollYInput.setText(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_Y));
+
+        posY += 30;
+        Text[] formatStringsTooltips = {
+            Text.of("Useful for nested Commands"),
+            Text.of("Useful for nested Commands")
+        };
+        this.formatStrings = (CyclingTexturedButtonWidget<Boolean>) addWidget(
+            new CyclingTexturedButtonWidget<>(
+                x + leftMargin,
+                posY,
+                20,
+                20,
+                Text.of(""),
+                (button)->{
+                    BetterCommandBlockUI.setConfig(
+                            BetterCommandBlockUI.VAR_FORMAT_STRINGS,
+                            String.valueOf(button.getValue())
+                    );
+                    this.commandField.refreshFormatting();
+                },
+                screen,
+                BetterCommandBlockUI.BUTTON_CHECKBOX,
+                BetterCommandBlockUI.FORMAT_STRINGS ? 1 : 0,
+                new Boolean[]{false, true},
+                formatStringsTooltips
+            )
+        );
     }
 
     @Override
@@ -147,12 +191,16 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
         this.piCopyButton.render(matrices, mouseX, mouseY, delta);
 
         this.textRenderer.drawWithShadow(matrices, indentationInputText, x + leftMargin, indentationInput.getY() - 12, 0xFFFFFFFF);
+        this.textRenderer.drawWithShadow(matrices, wraparoundInputText, x + leftMargin, wraparoundInput.getY() - 12, 0xFFFFFFFF);
         this.textRenderer.drawWithShadow(matrices, scrollXInputText, x + leftMargin, scrollXInput.getY() - 12, 0xFFFFFFFF);
         this.textRenderer.drawWithShadow(matrices, scrollYInputText, x + leftMargin, scrollYInput.getY() - 12, 0xFFFFFFFF);
+        this.textRenderer.drawWithShadow(matrices, formatStringsText, x + leftMargin, formatStrings.getY() - 12, 0xFFFFFFFF);
 
         this.indentationInput.render(matrices, mouseX, mouseY, delta);
+        this.wraparoundInput.render(matrices, mouseX, mouseY, delta);
         this.scrollXInput.render(matrices, mouseX, mouseY, delta);
         this.scrollYInput.render(matrices, mouseX, mouseY, delta);
+        this.formatStrings.render(matrices, mouseX, mouseY, delta);
     }
 
     Widget addWidget(ClickableWidget widget){
@@ -163,14 +211,6 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
     public void setVisible(boolean value){
         this.visible = value;
         this.piFractionInput.setFocused(value);
-    }
-
-    public void setX(int x){
-        this.x = x;
-    }
-
-    public void setY(int y){
-        this.x = x;
     }
 
     @Override
@@ -209,20 +249,18 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers){
         if(!visible) return false;
-        if(piFractionInput.keyPressed(keyCode,scanCode,modifiers)) return true;
-        if(indentationInput.keyPressed(keyCode,scanCode,modifiers)) return true;
-        if(scrollXInput.keyPressed(keyCode,scanCode,modifiers)) return true;
-        if(scrollYInput.keyPressed(keyCode,scanCode,modifiers)) return true;
+        for(ClickableWidget w : widgets){
+            if(w.keyPressed(keyCode,scanCode,modifiers)) return true;
+        }
         return false;
     }
 
     @Override
     public boolean charTyped(char c, int modifiers){
         if(!visible) return false;
-        if(piFractionInput.charTyped(c, modifiers)) return true;
-        if(indentationInput.charTyped(c, modifiers)) return true;
-        if(scrollXInput.charTyped(c, modifiers)) return true;
-        if(scrollYInput.charTyped(c, modifiers)) return true;
+        for(ClickableWidget w : widgets){
+            if(w.charTyped(c,modifiers)) return true;
+        }
         return false;
     }
 }

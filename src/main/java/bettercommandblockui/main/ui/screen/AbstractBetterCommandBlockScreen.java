@@ -1,5 +1,6 @@
 package bettercommandblockui.main.ui.screen;
 
+import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.main.ui.CyclingTexturedButtonWidget;
 import bettercommandblockui.main.ui.MultiLineCommandSuggestor;
 import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
@@ -143,7 +144,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
         this.consoleCommandTextField.setText(commandExecutor.getCommand());
 
-        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, (this.height/8), this.width/4, 6*this.height/8, (MultiLineTextFieldWidget) consoleCommandTextField, this));
+        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 8*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
         this.sideWindow.setVisible(this.showSideWindow);
     }
 
@@ -151,6 +152,12 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     public void tick(){
         this.consoleCommandTextField.tick();
         this.previousOutputTextField.tick();
+    }
+
+    @Override
+    public void close(){
+        BetterCommandBlockUI.writeConfig();
+        super.close();
     }
 
     @Override

@@ -531,7 +531,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             }
 
             current = textArr[currentIndex];
-            if(!metaString) {
+            if(!metaString || BetterCommandBlockUI.FORMAT_STRINGS) {
                 switch (current) {
                     case '"':
                         if(!escapeChar){
@@ -610,24 +610,25 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     escapeChar = false;
                 }
             }
-            currentIndex++;
+            String currentIndentation = " ".repeat(parenthesesDepth * indentationFactor);
+            String currentLine = currentPrefix + String.copyValueOf(textArr, linestart, Math.max(0,(currentIndex - linestart)));
+            //Wraparound
+            if(textRenderer.getWidth(currentLine) > BetterCommandBlockUI.WRAPAROUND_WIDTH) {
+                lines.add(currentIndentation + currentLine);
+                lineOffsets.add(parenthesesDepth * indentationFactor);
+                textOffsets.add(linestart - currentPrefix.length());
+                linestart = currentIndex;
+                currentPrefix = "";
+            }
 
+            currentIndex++;
             if(currentIndex >= textArr.length){ //Print missing end parentheses
-                lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart)));
+                currentLine = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
+                lines.add(currentIndentation + currentLine);
                 lineOffsets.add(parenthesesDepth*indentationFactor);
                 textOffsets.add(linestart-currentPrefix.length());
             }
 
-            /*String currentLine = (" ".repeat(parenthesesDepth * indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
-            //Wraparound
-            if(textRenderer.getWidth(currentPrefix) > getWidth() - 10) {
-                System.out.println(currentLine);
-                lines.add(currentLine);
-                lineOffsets.add(parenthesesDepth * indentationFactor);
-                textOffsets.add(linestart - currentPrefix.length());
-                linestart = currentIndex + 1;
-                currentPrefix = "";
-            }*/
         }
 
         for(Pair<Integer,Integer> p : colorIndices){
