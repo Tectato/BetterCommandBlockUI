@@ -9,6 +9,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
@@ -58,15 +59,15 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
-    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta){
+    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta){
         int color;
         if (!this.isVisible()) {
             return;
         }
         if (accessor.invokeDrawsBackground()) {
             color = this.isFocused() ? -1 : -6250336;
-            TextFieldWidget.fill(matrices, this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
-            TextFieldWidget.fill(matrices, this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, -16777216);
+            context.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
+            context.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, -16777216);
         }
 
         color = accessor.getEditable() ? accessor.getEditableColor() : accessor.getUneditableColor();
@@ -82,15 +83,15 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     line = line.substring(horizontalOffset);
                     line = accessor.getTextRenderer().trimToWidth(line, this.getInnerWidth());
 
-                    this.drawColoredLine(matrices, line, this.getX() + 5, this.getY() + 10 * (i - scrolledLines) + 5, i);
+                    this.drawColoredLine(context.getMatrices(), line, this.getX() + 5, this.getY() + 10 * (i - scrolledLines) + 5, i);
                 }
             }
         } else {
-            this.drawRawText(matrices, accessor.getText(), this.getX() + 5, this.getY() + 5, color);
+            this.drawRawText(context.getMatrices(), accessor.getText(), this.getX() + 5, this.getY() + 5, color);
         }
 
-        scrollX.render(matrices, mouseX, mouseY, delta);
-        scrollY.render(matrices, mouseX, mouseY, delta);
+        scrollX.render(context.getMatrices(), mouseX, mouseY, delta);
+        scrollY.render(context.getMatrices(), mouseX, mouseY, delta);
 
         if(!hasCommandSuggestor) return;
 
@@ -122,7 +123,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         boolean renderVerticalCursor = selectionStart < accessor.getText().length();
         boolean verticalCursorVisible = this.isFocused() && accessor.getFocusedTicks() / 6 % 2 == 0;
 
-        matrices.translate(0.0,0.0,0.1);
+        context.getMatrices().translate(0.0,0.0,0.1);
 
         RenderSystem.enableColorLogicOp();
         RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
@@ -138,7 +139,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
                 if (verticalCursorVisible && !selectingBackwards) {
                     if (renderVerticalCursor) {
-                        DrawableHelper.fill(matrices, x1, y - 1, x1 + 1, y + 1 + accessor.getTextRenderer().fontHeight, -3092272);
+                        context.fill(x1, y - 1, x1 + 1, y + 1 + accessor.getTextRenderer().fontHeight, -3092272);
                     } else {
                         RenderSystem.disableColorLogicOp();
                         accessor.getTextRenderer().drawWithShadow(matrices, "_", (float)x1, (float)y, -3092272);
