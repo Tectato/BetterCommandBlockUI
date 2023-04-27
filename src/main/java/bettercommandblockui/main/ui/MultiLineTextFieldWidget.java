@@ -742,6 +742,13 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         TextRenderer textRenderer = accessor.getTextRenderer();
 
         Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPosWithOffset(0));
+        if(lines.size() < 1){
+            horizontalOffset = 0;
+            scrollY.updatePos(0);
+            scrolledLines = 0;
+            scrollX.updatePos(0);
+            return;
+        }
         String line = lines.get(lineAndOffset.getLeft());
         int maxIndex = line.length()-1;
         boolean lineEndLeftOfWindow = horizontalOffset > lineAndOffset.getRight();
