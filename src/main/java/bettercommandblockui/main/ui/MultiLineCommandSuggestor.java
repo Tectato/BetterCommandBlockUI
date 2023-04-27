@@ -68,8 +68,8 @@ public class MultiLineCommandSuggestor extends CommandSuggestor {
             SuggestionContext<CommandSource> suggestionContext = accessor.getParse().getContext().findSuggestionContext(cursor);
             //System.out.println(suggestionContext.startPos);
             Pair<Integer, Integer> selectionPos = textField.getCharacterPos(suggestionContext.startPos);
-            this.x = selectionPos.getLeft() - 1;
-            this.y = selectionPos.getRight() + 9;
+            //this.x = selectionPos.getLeft() - 1;
+            //this.y = selectionPos.getRight() + 9;
 
             SuggestionWindowAccessor window = (SuggestionWindowAccessor) accessor.getWindow();
             if(window != null){
@@ -129,8 +129,13 @@ public class MultiLineCommandSuggestor extends CommandSuggestor {
         return list;
     }
 
-    public void setY(int newY){
-        this.y = newY;
+    public void setPos(int x, int y){
+        this.x = x;
+        this.y = y;
+    }
+
+    public int getY(){
+        return y;
     }
 
     public int getHighlighColorCount(){
