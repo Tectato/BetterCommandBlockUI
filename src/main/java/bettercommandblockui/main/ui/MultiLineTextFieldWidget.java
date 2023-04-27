@@ -162,6 +162,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         RenderSystem.disableColorLogicOp();
 
         matrices.translate(0.0, 0.0, 0.1);
+        if(suggestor.getY() > getY() + getHeight() || suggestor.getY() < getY()) return;
         suggestor.render(matrices, mouseX, mouseY);
     }
 
@@ -487,6 +488,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         scrollY.setScale((lines.size()) / (double)visibleLines);
         scrollX.setScale((double)(maxLineWidth) / visibleChars);
+        refreshSuggestorPos();
     }
 
     private void setUnformattedText(String text){
@@ -686,6 +688,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             scrolledLines = clamp(scrolledLines-(int)amount*BetterCommandBlockUI.SCROLL_STEP_Y, 0, lines.size()-visibleLines);
             scrollY.updatePos((double)scrolledLines / (lines.size() - visibleLines));
         }
+        refreshSuggestorPos();
         return true;
     }
 
@@ -787,7 +790,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
     @Override
     public void setCursor(int cursor) {
-        //System.out.println(cursor);
         this.setSelectionStart(cursor);
         if (!accessor.getSelecting()) {
             this.setSelectionEnd(accessor.getSelectionStart());
@@ -797,12 +799,37 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
     public void setScroll(double value){
         this.scrolledLines = (int)Math.max(Math.round((lines.size() - visibleLines) * value),0);
-        if(hasCommandSuggestor) this.suggestor.refreshRenderPos();
+        refreshSuggestorPos();
     }
 
     public void setHorizontalOffset(double value){
         this.horizontalOffset = (int)Math.max(Math.floor((maxLineWidth - visibleChars) * value),0);
-        if(hasCommandSuggestor) this.suggestor.refreshRenderPos();
+        refreshSuggestorPos();
+    }
+
+    void refreshSuggestorPos(){
+        if(!hasCommandSuggestor) return;
+        int selectionStart = accessor.getSelectionStart();
+        int selectionEnd = accessor.getSelectionEnd();
+
+        if(selectionStart > selectionEnd){
+            selectionStart = selectionEnd;
+        }
+        Pair<Integer, Integer> cursor = indexToLineAndOffset(selectionStart);
+        int selectionStartOffset = Math.max(cursor.getRight() - horizontalOffset, 0);
+        int fontHeight = accessor.getTextRenderer().fontHeight + 1;
+        if(lines.size() == 0){
+            suggestor.setPos(getX() + 5, getY() + 5 + fontHeight);
+            suggestor.refreshRenderPos();
+            return;
+        }
+        String line = lines.get(cursor.getLeft());
+        line = line.substring(clamp(horizontalOffset, 0,line.length()));
+        int x = this.getX() + 5 + accessor.getTextRenderer().getWidth(line.substring(0, Math.min(selectionStartOffset,line.length())));
+        int y = this.getY() + 5 + fontHeight + (cursor.getLeft() - scrolledLines) * fontHeight;
+
+        suggestor.setPos(x, y);
+        suggestor.refreshRenderPos();
     }
 
     private int clamp(int i, int min, int max){
