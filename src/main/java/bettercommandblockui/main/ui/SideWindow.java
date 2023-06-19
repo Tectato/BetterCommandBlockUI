@@ -4,8 +4,8 @@ import bettercommandblockui.main.BetterCommandBlockUI;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -21,7 +21,7 @@ import java.util.List;
 
 import static bettercommandblockui.main.BetterCommandBlockUI.BUTTON_COPY;
 
-public class SideWindow extends DrawableHelper implements Drawable, Element {
+public class SideWindow implements Drawable, Element {
     int x, y, width, height;
     int topMargin = 5;
     int leftMargin = 5;
@@ -176,31 +176,31 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if(!visible) return;
         RenderSystem.setShader(GameRenderer::getPositionTexProgram);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-        fill(matrices, x, y, x+width, y+height, 0xB0000000);
+        context.fill(x, y, x+width, y+height, 0xB0000000);
 
-        drawBorder(matrices, x-1, y-1, width+4, height+2, 0xFFFFFFFF);
+        context.drawBorder(x-1, y-1, width+4, height+2, 0xFFFFFFFF);
 
-        this.textRenderer.drawWithShadow(matrices, piFractionInputText, x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
-        this.piFractionInput.render(matrices, mouseX, mouseY, delta);
-        this.piSlider.render(matrices, mouseX, mouseY, delta);
-        this.piCopyButton.render(matrices, mouseX, mouseY, delta);
+        context.drawTextWithShadow(this.textRenderer, piFractionInputText, x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
+        this.piFractionInput.render(context, mouseX, mouseY, delta);
+        this.piSlider.render(context, mouseX, mouseY, delta);
+        this.piCopyButton.render(context, mouseX, mouseY, delta);
 
-        this.textRenderer.drawWithShadow(matrices, indentationInputText, x + leftMargin, indentationInput.getY() - 12, 0xFFFFFFFF);
-        this.textRenderer.drawWithShadow(matrices, wraparoundInputText, x + leftMargin, wraparoundInput.getY() - 12, 0xFFFFFFFF);
-        this.textRenderer.drawWithShadow(matrices, scrollXInputText, x + leftMargin, scrollXInput.getY() - 12, 0xFFFFFFFF);
-        this.textRenderer.drawWithShadow(matrices, scrollYInputText, x + leftMargin, scrollYInput.getY() - 12, 0xFFFFFFFF);
-        this.textRenderer.drawWithShadow(matrices, formatStringsText, x + leftMargin, formatStrings.getY() - 12, 0xFFFFFFFF);
+        context.drawTextWithShadow(this.textRenderer, indentationInputText, x + leftMargin, indentationInput.getY() - 12, 0xFFFFFFFF);
+        context.drawTextWithShadow(this.textRenderer, wraparoundInputText, x + leftMargin, wraparoundInput.getY() - 12, 0xFFFFFFFF);
+        context.drawTextWithShadow(this.textRenderer, scrollXInputText, x + leftMargin, scrollXInput.getY() - 12, 0xFFFFFFFF);
+        context.drawTextWithShadow(this.textRenderer, scrollYInputText, x + leftMargin, scrollYInput.getY() - 12, 0xFFFFFFFF);
+        context.drawTextWithShadow(this.textRenderer, formatStringsText, x + leftMargin, formatStrings.getY() - 12, 0xFFFFFFFF);
 
-        this.indentationInput.render(matrices, mouseX, mouseY, delta);
-        this.wraparoundInput.render(matrices, mouseX, mouseY, delta);
-        this.scrollXInput.render(matrices, mouseX, mouseY, delta);
-        this.scrollYInput.render(matrices, mouseX, mouseY, delta);
-        this.formatStrings.render(matrices, mouseX, mouseY, delta);
+        this.indentationInput.render(context, mouseX, mouseY, delta);
+        this.wraparoundInput.render(context, mouseX, mouseY, delta);
+        this.scrollXInput.render(context, mouseX, mouseY, delta);
+        this.scrollYInput.render(context, mouseX, mouseY, delta);
+        this.formatStrings.render(context, mouseX, mouseY, delta);
     }
 
     Widget addWidget(ClickableWidget widget){
@@ -215,7 +215,13 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
 
     @Override
     public void setFocused(boolean focused) {
-
+        if(!focused){
+            this.piFractionInput.setFocused(false);
+            this.indentationInput.setFocused(false);
+            this.wraparoundInput.setFocused(false);
+            this.scrollXInput.setFocused(false);
+            this.scrollYInput.setFocused(false);
+        }
     }
 
     @Override
@@ -226,10 +232,18 @@ public class SideWindow extends DrawableHelper implements Drawable, Element {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if(!visible) return false;
+        boolean widgetClicked = false;
         for(ClickableWidget w : widgets){
-            if(w.mouseClicked(mouseX, mouseY, button)) return true;
+            if(!widgetClicked && w.mouseClicked(mouseX, mouseY, button)){
+                w.setFocused(true);
+                widgetClicked = true;
+            } else {
+                w.setFocused(false);
+            }
         }
+        if(widgetClicked) return true;
         if(mouseX > x && mouseY > y && mouseY < y + height) return true;
+        setFocused(false);
         return false;
     }
 

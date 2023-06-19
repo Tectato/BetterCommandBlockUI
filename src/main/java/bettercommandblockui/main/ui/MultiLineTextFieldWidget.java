@@ -10,7 +10,6 @@ import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -83,15 +82,15 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     line = line.substring(horizontalOffset);
                     line = accessor.getTextRenderer().trimToWidth(line, this.getInnerWidth());
 
-                    this.drawColoredLine(context.getMatrices(), line, this.getX() + 5, this.getY() + 10 * (i - scrolledLines) + 5, i);
+                    this.drawColoredLine(context, line, this.getX() + 5, this.getY() + 10 * (i - scrolledLines) + 5, i);
                 }
             }
         } else {
-            this.drawRawText(context.getMatrices(), accessor.getText(), this.getX() + 5, this.getY() + 5, color);
+            this.drawRawText(context, accessor.getText(), this.getX() + 5, this.getY() + 5, color);
         }
 
-        scrollX.render(context.getMatrices(), mouseX, mouseY, delta);
-        scrollY.render(context.getMatrices(), mouseX, mouseY, delta);
+        scrollX.render(context, mouseX, mouseY, delta);
+        scrollY.render(context, mouseX, mouseY, delta);
 
         if(!hasCommandSuggestor) return;
 
@@ -142,7 +141,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                         context.fill(x1, y - 1, x1 + 1, y + 1 + accessor.getTextRenderer().fontHeight, -3092272);
                     } else {
                         RenderSystem.disableColorLogicOp();
-                        accessor.getTextRenderer().drawWithShadow(matrices, "_", (float)x1, (float)y, -3092272);
+                        context.drawTextWithShadow(accessor.getTextRenderer(), "_", x1, y, -3092272);
                     }
                 }
             }
@@ -151,21 +150,23 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 x2 += accessor.getTextRenderer().getWidth(visibleLine.substring(0, Math.min(selectionEndOffset,visibleLine.length())));
 
                 if (verticalCursorVisible && renderVerticalCursor && selectingBackwards) {
-                    DrawableHelper.fill(matrices, x2, y - 1, x2 + 1, y + 1 + accessor.getTextRenderer().fontHeight, -3092272);
+                    context.fill(x2, y - 1, x2 + 1, y + 1 + accessor.getTextRenderer().fontHeight, -3092272);
                 }
 
             } else {
                 x2 += this.getInnerWidth();
             }
-            accessor.invokeDrawSelectionHighlight(matrices, x1, y, x2, y + 10);
+            accessor.invokeDrawSelectionHighlight(context, x1, y, x2, y + 10);
         }
         RenderSystem.disableColorLogicOp();
 
-        matrices.translate(0.0, 0.0, 0.1);
-        suggestor.render(matrices, mouseX, mouseY);
+        //matrices.translate(0.0, 0.0, 0.1);
+        if(suggestor.getY() > getY() + getHeight() || suggestor.getY() < getY()) return;
+        if(suggestor.getX() > getX() + getWidth() || suggestor.getX() < getX()) return;
+        suggestor.render(context, mouseX, mouseY);
     }
 
-    private void drawColoredLine(MatrixStack matrices, String content, int x, int y, int lineIndex){
+    private void drawColoredLine(DrawContext context, String content, int x, int y, int lineIndex){
         TextRenderer textRenderer = accessor.getTextRenderer();
         int renderOffset = 0;
         int startOffset = textOffsets.get(lineIndex);
@@ -185,8 +186,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                         color = TextColor.fromFormatting(Formatting.GRAY).getRgb();
                     }
 
-                    textRenderer.drawWithShadow(
-                            matrices,
+                    context.drawTextWithShadow(
+                            textRenderer,
                             substring,
                             x + renderOffset,
                             y,
@@ -205,15 +206,15 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             } catch (IndexOutOfBoundsException e){
                 color = TextColor.fromFormatting(Formatting.GRAY).getRgb();
             }
-            textRenderer.drawWithShadow(matrices, content, x, y, color);
+            context.drawTextWithShadow(textRenderer, content, x, y, color);
         }
     }
 
-    private void drawRawText(MatrixStack matrices, String content, int x, int y, int color){
+    private void drawRawText(DrawContext context, String content, int x, int y, int color){
         TextRenderer textRenderer = accessor.getTextRenderer();
         String line = content.substring(Math.max(Math.min(horizontalOffset, content.length() - 1),0));
         String trimmedLine = textRenderer.trimToWidth(line,this.getInnerWidth());
-        textRenderer.drawWithShadow(matrices, trimmedLine, x, y, color);
+        context.drawTextWithShadow(textRenderer, trimmedLine, x, y, color);
     }
 
     private int pointToIndex(double x, double y){
@@ -486,6 +487,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         scrollY.setScale((lines.size()) / (double)visibleLines);
         scrollX.setScale((double)(maxLineWidth) / visibleChars);
+        refreshSuggestorPos();
     }
 
     private void setUnformattedText(String text){
@@ -685,6 +687,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             scrolledLines = clamp(scrolledLines-(int)amount*BetterCommandBlockUI.SCROLL_STEP_Y, 0, lines.size()-visibleLines);
             scrollY.updatePos((double)scrolledLines / (lines.size() - visibleLines));
         }
+        refreshSuggestorPos();
         return true;
     }
 
@@ -743,6 +746,13 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         TextRenderer textRenderer = accessor.getTextRenderer();
 
         Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPosWithOffset(0));
+        if(lines.size() < 1){
+            horizontalOffset = 0;
+            scrollY.updatePos(0);
+            scrolledLines = 0;
+            scrollX.updatePos(0);
+            return;
+        }
         String line = lines.get(lineAndOffset.getLeft());
         int maxIndex = line.length()-1;
         boolean lineEndLeftOfWindow = horizontalOffset > lineAndOffset.getRight();
@@ -789,12 +799,37 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
     public void setScroll(double value){
         this.scrolledLines = (int)Math.max(Math.round((lines.size() - visibleLines) * value),0);
-        if(hasCommandSuggestor) this.suggestor.refreshRenderPos();
+        refreshSuggestorPos();
     }
 
     public void setHorizontalOffset(double value){
         this.horizontalOffset = (int)Math.max(Math.floor((maxLineWidth - visibleChars) * value),0);
-        if(hasCommandSuggestor) this.suggestor.refreshRenderPos();
+        refreshSuggestorPos();
+    }
+
+    void refreshSuggestorPos(){
+        if(!hasCommandSuggestor) return;
+        int selectionStart = accessor.getSelectionStart();
+        int selectionEnd = accessor.getSelectionEnd();
+
+        if(selectionStart > selectionEnd){
+            selectionStart = selectionEnd;
+        }
+        Pair<Integer, Integer> cursor = indexToLineAndOffset(selectionStart);
+        int selectionStartOffset = Math.max(cursor.getRight() - horizontalOffset, 0);
+        int fontHeight = accessor.getTextRenderer().fontHeight + 1;
+        if(lines.size() == 0){
+            suggestor.setPos(getX() + 5, getY() + 5 + fontHeight);
+            suggestor.refreshRenderPos();
+            return;
+        }
+        String line = lines.get(cursor.getLeft());
+        line = line.substring(clamp(horizontalOffset, 0,line.length()));
+        int x = this.getX() + 5 + accessor.getTextRenderer().getWidth(line.substring(0, Math.min(selectionStartOffset,line.length())));
+        int y = this.getY() + 5 + fontHeight + (cursor.getLeft() - scrolledLines) * fontHeight;
+
+        suggestor.setPos(x, y);
+        suggestor.refreshRenderPos();
     }
 
     private int clamp(int i, int min, int max){

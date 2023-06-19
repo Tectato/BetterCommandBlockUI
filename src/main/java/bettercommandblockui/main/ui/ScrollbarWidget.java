@@ -3,6 +3,7 @@ package bettercommandblockui.main.ui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.render.GameRenderer;
@@ -35,38 +36,38 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta){
-        render(matrices, mouseX, mouseY, delta);
+    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta){
+        render(context, mouseX, mouseY, delta);
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!this.visible) {
             return;
         }
         this.hovered = checkHovered(mouseX, mouseY);
 
-        this.renderFrame(matrices);
-        this.renderSlider(matrices, mouseX, mouseY, delta);
+        this.renderFrame(context);
+        this.renderSlider(context, mouseX, mouseY, delta);
     }
 
-    private void renderFrame(MatrixStack matrices){
+    private void renderFrame(DrawContext context){
         if(horizontal){
             RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-            drawTexture(matrices, this.getX(), this.getY(), 0, 0, this.width / 2, this.height, 256, 30);
-            drawTexture(matrices, this.getX() + this.width / 2, this.getY(), 256 - this.width / 2, 0, this.width / 2, this.height, 256, 30);
+            drawTexture(context, SCROLLBAR_HORIZONTAL, this.getX(), this.getY(), 0, 0, 0, this.width / 2, this.height, 256, 30);
+            drawTexture(context, SCROLLBAR_HORIZONTAL, this.getX() + this.width / 2, this.getY(), 256 - this.width / 2, 0, 0, this.width / 2, this.height, 256, 30);
         } else {
             RenderSystem.setShaderTexture(0, SCROLLBAR_VERTICAL);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-            drawTexture(matrices, this.getX(), this.getY(), 0, 0, this.width, this.height / 2, 30 , 256);
-            drawTexture(matrices, this.getX(), this.getY() + height / 2, 0, 256 - this.height / 2, this.width, this.height / 2, 30 , 256);
+            drawTexture(context, SCROLLBAR_VERTICAL, this.getX(), this.getY(), 0, 0, 0, this.width, this.height / 2, 30 , 256);
+            drawTexture(context, SCROLLBAR_VERTICAL, this.getX(), this.getY() + height / 2, 0, 256 - this.height / 2, 0, this.width, this.height / 2, 30 , 256);
         }
     }
 
-    private void renderSlider(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    private void renderSlider(DrawContext context, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexProgram);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         RenderSystem.enableBlend();
@@ -77,13 +78,13 @@ public class ScrollbarWidget extends ClickableWidget {
         if(horizontal){
             RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
 
-            drawTexture(matrices, this.getX() + (int)(pos * (length - barLength)), this.getY(), 0, 10 + i * 10, barLength / 2, this.height, 256, 30);
-            drawTexture(matrices, this.getX() + (int)(pos * (length - barLength)) +  barLength / 2, this.getY(), 256 - barLength / 2, 10 + i * 10, barLength / 2, this.height, 256, 30);
+            drawTexture(context, SCROLLBAR_HORIZONTAL, this.getX() + (int)(pos * (length - barLength)), this.getY(), 0, 10 + i * 10,0, barLength / 2, this.height, 256, 30);
+            drawTexture(context, SCROLLBAR_HORIZONTAL, this.getX() + (int)(pos * (length - barLength)) +  barLength / 2, this.getY(), 256 - barLength / 2, 10 + i * 10, 0, barLength / 2, this.height, 256, 30);
         } else {
             RenderSystem.setShaderTexture(0, SCROLLBAR_VERTICAL);
 
-            drawTexture(matrices, this.getX(), this.getY() + (int)(pos * (length - barLength)), 10 + i * 10, 0, this.width, barLength / 2, 30, 256);
-            drawTexture(matrices, this.getX(), this.getY() + (int)(pos * (length - barLength)) +  barLength / 2, 10 + i * 10, 256 - barLength / 2, this.width, barLength / 2, 30, 256);
+            drawTexture(context, SCROLLBAR_VERTICAL, this.getX(), this.getY() + (int)(pos * (length - barLength)), 10 + i * 10, 0, 0, this.width, barLength / 2, 30, 256);
+            drawTexture(context, SCROLLBAR_VERTICAL, this.getX(), this.getY() + (int)(pos * (length - barLength)) +  barLength / 2, 10 + i * 10, 256 - barLength / 2, 0, this.width, barLength / 2, 30, 256);
         }
     }
 

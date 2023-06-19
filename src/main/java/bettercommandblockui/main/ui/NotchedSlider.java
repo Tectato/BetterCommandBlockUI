@@ -2,7 +2,7 @@ package bettercommandblockui.main.ui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.util.math.MatrixStack;
@@ -26,10 +26,10 @@ public class NotchedSlider extends ClickableWidget {
     }
 
     @Override
-    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        RenderSystem.setShaderTexture(0, SLIDER);
-        DrawableHelper.drawTexture(
-                matrices,
+    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+        //RenderSystem.setShaderTexture(0, SLIDER);
+        context.drawTexture(
+                SLIDER,
                 getX()-2,
                 getY(),
                 0,
@@ -39,8 +39,8 @@ public class NotchedSlider extends ClickableWidget {
                 512,
                 16
         );
-        DrawableHelper.drawTexture(
-                matrices,
+        context.drawTexture(
+                SLIDER,
                 getX()+2,
                 getY(),
                 4,
@@ -50,8 +50,8 @@ public class NotchedSlider extends ClickableWidget {
                 512,
                 16
         );
-        DrawableHelper.drawTexture(
-                matrices,
+        context.drawTexture(
+                SLIDER,
                 getX()+getWidth()-2,
                 getY(),
                 508,
@@ -62,11 +62,11 @@ public class NotchedSlider extends ClickableWidget {
                 16
         );
 
-        RenderSystem.setShaderTexture(0, SLIDER_NOTCH);
+        //RenderSystem.setShaderTexture(0, SLIDER_NOTCH);
         float step = 1.0f/((float)subdivisions);
         for(int i=1; i<subdivisions; i++){
-            DrawableHelper.drawTexture(
-                    matrices,
+            context.drawTexture(
+                    SLIDER_NOTCH,
                     (int) (getX() + (i * step * getWidth())) - 2,
                     getY(),
                     0,
@@ -78,9 +78,9 @@ public class NotchedSlider extends ClickableWidget {
             );
         }
 
-        RenderSystem.setShaderTexture(0, SLIDER_PICK);
-        DrawableHelper.drawTexture(
-                matrices,
+        //RenderSystem.setShaderTexture(0, SLIDER_PICK);
+        context.drawTexture(
+                SLIDER_PICK,
                 (int) (getX() + (pos * getWidth()) - 4),
                 getY(),
                 0,

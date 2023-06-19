@@ -7,6 +7,7 @@ import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
 import bettercommandblockui.main.ui.SideWindow;
 import bettercommandblockui.mixin.ScreenAccessor;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
@@ -274,18 +275,18 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     abstract protected void syncSettingsToServer(CommandBlockExecutor commandExecutor);
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        this.renderBackground(matrices);
-        AbstractCommandBlockScreen.drawCenteredTextWithShadow(matrices, this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context);
+        context.drawCenteredTextWithShadow(this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
         if(showOutput){
-            AbstractCommandBlockScreen.drawTextWithShadow(matrices, this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
-            this.previousOutputTextField.render(matrices, mouseX, mouseY, delta);
+            context.drawTextWithShadow(this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
+            this.previousOutputTextField.render(context, mouseX, mouseY, delta);
         } else {
-            AbstractCommandBlockScreen.drawTextWithShadow(matrices, this.textRenderer, COMMAND_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
-            this.consoleCommandTextField.render(matrices, mouseX, mouseY, delta);
+            context.drawTextWithShadow(this.textRenderer, COMMAND_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
+            this.consoleCommandTextField.render(context, mouseX, mouseY, delta);
         }
         for (Drawable drawable : ((ScreenAccessor)this).getDrawables()) {
-            drawable.render(matrices, mouseX, mouseY, delta);
+            drawable.render(context, mouseX, mouseY, delta);
         }
     }
 }
