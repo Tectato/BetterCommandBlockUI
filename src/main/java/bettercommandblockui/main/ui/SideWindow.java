@@ -7,6 +7,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
+import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -15,13 +16,20 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static bettercommandblockui.main.BetterCommandBlockUI.BUTTON_COPY;
+import static bettercommandblockui.main.BetterCommandBlockUI.*;
 
 public class SideWindow implements Drawable, Element {
+    protected static final ButtonTextures COPY_BUTTON_TEXTURES = new ButtonTextures(
+            new Identifier("bettercommandblockui:button_copy_enabled"),
+            new Identifier("bettercommandblockui:button_copy_disabled"),
+            new Identifier("bettercommandblockui:button_copy_focused")
+    );
+
     int x, y, width, height;
     int topMargin = 5;
     int leftMargin = 5;
@@ -86,12 +94,7 @@ public class SideWindow implements Drawable, Element {
                 posY - 2,
                 20,
                 20,
-                0,
-                20,
-                20,
-                BUTTON_COPY,
-                20,
-                60,
+                COPY_BUTTON_TEXTURES,
                 (button)->{
                     MinecraftClient.getInstance().keyboard.setClipboard(String.valueOf(piSlider.getValue() * 2 * Math.PI));
                 }

@@ -18,8 +18,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final Identifier BUTTON_TRACK_OUTPUT = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_track_output.png");
     public static final Identifier SCROLLBAR_HORIZONTAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_horizontal.png");
     public static final Identifier SCROLLBAR_VERTICAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_vertical.png");
-    public static final Identifier BUTTON_SIDE_WINDOW = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_side_window.png");
-    public static final Identifier BUTTON_COPY = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_copy.png");
+
     public static final Identifier SLIDER = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider.png");
     public static final Identifier SLIDER_NOTCH = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_notch.png");
     public static final Identifier SLIDER_PICK = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_pick.png");

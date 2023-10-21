@@ -33,13 +33,7 @@ public interface TextFieldWidgetAccessor {
     boolean getEditable();
 
     @Accessor
-    boolean getSelecting();
-
-    @Accessor
     boolean getFocusUnlocked();
-
-    @Accessor
-    void setSelecting(boolean val);
 
     @Accessor
     int getEditableColor();
@@ -57,7 +51,7 @@ public interface TextFieldWidgetAccessor {
     int getFirstCharacterIndex();
 
     @Accessor
-    int getFocusedTicks();
+    long getLastSwitchFocusTime();
 
     @Accessor
     String getText();

@@ -9,6 +9,7 @@ import bettercommandblockui.mixin.ScreenAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
+import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
@@ -21,6 +22,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.CommandBlockExecutor;
 import org.lwjgl.glfw.GLFW;
@@ -31,6 +33,11 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected static final Text SET_COMMAND_TEXT = Text.translatable("advMode.setCommand");
     protected static final Text COMMAND_TEXT = Text.translatable("advMode.command");
     protected static final Text PREVIOUS_OUTPUT_TEXT = Text.translatable("advMode.previousOutput");
+    protected static final ButtonTextures SIDE_WINDOW_BUTTON_TEXTURES = new ButtonTextures(
+            new Identifier("bettercommandblockui:button_side_window_enabled"),
+            new Identifier("bettercommandblockui:button_side_window_disabled"),
+            new Identifier("bettercommandblockui:button_side_window_focused")
+    );
 
     protected TextFieldWidget consoleCommandTextField;
     protected TextFieldWidget previousOutputTextField;
@@ -103,12 +110,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                 this.height - (buttonMargin + cycleButtonWidth),
                 cycleButtonWidth,
                 buttonHeight,
-                0,
-                20,
-                20,
-                BUTTON_SIDE_WINDOW,
-                20,
-                60,
+                SIDE_WINDOW_BUTTON_TEXTURES,
                 (button) -> {
                     this.showSideWindow = !this.showSideWindow;
                     this.sideWindow.setVisible(this.showSideWindow);
@@ -147,12 +149,6 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
         this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 8*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
         this.sideWindow.setVisible(this.showSideWindow);
-    }
-
-    @Override
-    public void tick(){
-        this.consoleCommandTextField.tick();
-        this.previousOutputTextField.tick();
     }
 
     @Override
@@ -276,7 +272,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
+        this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
         if(showOutput){
             context.drawTextWithShadow(this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);

@@ -9,7 +9,7 @@
     "ClientPlayerEntityAccessor",
     "AbstractCommandBlockScreenAccessor",
     "ClientPlayNetworkHandlerMixin",
-    "ClientPlayNetworkHandlerAccessor",
+    "ClientCommonNetworkHandlerAccessor",
     "ServerPlayerEntityAccessor",
     "TextFieldWidgetAccessor",
     "TextRendererAccessor",

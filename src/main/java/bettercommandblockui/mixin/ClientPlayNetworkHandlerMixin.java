@@ -19,7 +19,7 @@ public class ClientPlayNetworkHandlerMixin {
     at=@At("TAIL"))
     public void testInject(BlockEntityUpdateS2CPacket packet, CallbackInfo ci){
         BlockPos blockPos = packet.getPos();
-        MinecraftClient client = ((ClientPlayNetworkHandlerAccessor)(Object)this).getClient();
+        MinecraftClient client = ((ClientCommonNetworkHandlerAccessor)(Object)this).getClient();
         client.world.getBlockEntity(blockPos, packet.getBlockEntityType()).ifPresent(blockEntity -> {
             NbtCompound nbtCompound = packet.getNbt();
             if (nbtCompound != null) {
