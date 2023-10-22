@@ -519,6 +519,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int currentIndex = 0;
         boolean metaString = false;
         boolean escapeChar = false;
+        boolean isSingleQuotes = false;
 
         char current;
         String currentPrefix = "";
@@ -532,8 +533,13 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             if(!metaString || BetterCommandBlockUI.FORMAT_STRINGS) {
                 switch (current) {
                     case '"':
-                        if(!escapeChar){
-                            metaString = true;
+                    case '\'':
+                        if (!escapeChar) {
+                            if (current == '"') {
+                                metaString = true;
+                            } else if (current == '\'') {
+                                inSingleQuotes = !inSingleQuotes;
+                            }
                         }
                         break;
                     case '{':
@@ -598,10 +604,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                         break;
                 }
             } else {
-                if(!escapeChar) {
-                    if (current == '"') {
-                        metaString = false;
-                    } else if (current == '\\'){
+                if (!escapeChar) {
+                    if (current == '"' || current == '\'') {
+                        if ((current == '"' && !inSingleQuotes) || (current == '\'' && inSingleQuotes)) {
+                            metaString = false;
+                        }
+                    } else if (current == '\\') {
                         escapeChar = true;
                     }
                 } else {
