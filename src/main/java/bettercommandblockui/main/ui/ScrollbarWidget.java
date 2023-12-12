@@ -36,12 +36,7 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta){
-        render(context, mouseX, mouseY, delta);
-    }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!this.visible) {
             return;
         }

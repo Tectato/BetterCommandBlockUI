@@ -59,7 +59,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
-    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta){
+    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta){
         int color;
         if (!this.isVisible()) {
             return;
@@ -176,7 +176,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if(textColors.size() > 1) {
             for (int i = 0; i < textColors.size(); i++) {
                 if(currentOffset >= content.length()) break;
-                int nextColorStart = (i+1)<textColors.size() ? textColors.get(i+1).getRight() : Integer.MAX_VALUE;
+                int nextColorStart = (i+1)<textColors.size() ? textColors.get(i+1).getRight() : (startOffset + content.length());
                 if (nextColorStart > startOffset+currentOffset) {
                     String substring = content.substring(currentOffset, clamp(firstOffset + (nextColorStart-(startOffset+horizontalOffset)), currentOffset,content.length()));
 

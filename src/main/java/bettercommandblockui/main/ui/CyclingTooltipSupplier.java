@@ -11,7 +11,7 @@ import net.minecraft.text.TextContent;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class CyclingTooltipSupplier implements ButtonWidget.NarrationSupplier {
+public class CyclingTooltipSupplier {
     private Screen screen;
     private Text[] tooltips;
     private int currentIndex;
@@ -38,8 +38,4 @@ public class CyclingTooltipSupplier implements ButtonWidget.NarrationSupplier {
         return Tooltip.of(tooltips[currentIndex]);
     }
 
-    @Override
-    public MutableText createNarrationMessage(Supplier<MutableText> textSupplier) {
-        return MutableText.of(TextContent.EMPTY);
-    }
 }
