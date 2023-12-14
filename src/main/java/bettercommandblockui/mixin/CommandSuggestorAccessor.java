@@ -26,13 +26,19 @@ public interface CommandSuggestorAccessor{
     List<OrderedText> getMessages();
 
     @Accessor
-    List<Style> getHIGHLIGHT_STYLES();
+    static List<Style> getHIGHLIGHT_STYLES() {
+        throw new AssertionError();
+    }
 
     @Accessor
-    Style getINFO_STYLE();
+    static Style getINFO_STYLE() {
+        throw new AssertionError();
+    }
 
     @Accessor
-    Style getERROR_STYLE();
+    static Style getERROR_STYLE() {
+        throw new AssertionError();
+    }
 
     @Accessor
     Screen getOwner();
