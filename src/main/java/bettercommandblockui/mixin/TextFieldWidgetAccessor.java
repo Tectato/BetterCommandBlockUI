@@ -63,7 +63,9 @@ public interface TextFieldWidgetAccessor {
     String getSuggestion();
 
     @Accessor
-    String getHORIZONTAL_CURSOR();
+    static String getHORIZONTAL_CURSOR() {
+        throw new AssertionError();
+    }
 
     @Accessor
     Predicate<String> getTextPredicate();

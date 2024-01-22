@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(TextRenderer.class)
 public interface TextRendererAccessor{
     @Accessor
-    public TextHandler getHandler();
+    TextHandler getHandler();
 }

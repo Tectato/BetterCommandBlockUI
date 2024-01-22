@@ -1,6 +1,5 @@
 package bettercommandblockui.mixin;
 
-import com.mojang.brigadier.Command;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,8 +12,8 @@ public interface AbstractCommandBlockScreenAccessor {
     ChatInputSuggestor getCommandSuggestor();
 
     @Accessor("commandSuggestor")
-    public void setCommandSuggestor(ChatInputSuggestor suggestor);
+    void setCommandSuggestor(ChatInputSuggestor suggestor);
 
     @Invoker("onCommandChanged")
-    public void invokeOnCommandChanged(String text);
+    void invokeOnCommandChanged(String text);
 }
