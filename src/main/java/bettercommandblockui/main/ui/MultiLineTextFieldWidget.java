@@ -59,6 +59,32 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
+    public void setWidth(int width){
+        this.width = width;
+        scrollX.setWidth(width);
+    }
+
+    @Override
+    public void setHeight(int height){
+        this.height = height;
+        scrollY.setHeight(height);
+    }
+
+    @Override
+    public void setX(int x){
+        super.setX(x);
+        scrollX.setX(x);
+        scrollY.setX(x + width + 1);
+    }
+
+    @Override
+    public void setY(int y){
+        super.setY(y);
+        scrollX.setY(y + height + 1);
+        scrollY.setY(y);
+    }
+
+    @Override
     public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta){
         int color;
         if (!this.isVisible()) {
@@ -672,7 +698,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isVisible()) {
             return false;
         }
-        if(screen.scroll(verticalAmount)){
+        if(screen != null && screen.scroll(verticalAmount)){
             return true;
         }
         if(LShiftPressed || RShiftPressed){

@@ -1,11 +1,14 @@
 package bettercommandblockui.main.ui.screen;
 
 import bettercommandblockui.main.BetterCommandBlockUI;
+import bettercommandblockui.main.config.ConfigScreen;
 import bettercommandblockui.main.ui.CyclingTexturedButtonWidget;
 import bettercommandblockui.main.ui.MultiLineCommandSuggestor;
 import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
 import bettercommandblockui.main.ui.SideWindow;
 import bettercommandblockui.mixin.ScreenAccessor;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
@@ -29,6 +32,7 @@ import org.lwjgl.glfw.GLFW;
 
 import static bettercommandblockui.main.BetterCommandBlockUI.*;
 
+@Environment(EnvType.CLIENT)
 public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected static final Text SET_COMMAND_TEXT = Text.translatable("advMode.setCommand");
     protected static final Text COMMAND_TEXT = Text.translatable("advMode.command");
@@ -44,6 +48,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     protected ButtonWidget doneButton;
     protected ButtonWidget cancelButton;
+    protected ButtonWidget configButton;
     protected CyclingTexturedButtonWidget<Boolean> toggleTrackingOutputButton;
     protected CyclingTexturedButtonWidget<Boolean> showOutputButton;
     protected TexturedButtonWidget showSideWindowButton;
@@ -81,6 +86,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         int lowerButtonWidth = Math.min((textBoxWidth/2) - buttonMargin/2, 160);
         this.doneButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> this.commitAndClose()).dimensions(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
         this.cancelButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.CANCEL, button -> this.close()).dimensions(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
+        this.configButton = this.addDrawableChild(ButtonWidget.builder(Text.literal("Config"), button -> this.openConfig()).dimensions(16, 16, 2*buttonHeight, buttonHeight).build());
 
         boolean bl = this.commandExecutor.isTrackingOutput();
 
@@ -164,6 +170,11 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         ((MultiLineTextFieldWidget)this.consoleCommandTextField).setRawText(string);
         commandSuggestor.refresh();
         setButtonsActive(true);
+    }
+
+    public void openConfig(){
+        assert client != null;
+        client.setScreen(new ConfigScreen(this, client, width, height));
     }
 
     public boolean scroll(double amount){
