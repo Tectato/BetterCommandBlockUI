@@ -29,14 +29,33 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final String VAR_SCROLL_X = "scroll_step_horizontal";
     public static final String VAR_SCROLL_Y = "scroll_step_vertical";
     public static final String VAR_INDENTATION = "indentation_spaces";
+    public static final String VAR_INDENT_CHAR = "indentation_char";
     public static final String VAR_WRAPAROUND = "wraparound";
     public static final String VAR_FORMAT_STRINGS = "format_strings";
+    public static final String VAR_NEWLINE_PRE_OPEN_BRACKET = "newline_pre_open_bracket";
+    public static final String VAR_NEWLINE_POST_OPEN_BRACKET = "newline_post_open_bracket";
+    public static final String VAR_NEWLINE_PRE_CLOSE_BRACKET = "newline_pre_close_bracket";
+    public static final String VAR_NEWLINE_POST_CLOSE_BRACKET = "newline_post_close_bracket";
+    public static final String VAR_NEWLINE_POST_LAST_CLOSE_BRACKET = "newline_post_last_close_bracket";
+    public static final String VAR_NEWLINE_POST_COMMA = "newline_post_comma";
+    public static final String VAR_AVOID_DOUBLE_NEWLINE = "avoid_double_newline";
+    public static final String VAR_BRACKET_AUTOCOMPLETE = "bracket_autocomplete";
+
 
     public static int SCROLL_STEP_X = CONFIG.getOrDefault(VAR_SCROLL_X, 4);
     public static int SCROLL_STEP_Y = CONFIG.getOrDefault(VAR_SCROLL_Y, 2);
     public static int INDENTATION_FACTOR = CONFIG.getOrDefault(VAR_INDENTATION, 2);
+    public static char INDENTATION_CHAR = CONFIG.getOrDefault(VAR_INDENT_CHAR, " ").charAt(0);
     public static int WRAPAROUND_WIDTH = CONFIG.getOrDefault(VAR_WRAPAROUND, 250);
     public static boolean FORMAT_STRINGS = CONFIG.getOrDefault(VAR_FORMAT_STRINGS, true);
+    public static boolean NEWLINE_PRE_OPEN_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_PRE_OPEN_BRACKET, true);
+    public static boolean NEWLINE_POST_OPEN_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_POST_OPEN_BRACKET, true);
+    public static boolean NEWLINE_PRE_CLOSE_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_PRE_CLOSE_BRACKET, true);
+    public static boolean NEWLINE_POST_CLOSE_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_POST_CLOSE_BRACKET, true);
+    public static boolean NEWLINE_POST_LAST_CLOSE_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_POST_LAST_CLOSE_BRACKET, true);
+    public static boolean NEWLINE_POST_COMMA = CONFIG.getOrDefault(VAR_NEWLINE_POST_COMMA, true);
+    public static boolean AVOID_DOUBLE_NEWLINE = CONFIG.getOrDefault(VAR_AVOID_DOUBLE_NEWLINE, true);
+    public static boolean BRACKET_AUTOCOMPLETE = CONFIG.getOrDefault(VAR_BRACKET_AUTOCOMPLETE, false);
 
     private static KeyBinding areaSelectionInput;
 
@@ -63,14 +82,21 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static void setConfig(String key, String value){
         CONFIG.set(key, value);
 
-        if(key.equals(VAR_INDENTATION)) INDENTATION_FACTOR = CONFIG.getOrDefault(key, 2);
-        if(key.equals(VAR_WRAPAROUND)) WRAPAROUND_WIDTH = CONFIG.getOrDefault(key, 250);
         if(key.equals(VAR_SCROLL_X)) SCROLL_STEP_X = CONFIG.getOrDefault(key, 4);
         if(key.equals(VAR_SCROLL_Y)) SCROLL_STEP_Y = CONFIG.getOrDefault(key, 2);
+        if(key.equals(VAR_INDENTATION)) INDENTATION_FACTOR = CONFIG.getOrDefault(key, 2);
+        if(key.equals(VAR_WRAPAROUND)) WRAPAROUND_WIDTH = CONFIG.getOrDefault(key, 250);
         if(key.equals(VAR_FORMAT_STRINGS)) FORMAT_STRINGS = CONFIG.getOrDefault(key, true);
+        if(key.equals(VAR_NEWLINE_PRE_OPEN_BRACKET)) NEWLINE_PRE_OPEN_BRACKET = CONFIG.getOrDefault(key, true);
+        if(key.equals(VAR_NEWLINE_POST_OPEN_BRACKET)) NEWLINE_POST_OPEN_BRACKET = CONFIG.getOrDefault(key, true);
+        if(key.equals(VAR_NEWLINE_PRE_CLOSE_BRACKET)) NEWLINE_PRE_CLOSE_BRACKET = CONFIG.getOrDefault(key, true);
+        if(key.equals(VAR_NEWLINE_POST_CLOSE_BRACKET)) NEWLINE_POST_CLOSE_BRACKET = CONFIG.getOrDefault(key, true);
+        if(key.equals(VAR_NEWLINE_POST_LAST_CLOSE_BRACKET)) NEWLINE_POST_LAST_CLOSE_BRACKET = CONFIG.getOrDefault(key, false);
+        if(key.equals(VAR_NEWLINE_POST_COMMA)) NEWLINE_POST_COMMA = CONFIG.getOrDefault(key, true);
     }
 
     public static void writeConfig(){
+        System.out.println("[BCBUI] Writing to config file...");
         CONFIG.writeToFile();
     }
 
@@ -85,6 +111,16 @@ public class BetterCommandBlockUI implements ClientModInitializer {
                 "# Maximum line length, lines longer than this get wrapped around to the next\n" +
                 "wraparound=250\n\n" +
                 "# Whether to apply parentheses-based formatting to string arguments\n" +
-                "format_strings=true";
+                "format_strings=true\n\n" +
+                "# Newline settings\n" +
+                "newline_pre_open_bracket=true\n" +
+                "newline_post_open_bracket=true\n" +
+                "newline_pre_close_bracket=true\n" +
+                "newline_post_close_bracket=true\n" +
+                "newline_post_last_close_bracket=true\n" +
+                "newline_post_comma=true\n" +
+                "avoid_double_newline=true\n\n" +
+                "# Whether to automatically insert closing brackets when typing opening ones\n" +
+                "bracket_autocomplete=false";
     }
 }

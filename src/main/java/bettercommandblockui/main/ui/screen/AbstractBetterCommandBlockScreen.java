@@ -159,7 +159,6 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     @Override
     public void close(){
-        BetterCommandBlockUI.writeConfig();
         super.close();
     }
 

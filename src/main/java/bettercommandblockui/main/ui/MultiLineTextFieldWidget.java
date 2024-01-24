@@ -471,6 +471,14 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (SharedConstants.isValidChar(chr)) {
             if (accessor.getEditable()) {
                 this.write(Character.toString(chr));
+                if (BetterCommandBlockUI.BRACKET_AUTOCOMPLETE) {
+                    // TODO: trace forward and check if needed
+                    if (chr == '{') {
+                        this.write(Character.toString('}'));
+                    } else if (chr == '['){
+                        this.write(Character.toString(']'));
+                    }
+                }
             }
             return true;
         }
@@ -528,6 +536,15 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
     }
 
+    private void submitLine(String line, int currentIndex, int indent){
+        if (!lines.isEmpty() && lines.get(lines.size()-1).trim().isEmpty() && BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE)
+            return;
+        String indentChar = "" + BetterCommandBlockUI.INDENTATION_CHAR;
+        lines.add(indentChar.repeat(indent * BetterCommandBlockUI.INDENTATION_FACTOR) + line);
+        lineOffsets.add(indent);
+        textOffsets.add((currentIndex-1) - line.length());
+    }
+
     private void formatText(String text) {
         TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
         textColors = new LinkedList<>();
@@ -547,8 +564,88 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         boolean escapeChar = false;
 
         char current;
-        String currentPrefix = "";
-        while(currentIndex < textArr.length){
+        String currentLine = "";
+        boolean newLine = false;
+
+        while(currentIndex < textArr.length) {
+            current = textArr[currentIndex];
+
+            switch(current){
+                case '{':
+                case '[':
+                    if (metaString){
+                        newLine = false;
+                        break;
+                    }
+                    if (BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET){
+                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        currentLine = "";
+                        newLine = true;
+                    }
+                    currentLine += current;
+                    if (BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET){
+                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        currentLine = "";
+                        newLine = true;
+                    }
+                    if (newLine) parenthesesDepth++;
+                    break;
+                case '}':
+                case ']':
+                    if (metaString){
+                        newLine = false;
+                        break;
+                    }
+                    boolean indentationChanged = false;
+                    if (BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET){
+                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        currentLine = "";
+                        newLine = true;
+                        parenthesesDepth = Math.max(0,parenthesesDepth-1);
+                        indentationChanged = true;
+                    }
+                    currentLine += current;
+                    if (BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET){
+                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        currentLine = "";
+                        newLine = true;
+                        if (!indentationChanged)
+                            parenthesesDepth = Math.max(0,parenthesesDepth-1);
+                    }
+                    break;
+                case ',':
+                    currentLine += current;
+                    if (BetterCommandBlockUI.NEWLINE_POST_COMMA){
+                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        currentLine = "";
+                        newLine = true;
+                    }
+                    break;
+                case '\\':
+                    escapeChar = !escapeChar;
+                    currentLine += current;
+                    newLine = false;
+                    break;
+                case '"':
+                case '\'':
+                    if (BetterCommandBlockUI.FORMAT_STRINGS && !escapeChar){
+                        metaString = !metaString;
+                    }
+                    currentLine += current;
+                    break;
+                default:
+                    currentLine += current;
+                    newLine = false;
+                    break;
+            }
+
+            currentIndex++;
+        }
+        if (!currentLine.isEmpty()){
+            submitLine(currentLine, currentIndex, parenthesesDepth);
+        }
+
+        /*while(currentIndex < textArr.length){
             while(currentColorListIndex < colorIndices.size() && colorIndices.get(currentColorListIndex).getRight() < currentIndex){
                 colorStack.push(colorIndices.get(currentColorListIndex).getLeft());
                 currentColorListIndex++;
@@ -653,7 +750,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 textOffsets.add(linestart-currentPrefix.length());
             }
 
-        }
+        }*/
 
         for(Pair<Integer,Integer> p : colorIndices){
             textColors.add(new Pair<>(suggestor.getColor(p.getLeft()),p.getRight()));
