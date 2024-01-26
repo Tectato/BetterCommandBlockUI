@@ -20,7 +20,9 @@ public class ConfigScreen extends Screen {
     public MultiLineTextFieldWidget textField;
     private MultiLineCommandSuggestor commandSuggestor;
 
-    private CheckboxWidget newLinePreOpen, newLinePostOpen, newLinePreClose, newLinePostClose, newLinePostLastClose, newLinePostComma;
+    private final int checkboxDistY = 22;
+    private CheckboxWidget newLinePreOpen, newLinePostOpen, newLinePreClose, newLinePostClose, newLinePostLastClose,
+            newLinePostComma, avoidDoubleNewline, bracketAutocomplete;
 
     public ConfigScreen() {
         super(Text.literal("Better Command Block UI Config"));
@@ -61,6 +63,8 @@ public class ConfigScreen extends Screen {
         newLinePostClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET).callback(callback).build();
         newLinePostLastClose = CheckboxWidget.builder(Text.literal("After last closing bracket"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_LAST_CLOSE_BRACKET).callback(callback).build();
         newLinePostComma = CheckboxWidget.builder(Text.literal("After commas"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_COMMA).callback(callback).build();
+        avoidDoubleNewline = CheckboxWidget.builder(Text.literal("Avoid empty lines"), textRenderer).checked(BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE).callback(callback).build();
+        bracketAutocomplete = CheckboxWidget.builder(Text.literal("Bracket autocomplete"), textRenderer).checked(BetterCommandBlockUI.BRACKET_AUTOCOMPLETE).callback(callback).build();
 
         init();
     }
@@ -83,11 +87,13 @@ public class ConfigScreen extends Screen {
         textField.setHeight(height/2);
 
         newLinePreOpen.setPosition(textField.getX() + textField.getWidth() + 32, 64);
-        newLinePostOpen.setPosition(newLinePreOpen.getX() + 26, 64);
-        newLinePreClose.setPosition(newLinePreOpen.getX(), 86);
-        newLinePostClose.setPosition(newLinePostOpen.getX(), 86);
-        newLinePostLastClose.setPosition(textField.getX() + textField.getWidth() + 16, 108);
-        newLinePostComma.setPosition(textField.getX() + textField.getWidth() + 16, 130);
+        newLinePostOpen.setPosition(newLinePreOpen.getX() + 26, newLinePreOpen.getY());
+        newLinePreClose.setPosition(newLinePreOpen.getX(), newLinePreOpen.getY() + checkboxDistY);
+        newLinePostClose.setPosition(newLinePostOpen.getX(), newLinePreClose.getY());
+        newLinePostLastClose.setPosition(textField.getX() + textField.getWidth() + 16, newLinePreClose.getY() + checkboxDistY);
+        newLinePostComma.setPosition(newLinePostLastClose.getX(), newLinePostLastClose.getY() + checkboxDistY);
+        avoidDoubleNewline.setPosition(newLinePostLastClose.getX(), newLinePostComma.getY() + checkboxDistY);
+        bracketAutocomplete.setPosition(newLinePostLastClose.getX(), avoidDoubleNewline.getY() + checkboxDistY*2);
 
         addDrawableChild(textField);
         this.setInitialFocus(this.textField);
@@ -98,6 +104,8 @@ public class ConfigScreen extends Screen {
         addDrawableChild(newLinePostClose);
         addDrawableChild(newLinePostLastClose);
         addDrawableChild(newLinePostComma);
+        addDrawableChild(avoidDoubleNewline);
+        addDrawableChild(bracketAutocomplete);
     }
 
     protected void onCommandChanged(String s){
@@ -120,6 +128,8 @@ public class ConfigScreen extends Screen {
         if (source.equals(newLinePostClose)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_NEWLINE_POST_CLOSE_BRACKET, String.valueOf(checked));
         if (source.equals(newLinePostLastClose)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_NEWLINE_POST_LAST_CLOSE_BRACKET, String.valueOf(checked));
         if (source.equals(newLinePostComma)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_NEWLINE_POST_COMMA, String.valueOf(checked));
+        if (source.equals(avoidDoubleNewline)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_AVOID_DOUBLE_NEWLINE, String.valueOf(checked));
+        if (source.equals(bracketAutocomplete)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_BRACKET_AUTOCOMPLETE, String.valueOf(checked));
         textField.refreshFormatting();
     }
 }

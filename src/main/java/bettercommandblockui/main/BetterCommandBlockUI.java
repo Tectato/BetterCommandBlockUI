@@ -93,6 +93,8 @@ public class BetterCommandBlockUI implements ClientModInitializer {
         if(key.equals(VAR_NEWLINE_POST_CLOSE_BRACKET)) NEWLINE_POST_CLOSE_BRACKET = CONFIG.getOrDefault(key, true);
         if(key.equals(VAR_NEWLINE_POST_LAST_CLOSE_BRACKET)) NEWLINE_POST_LAST_CLOSE_BRACKET = CONFIG.getOrDefault(key, false);
         if(key.equals(VAR_NEWLINE_POST_COMMA)) NEWLINE_POST_COMMA = CONFIG.getOrDefault(key, true);
+        if(key.equals(VAR_AVOID_DOUBLE_NEWLINE)) AVOID_DOUBLE_NEWLINE = CONFIG.getOrDefault(key, true);
+        if(key.equals(VAR_BRACKET_AUTOCOMPLETE)) BRACKET_AUTOCOMPLETE = CONFIG.getOrDefault(key, false);
     }
 
     public static void writeConfig(){

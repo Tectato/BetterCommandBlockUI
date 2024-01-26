@@ -537,12 +537,24 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     private void submitLine(String line, int currentIndex, int indent){
-        if (!lines.isEmpty() && lines.get(lines.size()-1).trim().isEmpty() && BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE)
-            return;
+        if (BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE) {
+            String trimmedLine = line.replace(BetterCommandBlockUI.INDENTATION_CHAR+"", "");
+            if (trimmedLine.isEmpty()) {
+                return;
+            }
+        }
         String indentChar = "" + BetterCommandBlockUI.INDENTATION_CHAR;
         lines.add(indentChar.repeat(indent * BetterCommandBlockUI.INDENTATION_FACTOR) + line);
-        lineOffsets.add(indent);
-        textOffsets.add((currentIndex-1) - line.length());
+        lineOffsets.add(indent * BetterCommandBlockUI.INDENTATION_FACTOR);
+        if (textOffsets.isEmpty()){
+            textOffsets.add(0);
+        } else {
+            int index = textOffsets.size()-1;
+            textOffsets.add(
+                    textOffsets.get(index) + (lines.get(index).length() - lineOffsets.get(index))
+            ); //TODO: Still broken
+        }
+        int current = textOffsets.get(textOffsets.size()-1);
     }
 
     private void formatText(String text) {
@@ -560,7 +572,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int linestart = 0;
         int parenthesesDepth = 0;
         int currentIndex = 0;
-        boolean metaString = false;
+        boolean singleQuoteString = false;
+        boolean doubleQuoteString = false;
         boolean escapeChar = false;
 
         char current;
@@ -570,10 +583,16 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         while(currentIndex < textArr.length) {
             current = textArr[currentIndex];
 
+            if (textRenderer.getWidth(currentLine) > BetterCommandBlockUI.WRAPAROUND_WIDTH){
+                submitLine(currentLine, currentIndex-1, parenthesesDepth);
+                currentLine = "";
+            }
+
             switch(current){
                 case '{':
                 case '[':
-                    if (metaString){
+                    if (singleQuoteString || doubleQuoteString){
+                        currentLine += current;
                         newLine = false;
                         break;
                     }
@@ -592,7 +611,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     break;
                 case '}':
                 case ']':
-                    if (metaString){
+                    if (singleQuoteString || doubleQuoteString){
+                        currentLine += current;
                         newLine = false;
                         break;
                     }
@@ -627,9 +647,14 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     newLine = false;
                     break;
                 case '"':
+                    if (!BetterCommandBlockUI.FORMAT_STRINGS && !singleQuoteString && !escapeChar){
+                        doubleQuoteString = !doubleQuoteString;
+                    }
+                    currentLine += current;
+                    break;
                 case '\'':
-                    if (BetterCommandBlockUI.FORMAT_STRINGS && !escapeChar){
-                        metaString = !metaString;
+                    if (!BetterCommandBlockUI.FORMAT_STRINGS && !escapeChar){
+                        singleQuoteString = !singleQuoteString;
                     }
                     currentLine += current;
                     break;
