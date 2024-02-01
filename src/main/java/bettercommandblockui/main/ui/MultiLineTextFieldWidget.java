@@ -34,7 +34,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     private List<String> lines;
     private List<Integer> lineOffsets, textOffsets;
     private List<Pair<Style, Integer>> textColors;
-    private boolean stringParameter = false;
     private int visibleLines = 11;
     private int scrolledLines = 0;
     private int horizontalOffset = 0;
@@ -536,8 +535,16 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
     }
 
+    private interface SpacePeeker {
+        Pair<Integer,String> run(int startIndex);
+    }
+
     private void submitLine(String line, int currentIndex, int indent){
-        if (BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE) {
+        submitLine(line, currentIndex, indent, false);
+    }
+
+    private void submitLine(String line, int currentIndex, int indent, boolean lastLine){
+        if (BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE && !lastLine) {
             String trimmedLine = line.replace(BetterCommandBlockUI.INDENTATION_CHAR+"", "");
             if (trimmedLine.isEmpty()) {
                 return;
@@ -552,9 +559,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             int index = textOffsets.size()-1;
             textOffsets.add(
                     textOffsets.get(index) + (lines.get(index).length() - lineOffsets.get(index))
-            ); //TODO: Still broken
+            );
         }
-        int current = textOffsets.get(textOffsets.size()-1);
     }
 
     private void formatText(String text) {
@@ -580,7 +586,32 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         String currentLine = "";
         boolean newLine = false;
 
+        SpacePeeker peeker = new SpacePeeker() {
+            @Override
+            public Pair<Integer,String> run(int startIndex) {
+                // Check for following spaces, makes for consistent indentation
+                StringBuilder outputLine = new StringBuilder();
+                int tempCurrentIndex = startIndex + 1;
+                if (tempCurrentIndex < textArr.length) {
+                    char tempCurrent = textArr[tempCurrentIndex];
+                    while (tempCurrentIndex < textArr.length - 1 && tempCurrent == ' ') {
+                        ++tempCurrentIndex;
+                        outputLine.append(tempCurrent);
+                        tempCurrent = textArr[tempCurrentIndex];
+                    }
+                    startIndex = tempCurrentIndex - 1;
+                }
+
+                return new Pair<>(startIndex, outputLine.toString());
+            }
+        };
+
         while(currentIndex < textArr.length) {
+            while(currentColorListIndex < colorIndices.size() && colorIndices.get(currentColorListIndex).getRight() < currentIndex){
+                colorStack.push(colorIndices.get(currentColorListIndex).getLeft());
+                currentColorListIndex++;
+            }
+
             current = textArr[currentIndex];
 
             if (textRenderer.getWidth(currentLine) > BetterCommandBlockUI.WRAPAROUND_WIDTH){
@@ -588,6 +619,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 currentLine = "";
             }
 
+            int colorStartIndex = currentIndex; // Necessary to make color start in right spot when peeking ahead
             switch(current){
                 case '{':
                 case '[':
@@ -603,11 +635,27 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     }
                     currentLine += current;
                     if (BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET){
+                        // Peek ahead for spaces
+                        Pair<Integer,String> peekResult = peeker.run(currentIndex);
+                        currentIndex = peekResult.getLeft();
+                        currentLine += peekResult.getRight();
+
                         submitLine(currentLine, currentIndex, parenthesesDepth);
                         currentLine = "";
                         newLine = true;
                     }
-                    if (newLine) parenthesesDepth++;
+                    if (newLine) {
+                        parenthesesDepth++;
+                    }
+
+                    if (currentColorListIndex > 0) {
+                        currentHighlightColor = colorIndices.get(currentColorListIndex - 1).getLeft();
+                        colorStack.push(currentHighlightColor);
+                        if (currentHighlightColor != 0) {
+                            colorIndices.add(currentColorListIndex, new Pair<>(getHighlightColorIndex(currentHighlightColor + 1), colorStartIndex));
+                            currentColorListIndex++;
+                        }
+                    }
                     break;
                 case '}':
                 case ']':
@@ -626,15 +674,31 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     }
                     currentLine += current;
                     if (BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET){
+                        // Peek ahead for spaces
+                        Pair<Integer,String> peekResult = peeker.run(currentIndex);
+                        currentIndex = peekResult.getLeft();
+                        currentLine += peekResult.getRight();
+
                         submitLine(currentLine, currentIndex, parenthesesDepth);
                         currentLine = "";
                         newLine = true;
                         if (!indentationChanged)
                             parenthesesDepth = Math.max(0,parenthesesDepth-1);
                     }
+
+                    if (colorIndices.get(currentColorListIndex - 1).getLeft() != 0) {
+                        colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), colorStartIndex + 1));
+                        currentColorListIndex++;
+                    }
                     break;
                 case ',':
                     currentLine += current;
+
+                    // Peek ahead for spaces
+                    Pair<Integer,String> peekResult = peeker.run(currentIndex);
+                    currentIndex = peekResult.getLeft();
+                    currentLine += peekResult.getRight();
+
                     if (BetterCommandBlockUI.NEWLINE_POST_COMMA){
                         submitLine(currentLine, currentIndex, parenthesesDepth);
                         currentLine = "";
@@ -667,7 +731,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             currentIndex++;
         }
         if (!currentLine.isEmpty()){
-            submitLine(currentLine, currentIndex, parenthesesDepth);
+            submitLine(currentLine, currentIndex, parenthesesDepth, true);
         }
 
         /*while(currentIndex < textArr.length){
