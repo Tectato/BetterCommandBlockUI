@@ -48,7 +48,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     protected ButtonWidget doneButton;
     protected ButtonWidget cancelButton;
-    protected ButtonWidget configButton;
+    //protected ButtonWidget configButton;
     protected CyclingTexturedButtonWidget<Boolean> toggleTrackingOutputButton;
     protected CyclingTexturedButtonWidget<Boolean> showOutputButton;
     protected TexturedButtonWidget showSideWindowButton;
@@ -86,7 +86,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         int lowerButtonWidth = Math.min((textBoxWidth/2) - buttonMargin/2, 160);
         this.doneButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> this.commitAndClose()).dimensions(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
         this.cancelButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.CANCEL, button -> this.close()).dimensions(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
-        this.configButton = this.addDrawableChild(ButtonWidget.builder(Text.literal("Config"), button -> this.openConfig()).dimensions(16, 16, 2*buttonHeight, buttonHeight).build());
+        //this.configButton = this.addDrawableChild(ButtonWidget.builder(Text.literal("Config"), button -> this.openConfig()).dimensions(16, 16, 2*buttonHeight, buttonHeight).build());
 
         boolean bl = this.commandExecutor.isTrackingOutput();
 
@@ -153,7 +153,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
         this.consoleCommandTextField.setText(commandExecutor.getCommand());
 
-        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 8*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
+        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 4*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
         this.sideWindow.setVisible(this.showSideWindow);
     }
 
@@ -173,7 +173,12 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     public void openConfig(){
         assert client != null;
+        commandBuffer = this.consoleCommandTextField.getText();
         client.setScreen(new ConfigScreen(this, client, width, height));
+    }
+
+    public void returnFromConfig(){
+        this.consoleCommandTextField.setText(commandBuffer);
     }
 
     public boolean scroll(double amount){

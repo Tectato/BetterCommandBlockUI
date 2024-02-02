@@ -59,6 +59,8 @@ public class BetterCommandBlockUI implements ClientModInitializer {
 
     private static KeyBinding areaSelectionInput;
 
+    public static String commandBuffer = "";
+
     @Override
     public void onInitializeClient() {
         areaSelectionInput = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -98,7 +100,6 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     }
 
     public static void writeConfig(){
-        System.out.println("[BCBUI] Writing to config file...");
         CONFIG.writeToFile();
     }
 
@@ -125,4 +126,6 @@ public class BetterCommandBlockUI implements ClientModInitializer {
                 "# Whether to automatically insert closing brackets when typing opening ones\n" +
                 "bracket_autocomplete=false";
     }
+
+
 }

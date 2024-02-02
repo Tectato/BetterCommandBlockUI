@@ -16,6 +16,9 @@
   "entrypoints": {
     "client": [
       "bettercommandblockui.main.BetterCommandBlockUI"
+    ],
+    "modmenu": [
+      "bettercommandblockui.main.ModMenuIntegration"
     ]
   },
   "mixins": [

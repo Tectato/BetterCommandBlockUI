@@ -66,6 +66,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     @Override
     public void setHeight(int height){
         this.height = height;
+        this.visibleLines = (height-4) / 10;
         scrollY.setHeight(height);
     }
 
@@ -686,7 +687,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                             parenthesesDepth = Math.max(0,parenthesesDepth-1);
                     }
 
-                    if (colorIndices.get(currentColorListIndex - 1).getLeft() != 0) {
+                    if (currentColorListIndex > 0 && colorIndices.get(currentColorListIndex - 1).getLeft() != 0) {
                         colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), colorStartIndex + 1));
                         currentColorListIndex++;
                     }

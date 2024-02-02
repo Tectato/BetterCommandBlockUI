@@ -140,7 +140,7 @@ public class NotchedSlider extends ClickableWidget {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        if (!this.visible) {
+        if (!this.visible || !checkHovered(mouseX, mouseY)) {
             return;
         }
         dragging = true;

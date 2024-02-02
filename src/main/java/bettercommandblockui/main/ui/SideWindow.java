@@ -1,6 +1,7 @@
 package bettercommandblockui.main.ui;
 
 import bettercommandblockui.main.BetterCommandBlockUI;
+import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -9,10 +10,7 @@ import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.TexturedButtonWidget;
-import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -39,15 +37,10 @@ public class SideWindow implements Drawable, Element {
     Screen screen;
 
     String piFractionInputText = "2π / ";
-    String indentationInputText = "Indentation: ";
-    String scrollXInputText = "Scroll speed X: ";
-    String scrollYInputText = "Scroll speed Y: ";
-    String wraparoundInputText = "Wraparound width: ";
-    String formatStringsText = "Format strings: ";
-    TextFieldWidget piFractionInput, indentationInput, scrollXInput, scrollYInput, wraparoundInput;
-    CyclingTexturedButtonWidget<Boolean> formatStrings;
+    TextFieldWidget piFractionInput;
     NotchedSlider piSlider;
     TexturedButtonWidget piCopyButton;
+    ButtonWidget configButton;
     TextRenderer textRenderer;
 
     List<ClickableWidget> widgets;
@@ -100,82 +93,10 @@ public class SideWindow implements Drawable, Element {
                 }
         ));
 
-        posY += 30;
-        this.indentationInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 60, 10, Text.of("")));
-        this.indentationInput.setChangedListener((input)->{
-            try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),1),16);
-                BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_INDENTATION, String.valueOf(inputInt));
-                this.commandField.refreshFormatting();
-            } catch (NumberFormatException e){
-                BetterCommandBlockUI.INDENTATION_FACTOR = 2;
-            }
-        });
-        this.indentationInput.setText(String.valueOf(BetterCommandBlockUI.INDENTATION_FACTOR));
-
-        posY += 30;
-        this.wraparoundInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 80, 10, Text.of("")));
-        this.wraparoundInput.setChangedListener((input)->{
-            try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),10),1600);
-                BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_WRAPAROUND, String.valueOf(inputInt));
-                this.commandField.refreshFormatting();
-            } catch (NumberFormatException e){
-                BetterCommandBlockUI.WRAPAROUND_WIDTH = 200;
-            }
-        });
-        this.wraparoundInput.setText(String.valueOf(BetterCommandBlockUI.WRAPAROUND_WIDTH));
-
-        posY += 30;
-        this.scrollXInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 60, 10, Text.of("")));
-        this.scrollXInput.setChangedListener((input)->{
-            try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),1),64);
-                BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_SCROLL_X, String.valueOf(inputInt));
-            } catch (NumberFormatException e){
-                BetterCommandBlockUI.SCROLL_STEP_X = 4;
-            }
-        });
-        this.scrollXInput.setText(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_X));
-
-        posY += 30;
-        this.scrollYInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 60, 10, Text.of("")));
-        this.scrollYInput.setChangedListener((input)->{
-            try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),1),64);
-                BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_SCROLL_Y, String.valueOf(inputInt));
-            } catch (NumberFormatException e){
-                BetterCommandBlockUI.SCROLL_STEP_Y = 2;
-            }
-        });
-        this.scrollYInput.setText(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_Y));
-
-        posY += 30;
-        Text[] formatStringsTooltips = {
-            Text.of("Useful for nested Commands"),
-            Text.of("Useful for nested Commands")
-        };
-        this.formatStrings = (CyclingTexturedButtonWidget<Boolean>) addWidget(
-            new CyclingTexturedButtonWidget<>(
-                x + leftMargin,
-                posY,
-                20,
-                20,
-                Text.of(""),
-                (button)->{
-                    BetterCommandBlockUI.setConfig(
-                            BetterCommandBlockUI.VAR_FORMAT_STRINGS,
-                            String.valueOf(button.getValue())
-                    );
-                    this.commandField.refreshFormatting();
-                },
-                screen,
-                BetterCommandBlockUI.BUTTON_CHECKBOX,
-                BetterCommandBlockUI.FORMAT_STRINGS ? 1 : 0,
-                new Boolean[]{false, true},
-                formatStringsTooltips
-            )
-        );
+        posY += 20;
+        this.configButton = (ButtonWidget) addWidget(ButtonWidget
+                .builder(Text.literal("Config"), button -> ((AbstractBetterCommandBlockScreen)screen).openConfig())
+                .dimensions(x+leftMargin, posY, width - leftMargin*2, 20).build());
     }
 
     @Override
@@ -188,22 +109,11 @@ public class SideWindow implements Drawable, Element {
 
         context.drawBorder(x-1, y-1, width+4, height+2, 0xFFFFFFFF);
 
-        context.drawTextWithShadow(this.textRenderer, piFractionInputText, x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
+        context.drawTextWithShadow(this.textRenderer, "2π / ", x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
         this.piFractionInput.render(context, mouseX, mouseY, delta);
         this.piSlider.render(context, mouseX, mouseY, delta);
         this.piCopyButton.render(context, mouseX, mouseY, delta);
-
-        context.drawTextWithShadow(this.textRenderer, indentationInputText, x + leftMargin, indentationInput.getY() - 12, 0xFFFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, wraparoundInputText, x + leftMargin, wraparoundInput.getY() - 12, 0xFFFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, scrollXInputText, x + leftMargin, scrollXInput.getY() - 12, 0xFFFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, scrollYInputText, x + leftMargin, scrollYInput.getY() - 12, 0xFFFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, formatStringsText, x + leftMargin, formatStrings.getY() - 12, 0xFFFFFFFF);
-
-        this.indentationInput.render(context, mouseX, mouseY, delta);
-        this.wraparoundInput.render(context, mouseX, mouseY, delta);
-        this.scrollXInput.render(context, mouseX, mouseY, delta);
-        this.scrollYInput.render(context, mouseX, mouseY, delta);
-        this.formatStrings.render(context, mouseX, mouseY, delta);
+        this.configButton.render(context, mouseX, mouseY, delta);
     }
 
     Widget addWidget(ClickableWidget widget){
@@ -220,10 +130,7 @@ public class SideWindow implements Drawable, Element {
     public void setFocused(boolean focused) {
         if(!focused){
             this.piFractionInput.setFocused(false);
-            this.indentationInput.setFocused(false);
-            this.wraparoundInput.setFocused(false);
-            this.scrollXInput.setFocused(false);
-            this.scrollYInput.setFocused(false);
+            this.configButton.setFocused(false);
         }
     }
 
