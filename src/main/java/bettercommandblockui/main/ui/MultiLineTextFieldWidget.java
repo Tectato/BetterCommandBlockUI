@@ -331,6 +331,33 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         this.updateScrollPositions();
     }
 
+    private int getWordLength(int offsetDir){
+        /*
+         * If traversing letters or numbers, keep going until reaching a non-alphanumeric character.
+         * Otherwise, only traverse chunks of the same character
+         */
+        int startIndex = accessor.getSelectionStart() + (offsetDir < 0 ? -1 : 0);
+        String text = getText();
+        char current = text.charAt(startIndex);
+        char startChar = current;
+        //System.out.println("Starting at: " + startChar + ", wordOffset = " + offsetDir);
+        boolean erasingAlphanumeric = Character.isLetter(startChar) || Character.isDigit(startChar);
+        int endIndex = startIndex;
+        do{
+            endIndex += offsetDir;
+            if (endIndex < 0 || endIndex >= text.length()) break;
+            current = text.charAt(endIndex);
+        } while (
+                (erasingAlphanumeric && (Character.isLetter(current) || Character.isDigit(current)))
+                        || (!erasingAlphanumeric && current == startChar)
+        );
+        endIndex -= offsetDir;
+        int min = Math.min(startIndex, endIndex);
+        int max = Math.max(startIndex, endIndex);
+        //System.out.println("Word: " + text.substring(min, max + 1));
+        return ((max-min) + 1) * offsetDir;
+    }
+
     @Override
     public void eraseWords(int wordOffset) {
         if (accessor.getText().isEmpty()) {
@@ -340,7 +367,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             this.write("");
             return;
         }
-        this.eraseCharacters(this.getWordSkipPosition(wordOffset) - accessor.getSelectionStart());
+        //this.eraseCharacters(this.getWordSkipPosition(wordOffset) - accessor.getSelectionStart());
+        eraseCharacters(getWordLength(wordOffset));
     }
 
     @Override
@@ -404,7 +432,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         switch (keyCode) {
             case 263: {
                 if (Screen.hasControlDown()) {
-                    this.setCursor(this.getWordSkipPosition(-1), Screen.hasShiftDown());
+                    //this.setCursor(this.getWordSkipPosition(-1), Screen.hasShiftDown());
+                    this.setCursor(getCursor() + getWordLength(-1), Screen.hasShiftDown());
                     updateScrollPositions();
                 } else {
                     this.moveCursor(-1, Screen.hasShiftDown());
@@ -421,7 +450,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             }
             case 262: {
                 if (Screen.hasControlDown()) {
-                    this.setCursor(this.getWordSkipPosition(1), Screen.hasShiftDown());
+                    //this.setCursor(this.getWordSkipPosition(1), Screen.hasShiftDown());
+                    this.setCursor(getCursor() + getWordLength(1), Screen.hasShiftDown());
                     updateScrollPositions();
                 } else {
                     this.moveCursor(1, Screen.hasShiftDown());
@@ -743,113 +773,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             submitLine(currentLine, currentIndex, parenthesesDepth, true);
         }
 
-        /*while(currentIndex < textArr.length){
-            while(currentColorListIndex < colorIndices.size() && colorIndices.get(currentColorListIndex).getRight() < currentIndex){
-                colorStack.push(colorIndices.get(currentColorListIndex).getLeft());
-                currentColorListIndex++;
-            }
-
-            current = textArr[currentIndex];
-            if(!metaString || BetterCommandBlockUI.FORMAT_STRINGS) {
-                switch (current) {
-                    case '"':
-                        if(!escapeChar){
-                            metaString = true;
-                        }
-                        break;
-                    case '{':
-                    case '[':
-                        if (currentColorListIndex > 0) {
-                            currentHighlightColor = colorIndices.get(currentColorListIndex - 1).getLeft();
-                            colorStack.push(currentHighlightColor);
-                            if (currentHighlightColor != 0) {
-                                colorIndices.add(currentColorListIndex, new Pair<>(getHighlightColorIndex(currentHighlightColor + 1), currentIndex));
-                                currentColorListIndex++;
-                            }
-                        }
-
-                        String previousLine = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
-                        if (previousLine.length() > 0) {
-                            lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + previousLine);
-                            lineOffsets.add(parenthesesDepth*indentationFactor);
-                            textOffsets.add(linestart - currentPrefix.length());
-                        }
-                        lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + current);
-                        lineOffsets.add(parenthesesDepth*indentationFactor);
-                        textOffsets.add(currentIndex);
-                        parenthesesDepth++;
-                        linestart = currentIndex + 1;
-                        currentPrefix = "";
-                        break;
-                    case '}':
-                    case ']':
-                        if (colorIndices.get(currentColorListIndex - 1).getLeft() != 0) {
-                            colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), currentIndex + 1));
-                            currentColorListIndex++;
-                        }
-
-                        String offset = " ".repeat(parenthesesDepth*indentationFactor);
-                        String line = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
-                        if(line.length() > 0){
-                            lines.add(offset + line);
-                            lineOffsets.add(parenthesesDepth*indentationFactor);
-                            textOffsets.add(linestart - currentPrefix.length());
-                        }
-                        parenthesesDepth = Math.max(parenthesesDepth - 1, 0);
-                        linestart = currentIndex + 1;
-                        currentPrefix = String.valueOf(current);
-                        break;
-                    case ',':
-                        // Check for following spaces, makes for consistent indentation
-                        int tempCurrentIndex = currentIndex + 1;
-                        if (tempCurrentIndex < textArr.length) {
-                            char tempCurrent = textArr[tempCurrentIndex];
-                            while (tempCurrentIndex < textArr.length - 1 && tempCurrent == ' ') {
-                                ++tempCurrentIndex;
-                                tempCurrent = textArr[tempCurrentIndex];
-                            }
-                            currentIndex = tempCurrentIndex - 1;
-                        }
-
-                        lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
-                        lineOffsets.add(parenthesesDepth*indentationFactor);
-                        textOffsets.add(linestart - currentPrefix.length());
-                        linestart = currentIndex + 1;
-                        currentPrefix = "";
-                        break;
-                }
-            } else {
-                if(!escapeChar) {
-                    if (current == '"') {
-                        metaString = false;
-                    } else if (current == '\\'){
-                        escapeChar = true;
-                    }
-                } else {
-                    escapeChar = false;
-                }
-            }
-            String currentIndentation = " ".repeat(parenthesesDepth * indentationFactor);
-            String currentLine = currentPrefix + String.copyValueOf(textArr, linestart, Math.max(0,(currentIndex - linestart)));
-            //Wraparound
-            if(textRenderer.getWidth(currentLine) > BetterCommandBlockUI.WRAPAROUND_WIDTH) {
-                lines.add(currentIndentation + currentLine);
-                lineOffsets.add(parenthesesDepth * indentationFactor);
-                textOffsets.add(linestart - currentPrefix.length());
-                linestart = currentIndex;
-                currentPrefix = "";
-            }
-
-            currentIndex++;
-            if(currentIndex >= textArr.length){ //Print missing end parentheses
-                currentLine = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
-                lines.add(currentIndentation + currentLine);
-                lineOffsets.add(parenthesesDepth*indentationFactor);
-                textOffsets.add(linestart-currentPrefix.length());
-            }
-
-        }*/
-
         for(Pair<Integer,Integer> p : colorIndices){
             textColors.add(new Pair<>(suggestor.getColor(p.getLeft()),p.getRight()));
         }
@@ -867,6 +790,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         return (index % count) + 2;
     }
 
+    private boolean getHovered(double mouseX, double mouseY){
+        return mouseX >= (double) this.getX() && mouseX < (double)(this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double)(this.getY() + this.height);
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button){
         if (!this.isVisible()) {
@@ -876,11 +803,11 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         scrollX.mouseClicked(mouseX, mouseY, button);
         scrollY.mouseClicked(mouseX, mouseY, button);
 
-        boolean bl = mouseX >= (double) this.getX() && mouseX < (double)(this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double)(this.getY() + this.height);
+        boolean hovered = getHovered(mouseX, mouseY);
         if (accessor.getFocusUnlocked()) {
-            this.setFocused(bl);
+            this.setFocused(hovered);
         }
-        if(this.isFocused() && bl && button == 0) {
+        if(this.isFocused() && hovered && button == 0) {
             this.setCursor(pointToIndex(mouseX, mouseY), Screen.hasShiftDown());
             cursorPosPreference = new Pair<>((int)mouseX, (int)mouseY);
             return true;
@@ -923,6 +850,11 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         scrollX.onDrag(mouseX, mouseY, deltaX, deltaY);
         scrollY.onDrag(mouseX, mouseY, deltaX, deltaY);
+
+        boolean hovered = getHovered(mouseX, mouseY);
+        if (hovered){
+            setSelectionStart(pointToIndex(mouseX, mouseY));
+        }
         return true;
     }
 

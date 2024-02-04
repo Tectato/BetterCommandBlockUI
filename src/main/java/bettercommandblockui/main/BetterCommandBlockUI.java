@@ -96,7 +96,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
         if(key.equals(VAR_NEWLINE_POST_LAST_CLOSE_BRACKET)) NEWLINE_POST_LAST_CLOSE_BRACKET = CONFIG.getOrDefault(key, false);
         if(key.equals(VAR_NEWLINE_POST_COMMA)) NEWLINE_POST_COMMA = CONFIG.getOrDefault(key, true);
         if(key.equals(VAR_AVOID_DOUBLE_NEWLINE)) AVOID_DOUBLE_NEWLINE = CONFIG.getOrDefault(key, true);
-        if(key.equals(VAR_BRACKET_AUTOCOMPLETE)) BRACKET_AUTOCOMPLETE = CONFIG.getOrDefault(key, false);
+        //if(key.equals(VAR_BRACKET_AUTOCOMPLETE)) BRACKET_AUTOCOMPLETE = CONFIG.getOrDefault(key, false);
     }
 
     public static void writeConfig(){
@@ -122,9 +122,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
                 "newline_post_close_bracket=true\n" +
                 "newline_post_last_close_bracket=true\n" +
                 "newline_post_comma=true\n" +
-                "avoid_double_newline=true\n\n" +
-                "# Whether to automatically insert closing brackets when typing opening ones\n" +
-                "bracket_autocomplete=false";
+                "avoid_double_newline=true";
     }
 
 
