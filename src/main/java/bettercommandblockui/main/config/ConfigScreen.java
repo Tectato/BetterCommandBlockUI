@@ -34,6 +34,7 @@ public class ConfigScreen extends Screen {
     private static int textMargin = 5;
     private static int screenMarginX = 40;
     private static int screenMarginY = 20;
+    private static int numberInputWidth = 40;
     private CheckboxWidget newLinePreOpen, newLinePostOpen, newLinePreClose, newLinePostClose, //newLinePostLastClose,
             newLinePostComma, avoidDoubleNewline, formatStrings;//, bracketAutocomplete;
     private TextFieldWidget indentationFac, wraparound, scrollSpeedX, scrollSpeedY;
@@ -91,7 +92,7 @@ public class ConfigScreen extends Screen {
         //bracketAutocomplete = CheckboxWidget.builder(Text.literal("Bracket autocomplete"), textRenderer).checked(BetterCommandBlockUI.BRACKET_AUTOCOMPLETE).callback(callback).build();
         formatStrings = CheckboxWidget.builder(Text.literal("Format strings"), textRenderer).checked(BetterCommandBlockUI.FORMAT_STRINGS).callback(callback).build();
 
-        indentationFac = new TextFieldWidget(textRenderer, 0, 0, 30, 10, Text.of("Indentation factor"));
+        indentationFac = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.of("Indentation factor"));
         indentationFac.setText(String.valueOf(BetterCommandBlockUI.INDENTATION_FACTOR));
         indentationFac.setChangedListener((input) -> {
             try {
@@ -102,18 +103,18 @@ public class ConfigScreen extends Screen {
                 BetterCommandBlockUI.INDENTATION_FACTOR = 2;
             }
         });
-        wraparound = new TextFieldWidget(textRenderer, 0, 0, 30, 10, Text.of("Wraparound width"));
+        wraparound = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.of("Wraparound width"));
         wraparound.setText(String.valueOf(BetterCommandBlockUI.WRAPAROUND_WIDTH));
         wraparound.setChangedListener((input) -> {
             try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),10),1600);
+                int inputInt = Math.min(Math.max(Integer.parseInt(input),10),6400);
                 BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_WRAPAROUND, String.valueOf(inputInt));
                 this.textField.refreshFormatting();
             } catch (NumberFormatException e){
                 BetterCommandBlockUI.WRAPAROUND_WIDTH = 200;
             }
         });
-        scrollSpeedX = new TextFieldWidget(textRenderer, 0, 0, 30, 10, Text.of("Scroll speed X"));
+        scrollSpeedX = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.of("Scroll speed X"));
         scrollSpeedX.setText(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_X));
         scrollSpeedX.setChangedListener((input) -> {
             try {
@@ -123,7 +124,7 @@ public class ConfigScreen extends Screen {
                 BetterCommandBlockUI.SCROLL_STEP_X = 4;
             }
         });
-        scrollSpeedY = new TextFieldWidget(textRenderer, 0, 0, 30, 10, Text.of("Scroll speed Y"));
+        scrollSpeedY = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.of("Scroll speed Y"));
         scrollSpeedY.setText(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_Y));
         scrollSpeedY.setChangedListener((input) -> {
             try {
@@ -169,7 +170,7 @@ public class ConfigScreen extends Screen {
         formatStrings.setPosition(newLinePreOpen.getX() + 80, newLinePreOpen.getY());
         avoidDoubleNewline.setPosition(formatStrings.getX(), formatStrings.getY() + checkboxDistY);
         //bracketAutocomplete.setPosition(newLinePostLastClose.getX(), avoidDoubleNewline.getY() + checkboxDistY*2);
-        indentationFac.setPosition(formatStrings.getX() + 128, newLinePreOpen.getY() + 2);
+        indentationFac.setPosition(formatStrings.getX() + 112, newLinePreOpen.getY() + 2);
         wraparound.setPosition(indentationFac.getX(), indentationFac.getY() + 12);
         scrollSpeedX.setPosition(wraparound.getX(), wraparound.getY() + 12);
         scrollSpeedY.setPosition(scrollSpeedX.getX(), scrollSpeedX.getY() + 12);
@@ -214,10 +215,10 @@ public class ConfigScreen extends Screen {
         context.drawTextWithShadow(textRenderer, Text.literal("{"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() + 6, 0xffffff);
         context.drawTextWithShadow(textRenderer, Text.literal("}"), newLinePreClose.getX() + 20, newLinePreClose.getY() + 6, 0xffffff);
         context.drawTextWithShadow(textRenderer, Text.literal(","), newLinePreClose.getX() + 20, newLinePostComma.getY() + 6, 0xffffff);
-        context.drawTextWithShadow(textRenderer, Text.literal("Indentation"), indentationFac.getX() + 30 + 4, indentationFac.getY() + 2, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.literal("Wraparound width"), wraparound.getX() + 30 + 4, wraparound.getY() + 2, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.literal("Scroll speed X"), scrollSpeedX.getX() + 30 + 4, scrollSpeedX.getY() + 2, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.literal("Scroll speed Y"), scrollSpeedY.getX() + 30 + 4, scrollSpeedY.getY() + 2, 0xFFE0E0E0);
+        context.drawTextWithShadow(textRenderer, Text.literal("Indentation"), indentationFac.getX() + numberInputWidth + 4, indentationFac.getY() + 2, 0xFFE0E0E0);
+        context.drawTextWithShadow(textRenderer, Text.literal("Wraparound width"), wraparound.getX() + numberInputWidth + 4, wraparound.getY() + 2, 0xFFE0E0E0);
+        context.drawTextWithShadow(textRenderer, Text.literal("Scroll speed X"), scrollSpeedX.getX() + numberInputWidth + 4, scrollSpeedX.getY() + 2, 0xFFE0E0E0);
+        context.drawTextWithShadow(textRenderer, Text.literal("Scroll speed Y"), scrollSpeedY.getX() + numberInputWidth + 4, scrollSpeedY.getY() + 2, 0xFFE0E0E0);
         textField.render(context, mouseX, mouseY, delta);
     }
 

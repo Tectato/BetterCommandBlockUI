@@ -92,7 +92,6 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     private boolean checkHovered(double mouseX, double mouseY){
-        int barLength = (int) ((double)length / scale);
         if(horizontal){
             return mouseX >= this.getX() + pos * (length-barLength) && mouseY >= this.getY() && mouseX < this.getX() + pos * (length-barLength) + barLength && mouseY < this.getY() + this.height;
         } else {
@@ -167,7 +166,7 @@ public class ScrollbarWidget extends ClickableWidget {
 
     public void setScale(double newScale){
         this.scale = Math.max(newScale,1);
-        this.barLength = (int) ((double)length / scale);
+        this.barLength = (int) ((double)length / Math.min(scale,8));
     }
 
     public void updatePos(double newPos){

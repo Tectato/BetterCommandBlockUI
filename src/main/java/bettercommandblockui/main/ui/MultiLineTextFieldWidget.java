@@ -196,15 +196,17 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     private void drawColoredLine(DrawContext context, String content, int x, int y, int lineIndex){
         TextRenderer textRenderer = accessor.getTextRenderer();
         int renderOffset = 0;
-        int startOffset = textOffsets.get(lineIndex);
+        int startOffset = textOffsets.get(lineIndex); // start index of this line within command
         int currentOffset = 0;
-        int firstOffset = lineOffsets.get(lineIndex); // Great variable names, I know
+        int numSpaces = lineOffsets.get(lineIndex); // number of spaces before this line
         if(textColors.size() > 1) {
             for (int i = 0; i < textColors.size(); i++) {
                 if(currentOffset >= content.length()) break;
                 int nextColorStart = (i+1)<textColors.size() ? textColors.get(i+1).getRight() : (startOffset + content.length());
-                if (nextColorStart > startOffset+currentOffset) {
-                    String substring = content.substring(currentOffset, clamp(firstOffset + (nextColorStart-(startOffset+horizontalOffset)), currentOffset,content.length()));
+                nextColorStart -= startOffset;
+                nextColorStart += numSpaces-horizontalOffset;
+                if (nextColorStart > currentOffset) {
+                    String substring = content.substring(currentOffset, clamp(nextColorStart, currentOffset, content.length()));
 
                     int color;
                     try{
@@ -222,7 +224,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     );
                     currentOffset += substring.length();
                     renderOffset += textRenderer.getWidth(substring);
-                    firstOffset = 0;
+                    //numSpaces = 0;
                 }
                 if(currentOffset > content.length()) break;
             }
@@ -624,6 +626,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             switch(current){
                 case '{':
                 case '[':
+                    escapeChar = false;
                     if (singleQuoteString || doubleQuoteString){
                         currentLine += current;
                         newLine = false;
@@ -660,6 +663,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     break;
                 case '}':
                 case ']':
+                    escapeChar = false;
                     if (singleQuoteString || doubleQuoteString){
                         currentLine += current;
                         newLine = false;
@@ -693,6 +697,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     }
                     break;
                 case ',':
+                    escapeChar = false;
                     currentLine += current;
 
                     // Peek ahead for spaces
@@ -703,7 +708,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     if (BetterCommandBlockUI.NEWLINE_POST_COMMA){
                         submitLine(currentLine, currentIndex, parenthesesDepth);
                         currentLine = "";
-                        newLine = true;
+                        //newLine = true;
                     }
                     break;
                 case '\\':
@@ -714,18 +719,21 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 case '"':
                     if (!BetterCommandBlockUI.FORMAT_STRINGS && !singleQuoteString && !escapeChar){
                         doubleQuoteString = !doubleQuoteString;
+                        escapeChar = false;
                     }
                     currentLine += current;
                     break;
                 case '\'':
                     if (!BetterCommandBlockUI.FORMAT_STRINGS && !escapeChar){
                         singleQuoteString = !singleQuoteString;
+                        escapeChar = false;
                     }
                     currentLine += current;
                     break;
                 default:
                     currentLine += current;
                     newLine = false;
+                    escapeChar = false;
                     break;
             }
 
