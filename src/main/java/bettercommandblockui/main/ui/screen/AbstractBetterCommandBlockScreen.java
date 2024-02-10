@@ -153,7 +153,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
         this.consoleCommandTextField.setText(commandExecutor.getCommand());
 
-        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 4*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
+        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 6*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
         this.sideWindow.setVisible(this.showSideWindow);
     }
 
@@ -179,6 +179,10 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     public void returnFromConfig(){
         this.consoleCommandTextField.setText(commandBuffer);
+    }
+
+    public void sideWindowFocused(){
+        consoleCommandTextField.setFocused(false);
     }
 
     public boolean scroll(double amount){
@@ -231,6 +235,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         if (this.commandSuggestor.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
+        if (keyCode == 258 && sideWindow.isFocused()) return true;
         if (super.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }

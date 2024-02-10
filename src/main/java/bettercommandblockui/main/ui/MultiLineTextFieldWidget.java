@@ -52,8 +52,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         this.visibleLines = (height-4) / 10;
         this.scrolledLines = 0;
         this.screen = screen;
-        this.scrollX = new ScrollbarWidget(x, y + height + 1, width, 10, Text.of(""), this, true);
-        this.scrollY = new ScrollbarWidget(x + width + 1, y, 10, height, Text.of(""), this, false);
+        this.scrollX = new TextFieldScrollbarWidget(x, y + height + 1, width, 10, Text.of(""), this, true);
+        this.scrollY = new TextFieldScrollbarWidget(x + width + 1, y, 10, height, Text.of(""), this, false);
         cursorPosPreference = new Pair<>(0,0);
     }
 
@@ -852,7 +852,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         scrollY.onDrag(mouseX, mouseY, deltaX, deltaY);
 
         boolean hovered = getHovered(mouseX, mouseY);
-        if (hovered){
+        if (isSelected() && hovered){
             setSelectionStart(pointToIndex(mouseX, mouseY));
         }
         return true;
