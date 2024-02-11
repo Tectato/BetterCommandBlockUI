@@ -1,6 +1,5 @@
 package bettercommandblockui.main.ui.screen;
 
-import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.main.config.ConfigScreen;
 import bettercommandblockui.main.ui.CyclingTexturedButtonWidget;
 import bettercommandblockui.main.ui.MultiLineCommandSuggestor;
@@ -15,13 +14,11 @@ import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.util.NarratorManager;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -59,7 +56,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected ChatInputSuggestor commandSuggestor;
     protected boolean trackOutput = true;
     protected boolean showOutput = false;
-    protected boolean showSideWindow = false;
+    protected static boolean showSideWindow = false;
 
     protected static int buttonHeight = 20;
     protected static int sliderHeight = 10;
@@ -118,8 +115,11 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                 buttonHeight,
                 SIDE_WINDOW_BUTTON_TEXTURES,
                 (button) -> {
-                    this.showSideWindow = !this.showSideWindow;
-                    this.sideWindow.setVisible(this.showSideWindow);
+                    showSideWindow = !showSideWindow;
+                    this.sideWindow.setVisible(showSideWindow);
+
+                    this.showOutputButton.setTooltipVisible(!showSideWindow);
+                    this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
                 },
                 Text.of("Tools"))
         );
@@ -153,8 +153,10 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
         this.consoleCommandTextField.setText(commandExecutor.getCommand());
 
-        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 6*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
-        this.sideWindow.setVisible(this.showSideWindow);
+        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 7*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
+        this.sideWindow.setVisible(showSideWindow);
+        this.showOutputButton.setTooltipVisible(!showSideWindow);
+        this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
     }
 
     @Override
@@ -213,6 +215,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button){
+        if(showSideWindow && sideWindow.mouseReleased(mouseX, mouseY, button)) return true;
         if(button == 0){
             if(showOutput){
                 return this.previousOutputTextField.mouseReleased(mouseX, mouseY, button);

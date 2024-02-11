@@ -1,7 +1,7 @@
 package bettercommandblockui.main.ui;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.text.Text;
@@ -10,8 +10,7 @@ import org.joml.Matrix4f;
 
 public class ColorScrollbarWidget extends ScrollbarWidget{
     int color;
-    TextFieldWidget textField;
-    public ColorScrollbarWidget(int x, int y, int width, int height, Text message, TextFieldWidget textField, ColorPicker.COLOR color) {
+    public ColorScrollbarWidget(int x, int y, int width, int height, Text message, ColorPicker.COLOR color) {
         super(x, y, width, height, message, true);
         int colorInt = switch (color) {
             case RED -> 0xFF0000;
@@ -19,17 +18,8 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
             case BLUE -> 0x0000FF;
         };
         this.color = 0xFF000000 | colorInt;
-        setScale(width);
-
-        this.textField = textField;
-        textField.setMaxLength(3);
-        textField.setChangedListener((input)->{
-            int value = 0;
-            try {
-                value = Integer.parseInt(input);
-            } catch (NumberFormatException ignored){}
-            pos = value / 255.0;
-        });
+        setScale(width*2);
+        this.barLength = 1;
     }
 
     @Override
@@ -39,8 +29,11 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
 
     @Override
     protected void renderSlider(DrawContext context, int mouseX, int mouseY, float delta) {
-        boolean highlighted = (this.hovered || this.dragging);
-        context.fill(this.getX() + (int)(pos * (length - barLength)), this.getY(), this.getX() + (int)(pos * (length - barLength)) + 1, this.getY() + 8, highlighted ? 0xFFFFFFFF : 0xFFA0A0A0);
+        boolean highlighted = (this.checkHovered(mouseX, mouseY) || this.dragging);
+        int posX = this.getX() + (int)(pos * (length - barLength));
+        int posY = this.getY();
+        context.fill(posX, posY, posX + 1, posY + 9, highlighted ? 0xFFFFFFFF : 0xFFA0A0A0);
+        context.fill(posX + 1, posY + 1, posX + 2, posY + 10, 0xFF000000);
     }
 
     private void fillHorizontalGradient(DrawContext context, int startX, int startY, int endX, int endY, int colorStart, int colorEnd) {
@@ -61,12 +54,41 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
     }
 
     @Override
+    protected boolean checkHovered(double mouseX, double mouseY){
+        if (!visible) return false;
+        return mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + width && mouseY < this.getY() + this.height;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (this.isValidClickButton(button) && this.checkHovered(mouseX, mouseY)) {
+            this.playDownSound(MinecraftClient.getInstance().getSoundManager());
+            this.onClick(mouseX, mouseY);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void onClick(double mouseX, double mouseY) {
+        if (!this.visible) {
+            return;
+        }
+        pos = Math.min(Math.max((mouseX - getX())/width, 0), 1);
+        if ((changedListener != null)){
+            changedListener.accept(pos);
+        }
+        dragging = true;
+        prevMouseX = mouseX;
+        prevMouseY = mouseY;
+    }
+
+    @Override
     public void onDrag(double mouseX, double mouseY, double distX, double distY){
         if(dragging) {
             double posBefore = pos;
             pos = Math.min(Math.max(pos + distX/(length-barLength), 0), 1);
-            textField.setText(""+((int)(pos * 255.0)));
-            if ((changedListener != null) && (Math.abs(posBefore-pos) > 0.01d)){
+            if ((changedListener != null) && (Math.abs(posBefore-pos) > 0.0d)){
                 changedListener.accept(pos);
             }
         }

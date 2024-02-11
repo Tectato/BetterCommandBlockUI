@@ -90,7 +90,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isVisible()) {
             return;
         }
-        if (accessor.invokeDrawsBackground()) {
+        if (accessor.getDrawsBackground()) {
             color = this.isFocused() ? -1 : -6250336;
             context.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
             context.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, -16777216);
@@ -851,8 +851,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         scrollX.onDrag(mouseX, mouseY, deltaX, deltaY);
         scrollY.onDrag(mouseX, mouseY, deltaX, deltaY);
 
-        boolean hovered = getHovered(mouseX, mouseY);
-        if (isSelected() && hovered){
+        if (this.isHovered() && this.isFocused()){
             setSelectionStart(pointToIndex(mouseX, mouseY));
         }
         return true;
@@ -863,8 +862,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isVisible()) {
             return false;
         }
-        scrollX.onRelease(mouseX, mouseY);
-        scrollY.onRelease(mouseX, mouseY);
+        scrollX.mouseReleased(mouseX, mouseY, button);
+        scrollY.mouseReleased(mouseX, mouseY, button);
         return true;
     }
 

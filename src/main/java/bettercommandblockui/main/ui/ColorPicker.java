@@ -10,7 +10,7 @@ public class ColorPicker {
         BLUE
     }
 
-    private static int r = 255, g = 255, b = 255;
+    private static int r = 0, g = 0, b = 0;
 
     public static void setColor(COLOR color, int value){
         value = Math.min(Math.max(0,value),255);

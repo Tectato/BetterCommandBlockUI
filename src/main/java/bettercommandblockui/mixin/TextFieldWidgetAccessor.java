@@ -14,8 +14,6 @@ import java.util.function.Predicate;
 
 @Mixin(TextFieldWidget.class)
 public interface TextFieldWidgetAccessor {
-    @Invoker("drawsBackground")
-    boolean invokeDrawsBackground();
 
     @Invoker("drawSelectionHighlight")
     void invokeDrawSelectionHighlight(DrawContext context, int x1, int y1, int x2, int y2);
@@ -28,6 +26,9 @@ public interface TextFieldWidgetAccessor {
 
     @Invoker
     int invokeGetCursorPosWithOffset(int characterOffset);
+
+    @Accessor
+    boolean getDrawsBackground();
 
     @Accessor
     boolean getEditable();
@@ -44,14 +45,23 @@ public interface TextFieldWidgetAccessor {
     @Accessor
     int getSelectionStart();
 
+    @Accessor("selectionStart")
+    void setSelectionStart(int index);
+
     @Accessor
     int getSelectionEnd();
+
+    @Accessor("selectionEnd")
+    void setSelectionEnd(int index);
 
     @Accessor
     int getFirstCharacterIndex();
 
     @Accessor
     long getLastSwitchFocusTime();
+
+    @Accessor("lastSwitchFocusTime")
+    void setLastSwitchFocusTime(long value);
 
     @Accessor
     String getText();

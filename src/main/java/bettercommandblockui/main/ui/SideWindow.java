@@ -24,6 +24,9 @@ public class SideWindow implements Drawable, Element {
             new Identifier("bettercommandblockui:button_copy_focused")
     );
 
+    private static int piFraction = 4;
+    private static double piSetting = 0.0;
+
     int x, y, width, height;
     int topMargin = 5;
     int leftMargin = 5;
@@ -33,10 +36,10 @@ public class SideWindow implements Drawable, Element {
     Screen screen;
 
     String piFractionInputText = "2π / ";
-    TextFieldWidget piFractionInput, colorTextR, colorTextG, colorTextB, colorHex, colorInt;
+    TextFieldWidget piFractionInput, piOutput, colorTextR, colorTextG, colorTextB, colorHex, colorInt;
     ColorScrollbarWidget colorSliderR, colorSliderG, colorSliderB;
     NotchedSlider piSlider;
-    TexturedButtonWidget piCopyButton;
+    //TexturedButtonWidget piCopyButton;
     ButtonWidget configButton;
     TextRenderer textRenderer;
 
@@ -69,17 +72,19 @@ public class SideWindow implements Drawable, Element {
         );
         this.piFractionInput.setChangedListener((input)->{
             try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),1),16);
-                this.piSlider.setSubdivisions(inputInt);
+                piFraction = Math.min(Math.max(Integer.parseInt(input),1),16);
+                this.piSlider.setSubdivisions(piFraction);
             } catch (NumberFormatException e){
-                this.piSlider.setSubdivisions(2);
+                this.piSlider.setSubdivisions(4);
             }
         });
 
         posY += 12;
         this.piSlider = (NotchedSlider) addWidget(new NotchedSlider(x + leftMargin, posY, width - 30, 16, Text.of("")));
-        this.piFractionInput.setText(String.valueOf(this.piSlider.getSubdivisions()));
-        this.piCopyButton = (TexturedButtonWidget) addWidget(new TexturedButtonWidget(
+        this.piSlider.setSubdivisions(piFraction);
+        this.piSlider.setPos(piSetting);
+        this.piFractionInput.setText(String.valueOf(piFraction));
+        /*this.piCopyButton = (TexturedButtonWidget) addWidget(new TexturedButtonWidget(
                 x + leftMargin + width - 25,
                 posY - 2,
                 20,
@@ -88,7 +93,26 @@ public class SideWindow implements Drawable, Element {
                 (button)->{
                     MinecraftClient.getInstance().keyboard.setClipboard(String.valueOf(piSlider.getValue() * 2 * Math.PI));
                 }
-        ));
+        ));*/
+        posY += 18;
+        this.piOutput = (TextFieldWidget) addWidget(
+                new OutputTextFieldWidget(
+                        textRenderer,
+                        x + leftMargin,
+                        posY,
+                        60,
+                        10,
+                        Text.of("")
+                )
+        );
+        this.piOutput.setEditable(false);
+        String piOutputText = Double.toString(piSetting * 2*Math.PI);
+        this.piOutput.setText(piOutputText.substring(0, Math.min(8,piOutputText.length())));
+        this.piSlider.setChangedListener((value)->{
+            piSetting = value;
+            String text = Double.toString(piSetting * 2*Math.PI);
+            this.piOutput.setText(text.substring(0, Math.min(8,text.length())));
+        });
 
         posY += 32;
         this.colorTextR = (TextFieldWidget) addWidget(
@@ -101,20 +125,31 @@ public class SideWindow implements Drawable, Element {
                         Text.of("")
                 )
         );
+        this.colorTextR.setMaxLength(3);
+        this.colorTextR.setChangedListener((input)->{
+            int value = 0;
+            try {
+                value = Integer.parseInt(input);
+            } catch (NumberFormatException ignored){}
+            ColorPicker.setColor(ColorPicker.COLOR.RED, value);
+            this.colorSliderR.updatePos(value/255.0);
+        });
         this.colorSliderR = (ColorScrollbarWidget) addWidget(
                 new ColorScrollbarWidget(
-                        x + leftMargin + 50,
+                        x + leftMargin + 40,
                         posY,
-                        64,
+                        48,
                         10,
                         Text.of(""),
-                        this.colorTextR,
                         ColorPicker.COLOR.RED
                 )
         );
         this.colorSliderR.setChangedListener((pos)->{
-            updateColorOutputs();
+            this.colorTextR.setText(""+((int)(Math.round(pos * 255.0))));
+            this.updateColorOutputs();
         });
+        this.colorTextR.setText("" + ColorPicker.getColor(ColorPicker.COLOR.RED));
+
         posY += 14;
         this.colorTextG = (TextFieldWidget) addWidget(
                 new TextFieldWidget(
@@ -126,20 +161,31 @@ public class SideWindow implements Drawable, Element {
                         Text.of("")
                 )
         );
+        this.colorTextG.setMaxLength(3);
+        this.colorTextG.setChangedListener((input)->{
+            int value = 0;
+            try {
+                value = Integer.parseInt(input);
+            } catch (NumberFormatException ignored){}
+            ColorPicker.setColor(ColorPicker.COLOR.GREEN, value);
+            this.colorSliderG.updatePos(value/255.0);
+        });
         this.colorSliderG = (ColorScrollbarWidget) addWidget(
                 new ColorScrollbarWidget(
-                        x + leftMargin + 50,
+                        x + leftMargin + 40,
                         posY,
-                        64,
+                        48,
                         10,
                         Text.of(""),
-                        this.colorTextG,
                         ColorPicker.COLOR.GREEN
                 )
         );
         this.colorSliderG.setChangedListener((pos)->{
-            updateColorOutputs();
+            this.colorTextG.setText(""+((int)(Math.round(pos * 255.0))));
+            this.updateColorOutputs();
         });
+        this.colorTextG.setText("" + ColorPicker.getColor(ColorPicker.COLOR.GREEN));
+
         posY += 14;
         this.colorTextB = (TextFieldWidget) addWidget(
                 new TextFieldWidget(
@@ -151,23 +197,34 @@ public class SideWindow implements Drawable, Element {
                         Text.of("")
                 )
         );
+        this.colorTextB.setMaxLength(3);
+        this.colorTextB.setChangedListener((input)->{
+            int value = 0;
+            try {
+                value = Integer.parseInt(input);
+            } catch (NumberFormatException ignored){}
+            ColorPicker.setColor(ColorPicker.COLOR.BLUE, value);
+            this.colorSliderB.updatePos(value/255.0);
+        });
         this.colorSliderB = (ColorScrollbarWidget) addWidget(
                 new ColorScrollbarWidget(
-                        x + leftMargin + 50,
+                        x + leftMargin + 40,
                         posY,
-                        64,
+                        48,
                         10,
                         Text.of(""),
-                        this.colorTextB,
                         ColorPicker.COLOR.BLUE
                 )
         );
         this.colorSliderB.setChangedListener((pos)->{
-            updateColorOutputs();
+            this.colorTextB.setText(""+((int)(Math.round(pos * 255.0))));
+            this.updateColorOutputs();
         });
+        this.colorTextB.setText("" + ColorPicker.getColor(ColorPicker.COLOR.BLUE));
+
         posY += 16;
         this.colorHex = (TextFieldWidget) addWidget(
-                new TextFieldWidget(
+                new OutputTextFieldWidget(
                         textRenderer,
                         x + leftMargin + textRenderer.getWidth("R:"),
                         posY,
@@ -179,7 +236,7 @@ public class SideWindow implements Drawable, Element {
         this.colorHex.setEditable(false);
         posY += 14;
         this.colorInt = (TextFieldWidget) addWidget(
-                new TextFieldWidget(
+                new OutputTextFieldWidget(
                         textRenderer,
                         x + leftMargin + textRenderer.getWidth("R:"),
                         posY,
@@ -189,16 +246,20 @@ public class SideWindow implements Drawable, Element {
                 )
         );
         this.colorInt.setEditable(false);
+        updateColorOutputs();
 
         posY += 20;
         this.configButton = (ButtonWidget) addWidget(ButtonWidget
                 .builder(Text.literal("Config"), button -> ((AbstractBetterCommandBlockScreen)screen).openConfig())
                 .dimensions(x+leftMargin, posY, width - leftMargin*2, 20).build());
+
+        this.height = (posY - y) + 20 + topMargin;
     }
 
     public void updateColorOutputs(){
         colorHex.setText(""+ColorPicker.getInteger());
-        colorInt.setText("#"+ColorPicker.getHexString().toUpperCase());
+        String hexText = ColorPicker.getHexString().toUpperCase();
+        colorInt.setText("#"+"0".repeat(6-hexText.length())+hexText);
     }
 
     @Override
@@ -214,7 +275,8 @@ public class SideWindow implements Drawable, Element {
         context.drawTextWithShadow(this.textRenderer, "2π / ", x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
         this.piFractionInput.render(context, mouseX, mouseY, delta);
         this.piSlider.render(context, mouseX, mouseY, delta);
-        this.piCopyButton.render(context, mouseX, mouseY, delta);
+        this.piOutput.render(context, mouseX, mouseY, delta);
+        //this.piCopyButton.render(context, mouseX, mouseY, delta);
         this.configButton.render(context, mouseX, mouseY, delta);
         context.drawTextWithShadow(this.textRenderer, "R:", x + leftMargin, colorTextR.getY(), 0xFFFF0000);
         this.colorTextR.render(context, mouseX, mouseY, delta);
@@ -225,7 +287,7 @@ public class SideWindow implements Drawable, Element {
         context.drawTextWithShadow(this.textRenderer, "B:", x + leftMargin, colorTextB.getY(), 0xFF0000FF);
         this.colorTextB.render(context, mouseX, mouseY, delta);
         this.colorSliderB.render(context, mouseX, mouseY, delta);
-        context.fill(x + leftMargin, colorHex.getY(), x + leftMargin + 7, colorHex.getY() + 26, 0xFF000000 | ColorPicker.getInteger());
+        context.fill(x + leftMargin, colorHex.getY(), x + leftMargin + 7, colorHex.getY() + 24, 0xFF000000 | ColorPicker.getInteger());
         this.colorHex.render(context, mouseX, mouseY, delta);
         this.colorInt.render(context, mouseX, mouseY, delta);
     }
@@ -278,7 +340,6 @@ public class SideWindow implements Drawable, Element {
             return returnVal;
         }
         setFocused(false);
-        System.out.println("Not clicked");
         return false;
     }
 
@@ -286,7 +347,7 @@ public class SideWindow implements Drawable, Element {
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if(!visible) return false;
         for(ClickableWidget w : widgets){
-            if(w.mouseReleased(mouseX,mouseY,button)) return true;
+            w.mouseReleased(mouseX,mouseY,button);
         }
         return false;
     }
@@ -294,8 +355,8 @@ public class SideWindow implements Drawable, Element {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
         if(!visible) return false;
-        for(ClickableWidget w : widgets){ // TODO: Sliders aren't sliding
-            if(w.mouseDragged(mouseX,mouseY,button,deltaX,deltaY)) return true;
+        for(ClickableWidget w : widgets){
+            w.mouseDragged(mouseX,mouseY,button,deltaX,deltaY);
         }
         return false;
     }
@@ -311,10 +372,14 @@ public class SideWindow implements Drawable, Element {
             focusedWidget %= widgets.size();
             if (focusedWidget < 0) focusedWidget = widgets.size() + focusedWidget;
 
-            int index = 0;
-            for(ClickableWidget w : widgets){
-                w.setFocused(index == focusedWidget);
-                index++;
+            if (widgets.get(focusedWidget) instanceof ColorScrollbarWidget){
+                keyPressed(keyCode, scanCode, modifiers); // Skip color sliders
+            } else {
+                int index = 0;
+                for(ClickableWidget w : widgets){
+                    w.setFocused(index == focusedWidget);
+                    index++;
+                }
             }
         }
         return false;

@@ -82,7 +82,7 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     public void setChangedListener(java.util.function.Consumer<Double> changedListener){
-
+        this.changedListener = changedListener;
     }
 
     @Override
@@ -93,7 +93,7 @@ public class ScrollbarWidget extends ClickableWidget {
         return checkHovered(mouseX, mouseY);
     }
 
-    private boolean checkHovered(double mouseX, double mouseY){
+    protected boolean checkHovered(double mouseX, double mouseY){
         if(horizontal){
             return mouseX >= this.getX() + pos * (length-barLength) && mouseY >= this.getY() && mouseX < this.getX() + pos * (length-barLength) + barLength && mouseY < this.getY() + this.height;
         } else {
@@ -104,7 +104,6 @@ public class ScrollbarWidget extends ClickableWidget {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (this.isValidClickButton(button) && this.clicked(mouseX, mouseY)) {
-            this.dragging = true;
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
             this.onClick(mouseX, mouseY);
             return true;
@@ -115,7 +114,6 @@ public class ScrollbarWidget extends ClickableWidget {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (this.isValidClickButton(button)) {
-            this.dragging = false;
             this.onRelease(mouseX, mouseY);
             return true;
         }
@@ -123,7 +121,7 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) { // TODO: Option to jump to this pos
+    public void onClick(double mouseX, double mouseY) {
         if (!this.visible) {
             return;
         }
@@ -162,7 +160,7 @@ public class ScrollbarWidget extends ClickableWidget {
             } else {
                 pos = Math.min(Math.max(pos + distY/(length-barLength), 0), 1);
             }
-            if ((changedListener != null) && (Math.abs(posBefore-pos) > 0.01d)){
+            if ((changedListener != null) && (Math.abs(posBefore-pos) > 0.0d)){
                 changedListener.accept(pos);
             }
         }
