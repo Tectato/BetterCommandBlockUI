@@ -193,7 +193,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     public boolean mouseClicked(double mouseX, double mouseY, int button){
         if(showSideWindow && sideWindow.mouseClicked(mouseX, mouseY, button)) return true;
-        if(commandSuggestor.mouseClicked(mouseX, mouseY, button)) return true;
+        if(commandSuggestor.isOpen() && commandSuggestor.mouseClicked(mouseX, mouseY, button)) return true;
         if(consoleCommandTextField.mouseClicked(mouseX,mouseY,button)) {
             setFocused(consoleCommandTextField);
             return true;

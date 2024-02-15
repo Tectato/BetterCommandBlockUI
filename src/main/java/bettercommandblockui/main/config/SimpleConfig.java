@@ -219,11 +219,13 @@ public class SimpleConfig {
     }
 
     public void reconstructFile(){
-        edited.addAll(config.keySet());
+        if (!broken) edited.addAll(config.keySet());
         try {
             Files.deleteIfExists(request.file.toPath());
             createConfig();
             writeToFile();
+            loadConfig();
+            broken = false;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -237,6 +239,7 @@ public class SimpleConfig {
      */
     public String getOrDefault( String key, String def ) {
         String val = get(key);
+        if (val == null) broken = true;
         return val == null ? def : val;
     }
 
@@ -250,6 +253,7 @@ public class SimpleConfig {
         try {
             return Integer.parseInt( get(key) );
         } catch (Exception e) {
+            broken = true;
             return def;
         }
     }
@@ -265,6 +269,7 @@ public class SimpleConfig {
         if( val != null ) {
             return val.equalsIgnoreCase("true");
         }
+        broken = true;
 
         return def;
     }
@@ -279,6 +284,7 @@ public class SimpleConfig {
         try {
             return Double.parseDouble( get(key) );
         } catch (Exception e) {
+            broken = true;
             return def;
         }
     }

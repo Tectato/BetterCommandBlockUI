@@ -102,6 +102,12 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         setButtonsActive(false);
     }
 
+    @Override
+    public void returnFromConfig(){
+        updateCommandBlock();
+        super.returnFromConfig();
+    }
+
     public void updateCommandBlock() {
         CommandBlockExecutor commandBlockExecutor = this.blockEntity.getCommandExecutor();
         ((MultiLineTextFieldWidget)this.consoleCommandTextField).setRawText(commandBlockExecutor.getCommand());

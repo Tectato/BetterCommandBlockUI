@@ -27,7 +27,6 @@ import java.util.Stack;
 
 public class MultiLineTextFieldWidget extends TextFieldWidget implements Element {
     private final int visibleChars = 20;
-    private int indentationFactor = BetterCommandBlockUI.INDENTATION_FACTOR;
 
     private AbstractBetterCommandBlockScreen screen;
     private ScrollbarWidget scrollX, scrollY;
@@ -86,6 +85,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
     @Override
     public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta){
+        //TODO: render line at x of cursor if currently at parenthesis
         int color;
         if (!this.isVisible()) {
             return;
@@ -99,7 +99,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         color = accessor.getEditable() ? accessor.getEditableColor() : accessor.getUneditableColor();
 
         if(hasCommandSuggestor) {
-            if(lines.size() == 0){
+            if(lines.isEmpty()){
+                renderSuggestor(context, mouseX, mouseY);
                 return;
             }
 
@@ -187,7 +188,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         RenderSystem.disableColorLogicOp();
 
-        //matrices.translate(0.0, 0.0, 0.1);
+        renderSuggestor(context, mouseX, mouseY);
+    }
+
+    private void renderSuggestor(DrawContext context, int mouseX, int mouseY){
         if(suggestor.getY() > getY() + getHeight() || suggestor.getY() < getY()) return;
         if(suggestor.getX() > getX() + getWidth() || suggestor.getX() < getX()) return;
         suggestor.render(context, mouseX, mouseY);
@@ -533,7 +537,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     public void refreshFormatting(){
-        indentationFactor = BetterCommandBlockUI.INDENTATION_FACTOR;
         setRawText(getText());
     }
 
@@ -965,7 +968,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         Pair<Integer, Integer> cursor = indexToLineAndOffset(selectionStart);
         int selectionStartOffset = Math.max(cursor.getRight() - horizontalOffset, 0);
         int fontHeight = accessor.getTextRenderer().fontHeight + 1;
-        if(lines.size() == 0){
+        if(lines.isEmpty()){
             suggestor.setPos(getX() + 5, getY() + 5 + fontHeight);
             suggestor.refreshRenderPos();
             return;

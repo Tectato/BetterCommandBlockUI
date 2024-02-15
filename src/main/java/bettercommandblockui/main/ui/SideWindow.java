@@ -1,5 +1,6 @@
 package bettercommandblockui.main.ui;
 
+import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
@@ -13,6 +14,8 @@ import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.joml.AxisAngle4d;
+import org.joml.Quaternionf;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -276,6 +279,14 @@ public class SideWindow implements Drawable, Element {
         this.piFractionInput.render(context, mouseX, mouseY, delta);
         this.piSlider.render(context, mouseX, mouseY, delta);
         this.piOutput.render(context, mouseX, mouseY, delta);
+        float compassPosX = piOutput.getX() + piOutput.getWidth() + 8;
+        float compassPosY = piOutput.getY() - 2;
+        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_FRAME, (int)compassPosX, (int)compassPosY, 32, 32);
+        context.getMatrices().push();
+        context.getMatrices().translate(compassPosX + 16, compassPosY + 16, 0);
+        context.getMatrices().multiply(new Quaternionf(new AxisAngle4d(piSlider.getValue() * 2*Math.PI, 0, 0, 1)));
+        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32); //TODO: turn this into clickable widget
+        context.getMatrices().pop();
         //this.piCopyButton.render(context, mouseX, mouseY, delta);
         this.configButton.render(context, mouseX, mouseY, delta);
         context.drawTextWithShadow(this.textRenderer, "R:", x + leftMargin, colorTextR.getY(), 0xFFFF0000);

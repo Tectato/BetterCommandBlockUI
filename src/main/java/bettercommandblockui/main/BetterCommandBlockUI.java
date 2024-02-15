@@ -1,5 +1,6 @@
 package bettercommandblockui.main;
 
+import bettercommandblockui.main.config.ConfigScreen;
 import bettercommandblockui.main.config.SimpleConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -22,7 +23,8 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final Identifier SLIDER = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider.png");
     public static final Identifier SLIDER_NOTCH = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_notch.png");
     public static final Identifier SLIDER_PICK = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_pick.png");
-    public static final Identifier BUTTON_CHECKBOX = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_checkbox.png");
+    public static final Identifier COMPASS_FRAME = new Identifier("bettercommandblockui:compass_frame");
+    public static final Identifier COMPASS_NEEDLE = new Identifier("bettercommandblockui:compass_needle");
 
     private static SimpleConfig CONFIG = SimpleConfig.of("betterCommandBlockUI").provider(BetterCommandBlockUI::provider).request();
 
