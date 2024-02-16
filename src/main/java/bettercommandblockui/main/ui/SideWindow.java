@@ -42,7 +42,7 @@ public class SideWindow implements Drawable, Element {
     TextFieldWidget piFractionInput, piOutput, colorTextR, colorTextG, colorTextB, colorHex, colorInt;
     ColorScrollbarWidget colorSliderR, colorSliderG, colorSliderB;
     NotchedSlider piSlider;
-    //TexturedButtonWidget piCopyButton;
+    RotationIndicator piRotationIndicator;
     ButtonWidget configButton;
     TextRenderer textRenderer;
 
@@ -113,9 +113,25 @@ public class SideWindow implements Drawable, Element {
         this.piOutput.setText(piOutputText.substring(0, Math.min(8,piOutputText.length())));
         this.piSlider.setChangedListener((value)->{
             piSetting = value;
+            this.piRotationIndicator.setAngle(value);
             String text = Double.toString(piSetting * 2*Math.PI);
             this.piOutput.setText(text.substring(0, Math.min(8,text.length())));
         });
+
+        this.piRotationIndicator = (RotationIndicator) addWidget(
+                new RotationIndicator(
+                        piOutput.getX() + piOutput.getWidth() + 8,
+                        piOutput.getY() - 2,
+                        Text.of("")
+                )
+        );
+        this.piRotationIndicator.setChangedListener((value)->{
+            this.piSlider.setPos(value);
+            piSetting = value;
+            String text = Double.toString(piSetting * 2*Math.PI);
+            this.piOutput.setText(text.substring(0, Math.min(8,text.length())));
+        });
+        this.piRotationIndicator.setAngle(piSetting);
 
         posY += 32;
         this.colorTextR = (TextFieldWidget) addWidget(
@@ -279,15 +295,7 @@ public class SideWindow implements Drawable, Element {
         this.piFractionInput.render(context, mouseX, mouseY, delta);
         this.piSlider.render(context, mouseX, mouseY, delta);
         this.piOutput.render(context, mouseX, mouseY, delta);
-        float compassPosX = piOutput.getX() + piOutput.getWidth() + 8;
-        float compassPosY = piOutput.getY() - 2;
-        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_FRAME, (int)compassPosX, (int)compassPosY, 32, 32);
-        context.getMatrices().push();
-        context.getMatrices().translate(compassPosX + 16, compassPosY + 16, 0);
-        context.getMatrices().multiply(new Quaternionf(new AxisAngle4d(piSlider.getValue() * 2*Math.PI, 0, 0, 1)));
-        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32); //TODO: turn this into clickable widget
-        context.getMatrices().pop();
-        //this.piCopyButton.render(context, mouseX, mouseY, delta);
+        this.piRotationIndicator.render(context, mouseX, mouseY, delta);
         this.configButton.render(context, mouseX, mouseY, delta);
         context.drawTextWithShadow(this.textRenderer, "R:", x + leftMargin, colorTextR.getY(), 0xFFFF0000);
         this.colorTextR.render(context, mouseX, mouseY, delta);
