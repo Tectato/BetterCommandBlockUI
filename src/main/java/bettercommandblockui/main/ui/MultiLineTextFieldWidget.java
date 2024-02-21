@@ -342,6 +342,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
          */
         int startIndex = accessor.getSelectionStart() + (offsetDir < 0 ? -1 : 0);
         String text = getText();
+        if(text.isEmpty() || startIndex < 0 || startIndex >= text.length()) return 0;
         char current = text.charAt(startIndex);
         char startChar = current;
         //System.out.println("Starting at: " + startChar + ", wordOffset = " + offsetDir);
@@ -884,6 +885,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     public void moveCursor(int offset, boolean shiftKeyPressed) {
         TextRenderer textRenderer = accessor.getTextRenderer();
         this.setCursor(accessor.invokeGetCursorPosWithOffset(offset), shiftKeyPressed);
+        if(lines.isEmpty()) return;
         Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPosWithOffset(0));
         String line = lines.get(lineAndOffset.getLeft());
         int xPreference = getX() + textRenderer.getWidth(line.substring(0,Math.min(line.length()-1,lineAndOffset.getRight())));

@@ -239,7 +239,9 @@ public class SimpleConfig {
      */
     public String getOrDefault( String key, String def ) {
         String val = get(key);
-        if (val == null) broken = true;
+        if (val == null){
+            broken = true;
+        }
         return val == null ? def : val;
     }
 

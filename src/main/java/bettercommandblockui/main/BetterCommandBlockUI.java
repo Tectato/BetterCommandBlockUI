@@ -47,7 +47,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static int SCROLL_STEP_X = CONFIG.getOrDefault(VAR_SCROLL_X, 4);
     public static int SCROLL_STEP_Y = CONFIG.getOrDefault(VAR_SCROLL_Y, 2);
     public static int INDENTATION_FACTOR = CONFIG.getOrDefault(VAR_INDENTATION, 2);
-    public static char INDENTATION_CHAR = CONFIG.getOrDefault(VAR_INDENT_CHAR, " ").charAt(0);
+    public static char INDENTATION_CHAR = ' ';//CONFIG.getOrDefault(VAR_INDENT_CHAR, " ").charAt(0);
     public static int WRAPAROUND_WIDTH = CONFIG.getOrDefault(VAR_WRAPAROUND, 250);
     public static boolean FORMAT_STRINGS = CONFIG.getOrDefault(VAR_FORMAT_STRINGS, true);
     public static boolean NEWLINE_PRE_OPEN_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_PRE_OPEN_BRACKET, true);
@@ -57,7 +57,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     //public static boolean NEWLINE_POST_LAST_CLOSE_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_POST_LAST_CLOSE_BRACKET, true);
     public static boolean NEWLINE_POST_COMMA = CONFIG.getOrDefault(VAR_NEWLINE_POST_COMMA, true);
     public static boolean AVOID_DOUBLE_NEWLINE = CONFIG.getOrDefault(VAR_AVOID_DOUBLE_NEWLINE, true);
-    public static boolean BRACKET_AUTOCOMPLETE = CONFIG.getOrDefault(VAR_BRACKET_AUTOCOMPLETE, false);
+    public static boolean BRACKET_AUTOCOMPLETE = false;//CONFIG.getOrDefault(VAR_BRACKET_AUTOCOMPLETE, false);
 
     private static KeyBinding areaSelectionInput;
 
@@ -78,7 +78,10 @@ public class BetterCommandBlockUI implements ClientModInitializer {
             }
         });
 
-        CONFIG.reconstructFile();
+        if (CONFIG.isBroken()) {
+            System.out.println("[BCBUI] Config found to be corrupted or outdated, resetting...");
+            CONFIG.reconstructFile();
+        }
 
         System.out.println("[BCBUI] Initialized.");
     }

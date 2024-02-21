@@ -13,7 +13,6 @@
     "CommandBlockExecutorMixin",
     "CommandBlockMixin",
     "CommandSuggestorAccessor",
-    "MinecraftClientMixin",
     "ScreenAccessor",
     "ServerPlayerEntityAccessor",
     "SuggestionWindowAccessor",

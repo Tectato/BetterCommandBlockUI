@@ -141,6 +141,7 @@ public class ConfigScreen extends Screen {
     @Override
     public void close() {
         if (parent != null && client != null) {
+            BetterCommandBlockUI.writeConfig();
             client.setScreen(parent);
             if (parent instanceof AbstractBetterCommandBlockScreen) {
                 ((AbstractBetterCommandBlockScreen) parent).returnFromConfig();
