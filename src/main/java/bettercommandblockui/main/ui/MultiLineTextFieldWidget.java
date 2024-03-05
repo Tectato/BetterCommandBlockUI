@@ -576,11 +576,11 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         Pair<Integer,String> run(int startIndex);
     }
 
-    private void submitLine(String line, int currentIndex, int indent){
-        submitLine(line, currentIndex, indent, false);
+    private void submitLine(String line, int indent){
+        submitLine(line, indent, false);
     }
 
-    private void submitLine(String line, int currentIndex, int indent, boolean lastLine){
+    private void submitLine(String line, int indent, boolean lastLine){
         if (BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE && !lastLine) {
             String trimmedLine = line.replace(BetterCommandBlockUI.INDENTATION_CHAR+"", "");
             if (trimmedLine.isEmpty()) {
@@ -622,6 +622,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         char current;
         String currentLine = "";
         boolean newLine = false;
+        int lastWordStart = 0;
 
         SpacePeeker peeker = new SpacePeeker() {
             @Override
@@ -652,8 +653,17 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             current = textArr[currentIndex];
 
             if (textRenderer.getWidth(currentLine) > BetterCommandBlockUI.WRAPAROUND_WIDTH){
-                submitLine(currentLine, currentIndex-1, parenthesesDepth);
-                currentLine = "";
+                if(lastWordStart == 0){
+                    lastWordStart = currentLine.length();
+                }
+                String truncatedLine = currentLine.substring(0, Math.min(lastWordStart, currentLine.length()));
+                submitLine(truncatedLine, parenthesesDepth);
+                if(truncatedLine.length() < currentLine.length()) {
+                    currentLine = currentLine.substring(lastWordStart);
+                } else {
+                    currentLine = "";
+                }
+                lastWordStart = 0;
             }
 
             int colorStartIndex = currentIndex; // Necessary to make color start in right spot when peeking ahead
@@ -667,7 +677,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                         break;
                     }
                     if (BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET){
-                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
                         currentLine = "";
                         newLine = true;
                     }
@@ -678,7 +689,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                         currentIndex = peekResult.getLeft();
                         currentLine += peekResult.getRight();
 
-                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
                         currentLine = "";
                         newLine = true;
                     }
@@ -705,7 +717,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     }
                     boolean indentationChanged = false;
                     if (BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET){
-                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
                         currentLine = "";
                         newLine = true;
                         parenthesesDepth = Math.max(0,parenthesesDepth-1);
@@ -718,7 +731,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                         currentIndex = peekResult.getLeft();
                         currentLine += peekResult.getRight();
 
-                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
                         currentLine = "";
                         newLine = true;
                         if (!indentationChanged)
@@ -733,6 +747,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 case ',':
                     escapeChar = false;
                     currentLine += current;
+                    lastWordStart = currentLine.length();
 
                     // Peek ahead for spaces
                     Pair<Integer,String> peekResult = peeker.run(currentIndex);
@@ -740,10 +755,17 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     currentLine += peekResult.getRight();
 
                     if (BetterCommandBlockUI.NEWLINE_POST_COMMA){
-                        submitLine(currentLine, currentIndex, parenthesesDepth);
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
                         currentLine = "";
                         //newLine = true;
                     }
+                    break;
+                case ' ':
+                    currentLine += current;
+                    newLine = false;
+                    escapeChar = false;
+                    lastWordStart = currentLine.length();
                     break;
                 case '\\':
                     escapeChar = !escapeChar;
@@ -774,7 +796,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             currentIndex++;
         }
         if (!currentLine.isEmpty()){
-            submitLine(currentLine, currentIndex, parenthesesDepth, true);
+            submitLine(currentLine, parenthesesDepth, true);
         }
 
         for(Pair<Integer,Integer> p : colorIndices){

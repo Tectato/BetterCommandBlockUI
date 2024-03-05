@@ -1,5 +1,6 @@
 package bettercommandblockui.main.ui.screen;
 
+import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.main.config.ConfigScreen;
 import bettercommandblockui.main.ui.CyclingTexturedButtonWidget;
 import bettercommandblockui.main.ui.MultiLineCommandSuggestor;
@@ -16,6 +17,7 @@ import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.CheckboxWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.util.NarratorManager;
@@ -47,7 +49,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected ButtonWidget cancelButton;
     //protected ButtonWidget configButton;
     protected CyclingTexturedButtonWidget<Boolean> toggleTrackingOutputButton;
+    protected CheckboxWidget setTrackingOutputDefaultCheckbox;
     protected CyclingTexturedButtonWidget<Boolean> showOutputButton;
+    protected CheckboxWidget setShowOutputDefaultCheckbox;
     protected TexturedButtonWidget showSideWindowButton;
 
     protected SideWindow sideWindow;
@@ -55,7 +59,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected CommandBlockExecutor commandExecutor;
     protected ChatInputSuggestor commandSuggestor;
     protected boolean trackOutput = true;
-    protected boolean showOutput = false;
+    protected boolean showOutput = SHOW_OUTPUT_DEFAULT;
     protected static boolean showSideWindow = false;
 
     protected static int buttonHeight = 20;
@@ -85,7 +89,10 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.cancelButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.CANCEL, button -> this.close()).dimensions(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
         //this.configButton = this.addDrawableChild(ButtonWidget.builder(Text.literal("Config"), button -> this.openConfig()).dimensions(16, 16, 2*buttonHeight, buttonHeight).build());
 
-        boolean bl = this.commandExecutor.isTrackingOutput();
+        this.trackOutput = this.commandExecutor.isTrackingOutput();
+        if(TRACK_OUTPUT_DEFAULT_USED){
+            trackOutput = TRACK_OUTPUT_DEFAULT_VALUE;
+        }
 
         Text[] trackOutputTooltips = {
                 Text.of("Tracking Output"),
@@ -96,7 +103,25 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.trackOutput = ((CyclingTexturedButtonWidget<Boolean>)button).getValue();
             this.commandExecutor.setTrackOutput(trackOutput);
             this.setPreviousOutputText(trackOutput);
-        }, client.currentScreen, BUTTON_TRACK_OUTPUT, 0, new Boolean[]{true, false}, trackOutputTooltips));
+            this.setTrackingOutputDefaultCheckbox.active =
+                    (!setTrackingOutputDefaultCheckbox.isChecked()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
+        }, client.currentScreen, BUTTON_TRACK_OUTPUT, trackOutput?0:1, new Boolean[]{true, false}, trackOutputTooltips));
+
+        this.setTrackingOutputDefaultCheckbox = this.addDrawableChild(
+                CheckboxWidget.builder(Text.of(""), textRenderer)
+                        .pos(toggleTrackingOutputButton.getX() + toggleTrackingOutputButton.getWidth() + 2, toggleTrackingOutputButton.getY() + 2)
+                        .checked(TRACK_OUTPUT_DEFAULT_USED)
+                        .callback(new CheckboxWidget.Callback() {
+                            @Override
+                            public void onValueChange(CheckboxWidget checkbox, boolean checked) {
+                                BetterCommandBlockUI.setConfig(VAR_TRACK_OUTPUT_DEFAULT_USED, ""+checked);
+                                BetterCommandBlockUI.setConfig(VAR_TRACK_OUTPUT_DEFAULT_VALUE, ""+trackOutput);
+                            }
+                        })
+                        .tooltip(Tooltip.of(Text.of("Make default state")))
+                        .build());
+        this.setTrackingOutputDefaultCheckbox.active =
+                (!setTrackingOutputDefaultCheckbox.isChecked()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
 
         Text[] outputTooltips = {
                 Text.of("Command"),
@@ -106,7 +131,22 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.showOutput = ((CyclingTexturedButtonWidget<Boolean>)button).getValue();
             this.consoleCommandTextField.setVisible(!showOutput);
             this.previousOutputTextField.setVisible(showOutput);
-        }, client.currentScreen, BUTTON_OUTPUT, 0, new Boolean[]{false, true}, outputTooltips));
+            this.setShowOutputDefaultCheckbox.active = showOutput;
+        }, client.currentScreen, BUTTON_OUTPUT, SHOW_OUTPUT_DEFAULT?1:0, new Boolean[]{false, true}, outputTooltips));
+
+        this.setShowOutputDefaultCheckbox = this.addDrawableChild(
+                CheckboxWidget.builder(Text.of(""), textRenderer)
+                        .pos(showOutputButton.getX() + showOutputButton.getWidth() + 2, showOutputButton.getY() + 2)
+                        .checked(SHOW_OUTPUT_DEFAULT)
+                        .callback(new CheckboxWidget.Callback() {
+                            @Override
+                            public void onValueChange(CheckboxWidget checkbox, boolean checked) {
+                                BetterCommandBlockUI.setConfig(VAR_SHOW_OUTPUT_DEFAULT, ""+checked);
+                            }
+                        })
+                        .tooltip(Tooltip.of(Text.of("Show output by default")))
+                        .build());
+        this.setShowOutputDefaultCheckbox.active = showOutput;
 
         this.showSideWindowButton = this.addDrawableChild(new TexturedButtonWidget(
                 this.width - (buttonMargin + cycleButtonWidth),
@@ -146,10 +186,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, Text.translatable("advMode.previousOutput"), this);
         this.previousOutputTextField.setMaxLength(32500);
         this.previousOutputTextField.setEditable(false);
-        this.previousOutputTextField.setVisible(false);
         ((MultiLineTextFieldWidget)this.consoleCommandTextField).setRawText("-");
         this.addSelectableChild(this.previousOutputTextField);
-        this.setPreviousOutputText(bl);
+        this.setPreviousOutputText(trackOutput);
 
         this.consoleCommandTextField.setText(commandExecutor.getCommand());
 
@@ -157,6 +196,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.sideWindow.setVisible(showSideWindow);
         this.showOutputButton.setTooltipVisible(!showSideWindow);
         this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
+
+        this.consoleCommandTextField.setVisible(!showOutput);
+        this.previousOutputTextField.setVisible(showOutput);
     }
 
     @Override
@@ -307,5 +349,13 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         for (Drawable drawable : ((ScreenAccessor)this).getDrawables()) {
             drawable.render(context, mouseX, mouseY, delta);
         }
+
+        darkenCheckbox(context, setTrackingOutputDefaultCheckbox);
+        darkenCheckbox(context, setShowOutputDefaultCheckbox);
+    }
+
+    private void darkenCheckbox(DrawContext context, CheckboxWidget checkbox){
+        if(checkbox.active) return;
+        context.fill(checkbox.getX(), checkbox.getY(), checkbox.getX() + checkbox.getWidth() - 4, checkbox.getY() + checkbox.getHeight(), 0xA0000000);
     }
 }

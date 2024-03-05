@@ -1,5 +1,6 @@
 package bettercommandblockui.main.ui.screen;
 
+import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.main.ui.CyclingTexturedButtonWidget;
 import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
 import net.fabricmc.api.EnvType;
@@ -116,8 +117,10 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         this.conditional = this.blockEntity.isConditionalCommandBlock();
         this.autoActivate = this.blockEntity.isAuto();
 
-        int trackingOutputIndex = trackOutput?0:1;
-        this.toggleTrackingOutputButton.setIndex(trackingOutputIndex);
+        if(!TRACK_OUTPUT_DEFAULT_USED) {
+            int trackingOutputIndex = trackOutput ? 0 : 1;
+            this.toggleTrackingOutputButton.setIndex(trackingOutputIndex);
+        }
 
         int modeIndex = 0;
         this.mode = blockEntity.getCommandBlockType();

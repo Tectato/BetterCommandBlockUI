@@ -42,6 +42,9 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final String VAR_NEWLINE_POST_COMMA = "newline_post_comma";
     public static final String VAR_AVOID_DOUBLE_NEWLINE = "avoid_double_newline";
     public static final String VAR_BRACKET_AUTOCOMPLETE = "bracket_autocomplete";
+    public static final String VAR_TRACK_OUTPUT_DEFAULT_USED = "track_output_default_used";
+    public static final String VAR_TRACK_OUTPUT_DEFAULT_VALUE = "track_output_default_value";
+    public static final String VAR_SHOW_OUTPUT_DEFAULT = "show_output_default";
 
 
     public static int SCROLL_STEP_X = CONFIG.getOrDefault(VAR_SCROLL_X, 4);
@@ -58,6 +61,9 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static boolean NEWLINE_POST_COMMA = CONFIG.getOrDefault(VAR_NEWLINE_POST_COMMA, true);
     public static boolean AVOID_DOUBLE_NEWLINE = CONFIG.getOrDefault(VAR_AVOID_DOUBLE_NEWLINE, true);
     public static boolean BRACKET_AUTOCOMPLETE = false;//CONFIG.getOrDefault(VAR_BRACKET_AUTOCOMPLETE, false);
+    public static boolean TRACK_OUTPUT_DEFAULT_USED = CONFIG.getOrDefault(VAR_TRACK_OUTPUT_DEFAULT_USED, false);
+    public static boolean TRACK_OUTPUT_DEFAULT_VALUE = CONFIG.getOrDefault(VAR_TRACK_OUTPUT_DEFAULT_VALUE, true);
+    public static boolean SHOW_OUTPUT_DEFAULT = CONFIG.getOrDefault(VAR_SHOW_OUTPUT_DEFAULT, false);
 
     private static KeyBinding areaSelectionInput;
 
@@ -102,10 +108,13 @@ public class BetterCommandBlockUI implements ClientModInitializer {
         if(key.equals(VAR_NEWLINE_POST_COMMA)) NEWLINE_POST_COMMA = CONFIG.getOrDefault(key, true);
         if(key.equals(VAR_AVOID_DOUBLE_NEWLINE)) AVOID_DOUBLE_NEWLINE = CONFIG.getOrDefault(key, true);
         //if(key.equals(VAR_BRACKET_AUTOCOMPLETE)) BRACKET_AUTOCOMPLETE = CONFIG.getOrDefault(key, false);
+        if(key.equals(VAR_TRACK_OUTPUT_DEFAULT_USED)) TRACK_OUTPUT_DEFAULT_USED = CONFIG.getOrDefault(key, false);
+        if(key.equals(VAR_TRACK_OUTPUT_DEFAULT_VALUE)) TRACK_OUTPUT_DEFAULT_VALUE = CONFIG.getOrDefault(key, true);
+        if(key.equals(VAR_SHOW_OUTPUT_DEFAULT)) SHOW_OUTPUT_DEFAULT = CONFIG.getOrDefault(key, false);
     }
 
     public static void writeConfig(){
-        CONFIG.writeToFile();
+        CONFIG.writeIfModified();
     }
 
     private static String provider(String filename){
@@ -127,7 +136,11 @@ public class BetterCommandBlockUI implements ClientModInitializer {
                 "newline_post_close_bracket=false\n" +
                 //"newline_post_last_close_bracket=true\n" +
                 "newline_post_comma=true\n" +
-                "avoid_double_newline=true";
+                "avoid_double_newline=true\n\n" +
+                "# Default states\n" +
+                "track_output_default_used=false\n" +
+                "track_output_default_value=true\n" +
+                "show_output_default=false";
     }
 
 
