@@ -9,6 +9,7 @@ import bettercommandblockui.main.ui.SideWindow;
 import bettercommandblockui.mixin.ScreenAccessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
@@ -16,11 +17,9 @@ import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.CheckboxWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.TexturedButtonWidget;
+import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.util.NarratorManager;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -33,6 +32,21 @@ import static bettercommandblockui.main.BetterCommandBlockUI.*;
 
 @Environment(EnvType.CLIENT)
 public abstract class AbstractBetterCommandBlockScreen extends Screen {
+
+    protected class CommandBlockState{
+        public CommandBlockBlockEntity.Type type = CommandBlockBlockEntity.Type.REDSTONE;
+        boolean conditional = false;
+        public boolean needsRedstone = true;
+        public boolean trackOutput = true;
+
+        public CommandBlockState(CommandBlockBlockEntity.Type type, boolean conditional, boolean needsRedstone, boolean trackOutput){
+            this.type = type;
+            this.conditional = conditional;
+            this.needsRedstone = needsRedstone;
+            this.trackOutput = trackOutput;
+        }
+    }
+
     protected static final Text SET_COMMAND_TEXT = Text.translatable("advMode.setCommand");
     protected static final Text COMMAND_TEXT = Text.translatable("advMode.command");
     protected static final Text PREVIOUS_OUTPUT_TEXT = Text.translatable("advMode.previousOutput");
@@ -41,6 +55,8 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             new Identifier("bettercommandblockui:button_side_window_disabled"),
             new Identifier("bettercommandblockui:button_side_window_focused")
     );
+
+    protected CommandBlockState priorState;
 
     protected TextFieldWidget consoleCommandTextField;
     protected TextFieldWidget previousOutputTextField;
@@ -80,6 +96,8 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     @Override
     public void init(){
         assert this.client != null;
+
+        this.priorState = new CommandBlockState(CommandBlockBlockEntity.Type.REDSTONE, false, false, commandExecutor.isTrackingOutput());
 
         int textBoxHeight = this.height - (2*screenMarginY + textHeight + textMargin + buttonHeight + 2*buttonMargin + sliderHeight);
         int textBoxWidth = this.width - (2*screenMarginX + 2*cycleButtonWidth + 2*buttonMargin);
@@ -159,7 +177,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                     this.sideWindow.setVisible(showSideWindow);
 
                     this.showOutputButton.setTooltipVisible(!showSideWindow);
+                    this.setShowOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
                     this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
+                    this.setTrackingOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
                 },
                 Text.of("Tools"))
         );
@@ -195,7 +215,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 7*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
         this.sideWindow.setVisible(showSideWindow);
         this.showOutputButton.setTooltipVisible(!showSideWindow);
+        this.setShowOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
         this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
+        this.setTrackingOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
 
         this.consoleCommandTextField.setVisible(!showOutput);
         this.previousOutputTextField.setVisible(showOutput);
@@ -346,16 +368,27 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             context.drawTextWithShadow(this.textRenderer, COMMAND_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
             this.consoleCommandTextField.render(context, mouseX, mouseY, delta);
         }
+        renderAsterisk(context, toggleTrackingOutputButton, toggleTrackingOutputButton.getValue() != priorState.trackOutput);
         for (Drawable drawable : ((ScreenAccessor)this).getDrawables()) {
-            drawable.render(context, mouseX, mouseY, delta);
+            if(!drawable.equals(sideWindow)) drawable.render(context, mouseX, mouseY, delta);
         }
-
         darkenCheckbox(context, setTrackingOutputDefaultCheckbox);
         darkenCheckbox(context, setShowOutputDefaultCheckbox);
+
+        MatrixStack matrixStack = context.getMatrices();
+        matrixStack.push();
+        matrixStack.translate(0,0,1);
+        sideWindow.render(context, mouseX, mouseY, delta);
+        matrixStack.pop();
     }
 
     private void darkenCheckbox(DrawContext context, CheckboxWidget checkbox){
         if(checkbox.active) return;
         context.fill(checkbox.getX(), checkbox.getY(), checkbox.getX() + checkbox.getWidth() - 4, checkbox.getY() + checkbox.getHeight(), 0xA0000000);
+    }
+
+    protected void renderAsterisk(DrawContext context, Widget widget, boolean draw){
+        if(!draw) return;
+        context.drawTextWithShadow(textRenderer, "*", widget.getX() + widget.getWidth(), widget.getY() - 4, 0xFFC000);
     }
 }
