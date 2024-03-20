@@ -41,6 +41,7 @@ public class SimpleConfig {
     private final ConfigRequest request;
     private Set<String> edited;
     private boolean broken = false;
+    private static boolean modified = false;
 
     public interface DefaultConfig {
         String get( String namespace );
@@ -205,13 +206,23 @@ public class SimpleConfig {
     }
 
     public void set(String key, String value){
+        String previousValue = config.get(key);
         config.replace(key, value);
         edited.add(key);
+        modified = modified || !previousValue.equals(value);
+    }
+
+    public void writeIfModified(){
+        if(modified){
+            System.out.println("Config modified, proceeding with write.");
+            writeToFile();
+        }
     }
 
     public void writeToFile(){
         try {
             writeConfig();
+            modified = false;
         } catch (IOException e){
             System.out.println("Could not write to config file!");
             e.printStackTrace();
@@ -219,11 +230,13 @@ public class SimpleConfig {
     }
 
     public void reconstructFile(){
-        edited.addAll(config.keySet());
+        if (!broken) edited.addAll(config.keySet());
         try {
             Files.deleteIfExists(request.file.toPath());
             createConfig();
             writeToFile();
+            loadConfig();
+            broken = false;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -237,6 +250,9 @@ public class SimpleConfig {
      */
     public String getOrDefault( String key, String def ) {
         String val = get(key);
+        if (val == null){
+            broken = true;
+        }
         return val == null ? def : val;
     }
 
@@ -250,6 +266,7 @@ public class SimpleConfig {
         try {
             return Integer.parseInt( get(key) );
         } catch (Exception e) {
+            broken = true;
             return def;
         }
     }
@@ -265,6 +282,7 @@ public class SimpleConfig {
         if( val != null ) {
             return val.equalsIgnoreCase("true");
         }
+        broken = true;
 
         return def;
     }
@@ -279,6 +297,7 @@ public class SimpleConfig {
         try {
             return Double.parseDouble( get(key) );
         } catch (Exception e) {
+            broken = true;
             return def;
         }
     }

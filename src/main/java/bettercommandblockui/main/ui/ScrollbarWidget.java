@@ -15,20 +15,18 @@ import static bettercommandblockui.main.BetterCommandBlockUI.SCROLLBAR_HORIZONTA
 import static bettercommandblockui.main.BetterCommandBlockUI.SCROLLBAR_VERTICAL;
 
 public class ScrollbarWidget extends ClickableWidget {
-    private MultiLineTextFieldWidget textField;
-    private boolean dragging = false;
-    private boolean horizontal = false;
-    private boolean shiftPressed = false;
-    private double prevMouseX = 0.0d;
-    private double prevMouseY = 0.0d;
-    private double pos = 0.0d;
-    private double scale;
-    private int length;
-    private int barLength;
+    protected boolean dragging = false;
+    protected boolean horizontal = false;
+    protected double prevMouseX = 0.0d;
+    protected double prevMouseY = 0.0d;
+    protected double pos = 0.0d;
+    protected double scale;
+    protected int length;
+    protected int barLength;
+    protected java.util.function.Consumer<Double> changedListener;
 
-    public ScrollbarWidget(int x, int y, int width, int height, Text message, MultiLineTextFieldWidget textField, boolean horizontal) {
+    public ScrollbarWidget(int x, int y, int width, int height, Text message, boolean horizontal) {
         super(x, y, width, height, message);
-        this.textField = textField;
         this.horizontal = horizontal;
         this.scale = 1.0d;
         this.length = horizontal?width:height;
@@ -46,7 +44,7 @@ public class ScrollbarWidget extends ClickableWidget {
         this.renderSlider(context, mouseX, mouseY, delta);
     }
 
-    private void renderFrame(DrawContext context){
+    protected void renderFrame(DrawContext context){
         if(horizontal){
             RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -62,7 +60,7 @@ public class ScrollbarWidget extends ClickableWidget {
         }
     }
 
-    private void renderSlider(DrawContext context, int mouseX, int mouseY, float delta) {
+    protected void renderSlider(DrawContext context, int mouseX, int mouseY, float delta) {
         RenderSystem.setShader(GameRenderer::getPositionTexProgram);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         RenderSystem.enableBlend();
@@ -83,6 +81,10 @@ public class ScrollbarWidget extends ClickableWidget {
         }
     }
 
+    public void setChangedListener(java.util.function.Consumer<Double> changedListener){
+        this.changedListener = changedListener;
+    }
+
     @Override
     protected boolean clicked(double mouseX, double mouseY){
         if (!this.visible) {
@@ -91,8 +93,7 @@ public class ScrollbarWidget extends ClickableWidget {
         return checkHovered(mouseX, mouseY);
     }
 
-    private boolean checkHovered(double mouseX, double mouseY){
-        int barLength = (int) ((double)length / scale);
+    protected boolean checkHovered(double mouseX, double mouseY){
         if(horizontal){
             return mouseX >= this.getX() + pos * (length-barLength) && mouseY >= this.getY() && mouseX < this.getX() + pos * (length-barLength) + barLength && mouseY < this.getY() + this.height;
         } else {
@@ -103,7 +104,6 @@ public class ScrollbarWidget extends ClickableWidget {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (this.isValidClickButton(button) && this.clicked(mouseX, mouseY)) {
-            this.dragging = true;
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
             this.onClick(mouseX, mouseY);
             return true;
@@ -114,7 +114,6 @@ public class ScrollbarWidget extends ClickableWidget {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (this.isValidClickButton(button)) {
-            this.dragging = false;
             this.onRelease(mouseX, mouseY);
             return true;
         }
@@ -155,23 +154,29 @@ public class ScrollbarWidget extends ClickableWidget {
     @Override
     public void onDrag(double mouseX, double mouseY, double distX, double distY){
         if(dragging) {
+            double posBefore = pos;
             if (horizontal) {
                 pos = Math.min(Math.max(pos + distX/(length-barLength), 0), 1);
-                textField.setHorizontalOffset(pos);
             } else {
                 pos = Math.min(Math.max(pos + distY/(length-barLength), 0), 1);
-                textField.setScroll(pos);
+            }
+            if ((changedListener != null) && (Math.abs(posBefore-pos) > 0.0d)){
+                changedListener.accept(pos);
             }
         }
     }
 
     public void setScale(double newScale){
         this.scale = Math.max(newScale,1);
-        this.barLength = (int) ((double)length / scale);
+        this.barLength = (int) ((double)length / Math.min(scale,8));
     }
 
     public void updatePos(double newPos){
         this.pos = Math.max(Math.min(newPos,1),0);
+    }
+
+    public double getPos(){
+        return pos;
     }
 
     @Override

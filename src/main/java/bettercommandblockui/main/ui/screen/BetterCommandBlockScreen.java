@@ -1,11 +1,13 @@
 package bettercommandblockui.main.ui.screen;
 
+import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.main.ui.CyclingTexturedButtonWidget;
 import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.network.packet.c2s.play.UpdateCommandBlockC2SPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -102,6 +104,12 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         setButtonsActive(false);
     }
 
+    @Override
+    public void returnFromConfig(){
+        updateCommandBlock();
+        super.returnFromConfig();
+    }
+
     public void updateCommandBlock() {
         CommandBlockExecutor commandBlockExecutor = this.blockEntity.getCommandExecutor();
         ((MultiLineTextFieldWidget)this.consoleCommandTextField).setRawText(commandBlockExecutor.getCommand());
@@ -110,8 +118,12 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         this.conditional = this.blockEntity.isConditionalCommandBlock();
         this.autoActivate = this.blockEntity.isAuto();
 
-        int trackingOutputIndex = trackOutput?0:1;
-        this.toggleTrackingOutputButton.setIndex(trackingOutputIndex);
+        this.priorState = new CommandBlockState(mode, conditional, autoActivate, trackOutput);
+
+        if(!TRACK_OUTPUT_DEFAULT_USED) {
+            int trackingOutputIndex = trackOutput ? 0 : 1;
+            this.toggleTrackingOutputButton.setIndex(trackingOutputIndex);
+        }
 
         int modeIndex = 0;
         this.mode = blockEntity.getCommandBlockType();
@@ -141,5 +153,13 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                         this.trackOutput,
                         this.conditional,
                         this.autoActivate));
+    }
+
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        renderAsterisk(context, modeButton, modeButton.getValue() != priorState.type);
+        renderAsterisk(context, conditionalModeButton, conditionalModeButton.getValue() != priorState.conditional);
+        renderAsterisk(context, redstoneTriggerButton, redstoneTriggerButton.getValue() != priorState.needsRedstone);
+        super.render(context, mouseX, mouseY, delta);
     }
 }

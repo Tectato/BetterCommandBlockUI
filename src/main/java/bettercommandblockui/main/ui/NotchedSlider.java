@@ -13,12 +13,14 @@ import static bettercommandblockui.main.BetterCommandBlockUI.SLIDER_NOTCH;
 import static bettercommandblockui.main.BetterCommandBlockUI.SLIDER_PICK;
 
 public class NotchedSlider extends ClickableWidget {
-    static int subdivisions = 4;
-    static double pos = 0.0d;
-    boolean dragging = false;
-    int length;
-    double prevMouseX = 0.0d;
-    double prevMouseY = 0.0d;
+    protected int subdivisions = 4;
+    protected double pos = 0.0d;
+    protected boolean dragging = false;
+    protected int length;
+    protected double prevMouseX = 0.0d;
+    protected double prevMouseY = 0.0d;
+
+    protected java.util.function.Consumer<Double> changedListener;
 
     public NotchedSlider(int x, int y, int width, int height, Text message) {
         super(x, y, width, height, message);
@@ -92,6 +94,10 @@ public class NotchedSlider extends ClickableWidget {
         );
     }
 
+    public void setChangedListener(java.util.function.Consumer<Double> changedListener){
+        this.changedListener = changedListener;
+    }
+
     public double getValue(){
         return pos;
     }
@@ -103,6 +109,10 @@ public class NotchedSlider extends ClickableWidget {
     @Override
     protected void appendClickableNarrations(NarrationMessageBuilder builder) {
 
+    }
+
+    public void setPos(double value){
+        pos = snap(Math.min(Math.max(value, 0.0d), 1.0d), 1.0d/subdivisions);
     }
 
     @Override
@@ -119,12 +129,13 @@ public class NotchedSlider extends ClickableWidget {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button) && this.clicked(mouseX, mouseY)) {
+        if (this.isValidClickButton(button) && checkHovered(mouseX, mouseY) && this.clicked(mouseX, mouseY)) {
             this.dragging = true;
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
             this.onClick(mouseX, mouseY);
             return true;
         }
+        this.dragging = false;
         return false;
     }
 
@@ -140,7 +151,8 @@ public class NotchedSlider extends ClickableWidget {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        if (!this.visible) {
+        if (!this.visible || !checkHovered(mouseX, mouseY)) {
+            dragging = false;
             return;
         }
         dragging = true;
@@ -148,6 +160,9 @@ public class NotchedSlider extends ClickableWidget {
         prevMouseY = mouseY;
 
         pos = snap(Math.min(Math.max((mouseX - getX()) / length, 0.0d), 1.0d), 1.0d/subdivisions);
+        if (changedListener != null){
+            changedListener.accept(pos);
+        }
     }
 
     @Override
@@ -174,7 +189,7 @@ public class NotchedSlider extends ClickableWidget {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
         if(dragging) {
-            pos = snap(Math.min(Math.max((mouseX - getX()) / length, 0.0d), 1.0d), 1.0d / subdivisions);
+            onDrag(mouseX, mouseY, deltaX, deltaY);
             return true;
         }
         return false;
@@ -183,7 +198,12 @@ public class NotchedSlider extends ClickableWidget {
     @Override
     public void onDrag(double mouseX, double mouseY, double distX, double distY){
         if(dragging) {
+            double posBefore = pos;
             pos = snap(Math.min(Math.max((mouseX - getX()) / length, 0.0d), 1.0d), 1.0d/subdivisions);
+
+            if (changedListener != null && Math.abs(posBefore) > 0.0){
+                changedListener.accept(pos);
+            }
         }
     }
 

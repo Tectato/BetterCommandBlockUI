@@ -1,25 +1,16 @@
 package bettercommandblockui.main.ui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.PressableWidget;
-import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class CyclingTexturedButtonWidget<T> extends PressableWidget {
     Identifier textures;
@@ -90,6 +81,10 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
     @Override
     protected void appendClickableNarrations(NarrationMessageBuilder builder) {
 
+    }
+
+    public void setTooltipVisible(boolean value){
+        this.setTooltip(value ? tooltipSupplier.getTooltip() : null);
     }
 
     public interface PressAction{

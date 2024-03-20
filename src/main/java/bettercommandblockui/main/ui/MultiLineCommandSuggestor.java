@@ -62,21 +62,12 @@ public class MultiLineCommandSuggestor extends ChatInputSuggestor {
     }
 
     public void refreshRenderPos(){
-        MultiLineTextFieldWidget textField = (MultiLineTextFieldWidget) accessor.getTextField();
-        int cursor = Math.max(textField.getCursor(),1);
         try {
-            SuggestionContext<CommandSource> suggestionContext = accessor.getParse().getContext().findSuggestionContext(cursor);
-            //System.out.println(suggestionContext.startPos);
-            Pair<Integer, Integer> selectionPos = textField.getCharacterPos(suggestionContext.startPos);
-            //this.x = selectionPos.getLeft() - 1;
-            //this.y = selectionPos.getRight() + 9;
-
             SuggestionWindowAccessor window = (SuggestionWindowAccessor) accessor.getWindow();
             if(window != null){
                 Rect2i area = new Rect2i(this.x, this.y, window.getArea().getWidth(), window.getArea().getHeight());
                 window.setArea(area);
             }
-
         } catch (Exception e){
             System.out.println("[MLCS::refreshRenderPos] Error:");
             for (StackTraceElement el : e.getStackTrace()){

@@ -27,14 +27,12 @@ import java.util.Stack;
 
 public class MultiLineTextFieldWidget extends TextFieldWidget implements Element {
     private final int visibleChars = 20;
-    private int indentationFactor = BetterCommandBlockUI.INDENTATION_FACTOR;
 
     private AbstractBetterCommandBlockScreen screen;
     private ScrollbarWidget scrollX, scrollY;
     private List<String> lines;
     private List<Integer> lineOffsets, textOffsets;
     private List<Pair<Style, Integer>> textColors;
-    private boolean stringParameter = false;
     private int visibleLines = 11;
     private int scrolledLines = 0;
     private int horizontalOffset = 0;
@@ -53,18 +51,46 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         this.visibleLines = (height-4) / 10;
         this.scrolledLines = 0;
         this.screen = screen;
-        this.scrollX = new ScrollbarWidget(x, y + height + 1, width, 10, Text.of(""), this, true);
-        this.scrollY = new ScrollbarWidget(x + width + 1, y, 10, height, Text.of(""), this, false);
+        this.scrollX = new TextFieldScrollbarWidget(x, y + height + 1, width, 10, Text.of(""), this, true);
+        this.scrollY = new TextFieldScrollbarWidget(x + width + 1, y, 10, height, Text.of(""), this, false);
         cursorPosPreference = new Pair<>(0,0);
     }
 
     @Override
+    public void setWidth(int width){
+        this.width = width;
+        scrollX.setWidth(width);
+    }
+
+    @Override
+    public void setHeight(int height){
+        this.height = height;
+        this.visibleLines = (height-4) / 10;
+        scrollY.setHeight(height);
+    }
+
+    @Override
+    public void setX(int x){
+        super.setX(x);
+        scrollX.setX(x);
+        scrollY.setX(x + width + 1);
+    }
+
+    @Override
+    public void setY(int y){
+        super.setY(y);
+        scrollX.setY(y + height + 1);
+        scrollY.setY(y);
+    }
+
+    @Override
     public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta){
+        //TODO: render line at x of cursor if currently at parenthesis
         int color;
         if (!this.isVisible()) {
             return;
         }
-        if (accessor.invokeDrawsBackground()) {
+        if (accessor.getDrawsBackground()) {
             color = this.isFocused() ? -1 : -6250336;
             context.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
             context.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, -16777216);
@@ -73,7 +99,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         color = accessor.getEditable() ? accessor.getEditableColor() : accessor.getUneditableColor();
 
         if(hasCommandSuggestor) {
-            if(lines.size() == 0){
+            if(lines.isEmpty()){
+                renderSuggestor(context, mouseX, mouseY);
                 return;
             }
 
@@ -161,7 +188,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         RenderSystem.disableColorLogicOp();
 
-        //matrices.translate(0.0, 0.0, 0.1);
+        renderSuggestor(context, mouseX, mouseY);
+    }
+
+    private void renderSuggestor(DrawContext context, int mouseX, int mouseY){
         if(suggestor.getY() > getY() + getHeight() || suggestor.getY() < getY()) return;
         if(suggestor.getX() > getX() + getWidth() || suggestor.getX() < getX()) return;
         suggestor.render(context, mouseX, mouseY);
@@ -170,15 +200,17 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     private void drawColoredLine(DrawContext context, String content, int x, int y, int lineIndex){
         TextRenderer textRenderer = accessor.getTextRenderer();
         int renderOffset = 0;
-        int startOffset = textOffsets.get(lineIndex);
+        int startOffset = textOffsets.get(lineIndex); // start index of this line within command
         int currentOffset = 0;
-        int firstOffset = lineOffsets.get(lineIndex); // Great variable names, I know
+        int numSpaces = lineOffsets.get(lineIndex); // number of spaces before this line
         if(textColors.size() > 1) {
             for (int i = 0; i < textColors.size(); i++) {
                 if(currentOffset >= content.length()) break;
                 int nextColorStart = (i+1)<textColors.size() ? textColors.get(i+1).getRight() : (startOffset + content.length());
-                if (nextColorStart > startOffset+currentOffset) {
-                    String substring = content.substring(currentOffset, clamp(firstOffset + (nextColorStart-(startOffset+horizontalOffset)), currentOffset,content.length()));
+                nextColorStart -= startOffset;
+                nextColorStart += numSpaces-horizontalOffset;
+                if (nextColorStart > currentOffset) {
+                    String substring = content.substring(currentOffset, clamp(nextColorStart, currentOffset, content.length()));
 
                     int color;
                     try{
@@ -196,7 +228,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     );
                     currentOffset += substring.length();
                     renderOffset += textRenderer.getWidth(substring);
-                    firstOffset = 0;
+                    //numSpaces = 0;
                 }
                 if(currentOffset > content.length()) break;
             }
@@ -303,6 +335,34 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         this.updateScrollPositions();
     }
 
+    private int getWordLength(int offsetDir){
+        /*
+         * If traversing letters or numbers, keep going until reaching a non-alphanumeric character.
+         * Otherwise, only traverse chunks of the same character
+         */
+        int startIndex = accessor.getSelectionStart() + (offsetDir < 0 ? -1 : 0);
+        String text = getText();
+        if(text.isEmpty() || startIndex < 0 || startIndex >= text.length()) return 0;
+        char current = text.charAt(startIndex);
+        char startChar = current;
+        //System.out.println("Starting at: " + startChar + ", wordOffset = " + offsetDir);
+        boolean erasingAlphanumeric = Character.isLetter(startChar) || Character.isDigit(startChar);
+        int endIndex = startIndex;
+        do{
+            endIndex += offsetDir;
+            if (endIndex < 0 || endIndex >= text.length()) break;
+            current = text.charAt(endIndex);
+        } while (
+                (erasingAlphanumeric && (Character.isLetter(current) || Character.isDigit(current)))
+                        || (!erasingAlphanumeric && current == startChar)
+        );
+        endIndex -= offsetDir;
+        int min = Math.min(startIndex, endIndex);
+        int max = Math.max(startIndex, endIndex);
+        //System.out.println("Word: " + text.substring(min, max + 1));
+        return ((max-min) + 1) * offsetDir;
+    }
+
     @Override
     public void eraseWords(int wordOffset) {
         if (accessor.getText().isEmpty()) {
@@ -312,7 +372,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             this.write("");
             return;
         }
-        this.eraseCharacters(this.getWordSkipPosition(wordOffset) - accessor.getSelectionStart());
+        //this.eraseCharacters(this.getWordSkipPosition(wordOffset) - accessor.getSelectionStart());
+        eraseCharacters(getWordLength(wordOffset));
     }
 
     @Override
@@ -376,7 +437,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         switch (keyCode) {
             case 263: {
                 if (Screen.hasControlDown()) {
-                    this.setCursor(this.getWordSkipPosition(-1), Screen.hasShiftDown());
+                    //this.setCursor(this.getWordSkipPosition(-1), Screen.hasShiftDown());
+                    this.setCursor(getCursor() + getWordLength(-1), Screen.hasShiftDown());
                     updateScrollPositions();
                 } else {
                     this.moveCursor(-1, Screen.hasShiftDown());
@@ -393,7 +455,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             }
             case 262: {
                 if (Screen.hasControlDown()) {
-                    this.setCursor(this.getWordSkipPosition(1), Screen.hasShiftDown());
+                    //this.setCursor(this.getWordSkipPosition(1), Screen.hasShiftDown());
+                    this.setCursor(getCursor() + getWordLength(1), Screen.hasShiftDown());
                     updateScrollPositions();
                 } else {
                     this.moveCursor(1, Screen.hasShiftDown());
@@ -445,6 +508,14 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (SharedConstants.isValidChar(chr)) {
             if (accessor.getEditable()) {
                 this.write(Character.toString(chr));
+                if (BetterCommandBlockUI.BRACKET_AUTOCOMPLETE) {
+                    // TODO: trace forward and check if needed
+                    if (chr == '{') {
+                        this.write(Character.toString('}'));
+                    } else if (chr == '['){
+                        this.write(Character.toString(']'));
+                    }
+                }
             }
             return true;
         }
@@ -467,7 +538,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     public void refreshFormatting(){
-        indentationFactor = BetterCommandBlockUI.INDENTATION_FACTOR;
         setRawText(getText());
     }
 
@@ -502,6 +572,34 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
     }
 
+    private interface SpacePeeker {
+        Pair<Integer,String> run(int startIndex);
+    }
+
+    private void submitLine(String line, int indent){
+        submitLine(line, indent, false);
+    }
+
+    private void submitLine(String line, int indent, boolean lastLine){
+        if (BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE && !lastLine) {
+            String trimmedLine = line.replace(BetterCommandBlockUI.INDENTATION_CHAR+"", "");
+            if (trimmedLine.isEmpty()) {
+                return;
+            }
+        }
+        String indentChar = "" + BetterCommandBlockUI.INDENTATION_CHAR;
+        lines.add(indentChar.repeat(indent * BetterCommandBlockUI.INDENTATION_FACTOR) + line);
+        lineOffsets.add(indent * BetterCommandBlockUI.INDENTATION_FACTOR);
+        if (textOffsets.isEmpty()){
+            textOffsets.add(0);
+        } else {
+            int index = textOffsets.size()-1;
+            textOffsets.add(
+                    textOffsets.get(index) + (lines.get(index).length() - lineOffsets.get(index))
+            );
+        }
+    }
+
     private void formatText(String text) {
         TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
         textColors = new LinkedList<>();
@@ -517,116 +615,188 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int linestart = 0;
         int parenthesesDepth = 0;
         int currentIndex = 0;
-        boolean metaString = false;
+        boolean singleQuoteString = false;
+        boolean doubleQuoteString = false;
         boolean escapeChar = false;
 
         char current;
-        String currentPrefix = "";
-        while(currentIndex < textArr.length){
+        String currentLine = "";
+        boolean newLine = false;
+        int lastWordStart = 0;
+
+        SpacePeeker peeker = new SpacePeeker() {
+            @Override
+            public Pair<Integer,String> run(int startIndex) {
+                // Check for following spaces, makes for consistent indentation
+                StringBuilder outputLine = new StringBuilder();
+                int tempCurrentIndex = startIndex + 1;
+                if (tempCurrentIndex < textArr.length) {
+                    char tempCurrent = textArr[tempCurrentIndex];
+                    while (tempCurrentIndex < textArr.length - 1 && tempCurrent == ' ') {
+                        ++tempCurrentIndex;
+                        outputLine.append(tempCurrent);
+                        tempCurrent = textArr[tempCurrentIndex];
+                    }
+                    startIndex = tempCurrentIndex - 1;
+                }
+
+                return new Pair<>(startIndex, outputLine.toString());
+            }
+        };
+
+        while(currentIndex < textArr.length) {
             while(currentColorListIndex < colorIndices.size() && colorIndices.get(currentColorListIndex).getRight() < currentIndex){
                 colorStack.push(colorIndices.get(currentColorListIndex).getLeft());
                 currentColorListIndex++;
             }
 
             current = textArr[currentIndex];
-            if(!metaString || BetterCommandBlockUI.FORMAT_STRINGS) {
-                switch (current) {
-                    case '"':
-                        if(!escapeChar){
-                            metaString = true;
-                        }
-                        break;
-                    case '{':
-                    case '[':
-                        if (currentColorListIndex > 0) {
-                            currentHighlightColor = colorIndices.get(currentColorListIndex - 1).getLeft();
-                            colorStack.push(currentHighlightColor);
-                            if (currentHighlightColor != 0) {
-                                colorIndices.add(currentColorListIndex, new Pair<>(getHighlightColorIndex(currentHighlightColor + 1), currentIndex));
-                                currentColorListIndex++;
-                            }
-                        }
 
-                        String previousLine = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
-                        if (previousLine.length() > 0) {
-                            lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + previousLine);
-                            lineOffsets.add(parenthesesDepth*indentationFactor);
-                            textOffsets.add(linestart - currentPrefix.length());
-                        }
-                        lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + current);
-                        lineOffsets.add(parenthesesDepth*indentationFactor);
-                        textOffsets.add(currentIndex);
-                        parenthesesDepth++;
-                        linestart = currentIndex + 1;
-                        currentPrefix = "";
+            if (textRenderer.getWidth(currentLine) > BetterCommandBlockUI.WRAPAROUND_WIDTH){
+                if(lastWordStart == 0){
+                    lastWordStart = currentLine.length();
+                }
+                String truncatedLine = currentLine.substring(0, Math.min(lastWordStart, currentLine.length()));
+                submitLine(truncatedLine, parenthesesDepth);
+                if(truncatedLine.length() < currentLine.length()) {
+                    currentLine = currentLine.substring(lastWordStart);
+                } else {
+                    currentLine = "";
+                }
+                lastWordStart = 0;
+            }
+
+            int colorStartIndex = currentIndex; // Necessary to make color start in right spot when peeking ahead
+            switch(current){
+                case '{':
+                case '[':
+                    escapeChar = false;
+                    if (singleQuoteString || doubleQuoteString){
+                        currentLine += current;
+                        newLine = false;
                         break;
-                    case '}':
-                    case ']':
-                        if (colorIndices.get(currentColorListIndex - 1).getLeft() != 0) {
-                            colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), currentIndex + 1));
+                    }
+                    if (BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET){
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
+                        currentLine = "";
+                        newLine = true;
+                    }
+                    currentLine += current;
+                    if (BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET){
+                        // Peek ahead for spaces
+                        Pair<Integer,String> peekResult = peeker.run(currentIndex);
+                        currentIndex = peekResult.getLeft();
+                        currentLine += peekResult.getRight();
+
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
+                        currentLine = "";
+                        newLine = true;
+                    }
+                    if (newLine) {
+                        parenthesesDepth++;
+                    }
+
+                    if (currentColorListIndex > 0) {
+                        currentHighlightColor = colorIndices.get(currentColorListIndex - 1).getLeft();
+                        colorStack.push(currentHighlightColor);
+                        if (currentHighlightColor != 0) {
+                            colorIndices.add(currentColorListIndex, new Pair<>(getHighlightColorIndex(currentHighlightColor + 1), colorStartIndex));
                             currentColorListIndex++;
                         }
-
-                        String offset = " ".repeat(parenthesesDepth*indentationFactor);
-                        String line = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
-                        if(line.length() > 0){
-                            lines.add(offset + line);
-                            lineOffsets.add(parenthesesDepth*indentationFactor);
-                            textOffsets.add(linestart - currentPrefix.length());
-                        }
-                        parenthesesDepth = Math.max(parenthesesDepth - 1, 0);
-                        linestart = currentIndex + 1;
-                        currentPrefix = String.valueOf(current);
-                        break;
-                    case ',':
-                        // Check for following spaces, makes for consistent indentation
-                        int tempCurrentIndex = currentIndex + 1;
-                        if (tempCurrentIndex < textArr.length) {
-                            char tempCurrent = textArr[tempCurrentIndex];
-                            while (tempCurrentIndex < textArr.length - 1 && tempCurrent == ' ') {
-                                ++tempCurrentIndex;
-                                tempCurrent = textArr[tempCurrentIndex];
-                            }
-                            currentIndex = tempCurrentIndex - 1;
-                        }
-
-                        lines.add((" ".repeat(parenthesesDepth*indentationFactor)) + currentPrefix + String.copyValueOf(textArr, linestart, 1 + (currentIndex - linestart)));
-                        lineOffsets.add(parenthesesDepth*indentationFactor);
-                        textOffsets.add(linestart - currentPrefix.length());
-                        linestart = currentIndex + 1;
-                        currentPrefix = "";
-                        break;
-                }
-            } else {
-                if(!escapeChar) {
-                    if (current == '"') {
-                        metaString = false;
-                    } else if (current == '\\'){
-                        escapeChar = true;
                     }
-                } else {
+                    break;
+                case '}':
+                case ']':
                     escapeChar = false;
-                }
-            }
-            String currentIndentation = " ".repeat(parenthesesDepth * indentationFactor);
-            String currentLine = currentPrefix + String.copyValueOf(textArr, linestart, Math.max(0,(currentIndex - linestart)));
-            //Wraparound
-            if(textRenderer.getWidth(currentLine) > BetterCommandBlockUI.WRAPAROUND_WIDTH) {
-                lines.add(currentIndentation + currentLine);
-                lineOffsets.add(parenthesesDepth * indentationFactor);
-                textOffsets.add(linestart - currentPrefix.length());
-                linestart = currentIndex;
-                currentPrefix = "";
+                    if (singleQuoteString || doubleQuoteString){
+                        currentLine += current;
+                        newLine = false;
+                        break;
+                    }
+                    boolean indentationChanged = false;
+                    if (BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET){
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
+                        currentLine = "";
+                        newLine = true;
+                        parenthesesDepth = Math.max(0,parenthesesDepth-1);
+                        indentationChanged = true;
+                    }
+                    currentLine += current;
+                    if (BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET){
+                        // Peek ahead for spaces
+                        Pair<Integer,String> peekResult = peeker.run(currentIndex);
+                        currentIndex = peekResult.getLeft();
+                        currentLine += peekResult.getRight();
+
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
+                        currentLine = "";
+                        newLine = true;
+                        if (!indentationChanged)
+                            parenthesesDepth = Math.max(0,parenthesesDepth-1);
+                    }
+
+                    if (currentColorListIndex > 0 && colorIndices.get(currentColorListIndex - 1).getLeft() != 0) {
+                        colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), colorStartIndex + 1));
+                        currentColorListIndex++;
+                    }
+                    break;
+                case ',':
+                    escapeChar = false;
+                    currentLine += current;
+                    lastWordStart = currentLine.length();
+
+                    // Peek ahead for spaces
+                    Pair<Integer,String> peekResult = peeker.run(currentIndex);
+                    currentIndex = peekResult.getLeft();
+                    currentLine += peekResult.getRight();
+
+                    if (BetterCommandBlockUI.NEWLINE_POST_COMMA){
+                        submitLine(currentLine, parenthesesDepth);
+                        lastWordStart = 0;
+                        currentLine = "";
+                        //newLine = true;
+                    }
+                    break;
+                case ' ':
+                    currentLine += current;
+                    newLine = false;
+                    escapeChar = false;
+                    lastWordStart = currentLine.length();
+                    break;
+                case '\\':
+                    escapeChar = !escapeChar;
+                    currentLine += current;
+                    newLine = false;
+                    break;
+                case '"':
+                    if (!BetterCommandBlockUI.FORMAT_STRINGS && !singleQuoteString && !escapeChar){
+                        doubleQuoteString = !doubleQuoteString;
+                        escapeChar = false;
+                    }
+                    currentLine += current;
+                    break;
+                case '\'':
+                    if (!BetterCommandBlockUI.FORMAT_STRINGS && !escapeChar){
+                        singleQuoteString = !singleQuoteString;
+                        escapeChar = false;
+                    }
+                    currentLine += current;
+                    break;
+                default:
+                    currentLine += current;
+                    newLine = false;
+                    escapeChar = false;
+                    break;
             }
 
             currentIndex++;
-            if(currentIndex >= textArr.length){ //Print missing end parentheses
-                currentLine = currentPrefix + String.copyValueOf(textArr, linestart, (currentIndex - linestart));
-                lines.add(currentIndentation + currentLine);
-                lineOffsets.add(parenthesesDepth*indentationFactor);
-                textOffsets.add(linestart-currentPrefix.length());
-            }
-
+        }
+        if (!currentLine.isEmpty()){
+            submitLine(currentLine, parenthesesDepth, true);
         }
 
         for(Pair<Integer,Integer> p : colorIndices){
@@ -646,6 +816,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         return (index % count) + 2;
     }
 
+    private boolean getHovered(double mouseX, double mouseY){
+        return mouseX >= (double) this.getX() && mouseX < (double)(this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double)(this.getY() + this.height);
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button){
         if (!this.isVisible()) {
@@ -655,11 +829,11 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         scrollX.mouseClicked(mouseX, mouseY, button);
         scrollY.mouseClicked(mouseX, mouseY, button);
 
-        boolean bl = mouseX >= (double) this.getX() && mouseX < (double)(this.getX() + this.width) && mouseY >= (double) this.getY() && mouseY < (double)(this.getY() + this.height);
+        boolean hovered = getHovered(mouseX, mouseY);
         if (accessor.getFocusUnlocked()) {
-            this.setFocused(bl);
+            this.setFocused(hovered);
         }
-        if(this.isFocused() && bl && button == 0) {
+        if(this.isFocused() && hovered && button == 0) {
             this.setCursor(pointToIndex(mouseX, mouseY), Screen.hasShiftDown());
             cursorPosPreference = new Pair<>((int)mouseX, (int)mouseY);
             return true;
@@ -672,7 +846,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isVisible()) {
             return false;
         }
-        if(screen.scroll(verticalAmount)){
+        if(screen != null && screen.scroll(verticalAmount)){
             return true;
         }
         if(LShiftPressed || RShiftPressed){
@@ -702,6 +876,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         scrollX.onDrag(mouseX, mouseY, deltaX, deltaY);
         scrollY.onDrag(mouseX, mouseY, deltaX, deltaY);
+
+        if (this.isHovered() && this.isFocused()){
+            setSelectionStart(pointToIndex(mouseX, mouseY));
+        }
         return true;
     }
 
@@ -710,8 +888,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isVisible()) {
             return false;
         }
-        scrollX.onRelease(mouseX, mouseY);
-        scrollY.onRelease(mouseX, mouseY);
+        scrollX.mouseReleased(mouseX, mouseY, button);
+        scrollY.mouseReleased(mouseX, mouseY, button);
         return true;
     }
 
@@ -729,6 +907,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     public void moveCursor(int offset, boolean shiftKeyPressed) {
         TextRenderer textRenderer = accessor.getTextRenderer();
         this.setCursor(accessor.invokeGetCursorPosWithOffset(offset), shiftKeyPressed);
+        if(lines.isEmpty()) return;
         Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPosWithOffset(0));
         String line = lines.get(lineAndOffset.getLeft());
         int xPreference = getX() + textRenderer.getWidth(line.substring(0,Math.min(line.length()-1,lineAndOffset.getRight())));
@@ -813,7 +992,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         Pair<Integer, Integer> cursor = indexToLineAndOffset(selectionStart);
         int selectionStartOffset = Math.max(cursor.getRight() - horizontalOffset, 0);
         int fontHeight = accessor.getTextRenderer().fontHeight + 1;
-        if(lines.size() == 0){
+        if(lines.isEmpty()){
             suggestor.setPos(getX() + 5, getY() + 5 + fontHeight);
             suggestor.refreshRenderPos();
             return;

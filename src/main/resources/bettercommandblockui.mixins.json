@@ -6,18 +6,18 @@
   "mixins": [
   ],
   "client": [
-    "ClientPlayerEntityAccessor",
     "AbstractCommandBlockScreenAccessor",
-    "ClientPlayNetworkHandlerMixin",
     "ClientCommonNetworkHandlerAccessor",
-    "ServerPlayerEntityAccessor",
-    "TextFieldWidgetAccessor",
-    "TextRendererAccessor",
-    "ScreenAccessor",
-    "CommandSuggestorAccessor",
-    "SuggestionWindowAccessor",
+    "ClientPlayerEntityAccessor",
+    "ClientPlayNetworkHandlerMixin",
+    "CommandBlockExecutorMixin",
     "CommandBlockMixin",
-    "CommandBlockExecutorMixin"
+    "CommandSuggestorAccessor",
+    "ScreenAccessor",
+    "ServerPlayerEntityAccessor",
+    "SuggestionWindowAccessor",
+    "TextFieldWidgetAccessor",
+    "TextRendererAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

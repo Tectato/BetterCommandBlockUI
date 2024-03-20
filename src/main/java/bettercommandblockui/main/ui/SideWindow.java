@@ -1,6 +1,7 @@
 package bettercommandblockui.main.ui;
 
 import bettercommandblockui.main.BetterCommandBlockUI;
+import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -9,19 +10,15 @@ import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.TexturedButtonWidget;
-import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.joml.AxisAngle4d;
+import org.joml.Quaternionf;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import static bettercommandblockui.main.BetterCommandBlockUI.*;
 
 public class SideWindow implements Drawable, Element {
     protected static final ButtonTextures COPY_BUTTON_TEXTURES = new ButtonTextures(
@@ -29,6 +26,9 @@ public class SideWindow implements Drawable, Element {
             new Identifier("bettercommandblockui:button_copy_disabled"),
             new Identifier("bettercommandblockui:button_copy_focused")
     );
+
+    private static int piFraction = 4;
+    private static double piSetting = 0.0;
 
     int x, y, width, height;
     int topMargin = 5;
@@ -39,19 +39,15 @@ public class SideWindow implements Drawable, Element {
     Screen screen;
 
     String piFractionInputText = "2π / ";
-    String indentationInputText = "Indentation: ";
-    String scrollXInputText = "Scroll speed X: ";
-    String scrollYInputText = "Scroll speed Y: ";
-    String wraparoundInputText = "Wraparound width: ";
-    String formatStringsText = "Format strings: ";
-    TextFieldWidget piFractionInput, indentationInput, scrollXInput, scrollYInput, wraparoundInput;
-    CyclingTexturedButtonWidget<Boolean> formatStrings;
+    TextFieldWidget piFractionInput, piOutput, colorTextR, colorTextG, colorTextB, colorHex, colorInt;
+    ColorScrollbarWidget colorSliderR, colorSliderG, colorSliderB;
     NotchedSlider piSlider;
-    TexturedButtonWidget piCopyButton;
+    RotationIndicator piRotationIndicator;
+    ButtonWidget configButton;
     TextRenderer textRenderer;
 
     List<ClickableWidget> widgets;
-    List<Element> elements;
+    int focusedWidget = -1;
 
     public SideWindow(int x, int y, int width, int height, MultiLineTextFieldWidget commandField, Screen screen){
         this.x = x;
@@ -79,17 +75,19 @@ public class SideWindow implements Drawable, Element {
         );
         this.piFractionInput.setChangedListener((input)->{
             try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),1),16);
-                this.piSlider.setSubdivisions(inputInt);
+                piFraction = Math.min(Math.max(Integer.parseInt(input),1),16);
+                this.piSlider.setSubdivisions(piFraction);
             } catch (NumberFormatException e){
-                this.piSlider.setSubdivisions(2);
+                this.piSlider.setSubdivisions(4);
             }
         });
 
         posY += 12;
         this.piSlider = (NotchedSlider) addWidget(new NotchedSlider(x + leftMargin, posY, width - 30, 16, Text.of("")));
-        this.piFractionInput.setText(String.valueOf(this.piSlider.getSubdivisions()));
-        this.piCopyButton = (TexturedButtonWidget) addWidget(new TexturedButtonWidget(
+        this.piSlider.setSubdivisions(piFraction);
+        this.piSlider.setPos(piSetting);
+        this.piFractionInput.setText(String.valueOf(piFraction));
+        /*this.piCopyButton = (TexturedButtonWidget) addWidget(new TexturedButtonWidget(
                 x + leftMargin + width - 25,
                 posY - 2,
                 20,
@@ -98,84 +96,189 @@ public class SideWindow implements Drawable, Element {
                 (button)->{
                     MinecraftClient.getInstance().keyboard.setClipboard(String.valueOf(piSlider.getValue() * 2 * Math.PI));
                 }
-        ));
-
-        posY += 30;
-        this.indentationInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 60, 10, Text.of("")));
-        this.indentationInput.setChangedListener((input)->{
-            try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),1),16);
-                BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_INDENTATION, String.valueOf(inputInt));
-                this.commandField.refreshFormatting();
-            } catch (NumberFormatException e){
-                BetterCommandBlockUI.INDENTATION_FACTOR = 2;
-            }
-        });
-        this.indentationInput.setText(String.valueOf(BetterCommandBlockUI.INDENTATION_FACTOR));
-
-        posY += 30;
-        this.wraparoundInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 80, 10, Text.of("")));
-        this.wraparoundInput.setChangedListener((input)->{
-            try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),10),1600);
-                BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_WRAPAROUND, String.valueOf(inputInt));
-                this.commandField.refreshFormatting();
-            } catch (NumberFormatException e){
-                BetterCommandBlockUI.WRAPAROUND_WIDTH = 200;
-            }
-        });
-        this.wraparoundInput.setText(String.valueOf(BetterCommandBlockUI.WRAPAROUND_WIDTH));
-
-        posY += 30;
-        this.scrollXInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 60, 10, Text.of("")));
-        this.scrollXInput.setChangedListener((input)->{
-            try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),1),64);
-                BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_SCROLL_X, String.valueOf(inputInt));
-            } catch (NumberFormatException e){
-                BetterCommandBlockUI.SCROLL_STEP_X = 4;
-            }
-        });
-        this.scrollXInput.setText(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_X));
-
-        posY += 30;
-        this.scrollYInput = (TextFieldWidget) addWidget(new TextFieldWidget(textRenderer, x + leftMargin, posY, 60, 10, Text.of("")));
-        this.scrollYInput.setChangedListener((input)->{
-            try {
-                int inputInt = Math.min(Math.max(Integer.parseInt(input),1),64);
-                BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_SCROLL_Y, String.valueOf(inputInt));
-            } catch (NumberFormatException e){
-                BetterCommandBlockUI.SCROLL_STEP_Y = 2;
-            }
-        });
-        this.scrollYInput.setText(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_Y));
-
-        posY += 30;
-        Text[] formatStringsTooltips = {
-            Text.of("Useful for nested Commands"),
-            Text.of("Useful for nested Commands")
-        };
-        this.formatStrings = (CyclingTexturedButtonWidget<Boolean>) addWidget(
-            new CyclingTexturedButtonWidget<>(
-                x + leftMargin,
-                posY,
-                20,
-                20,
-                Text.of(""),
-                (button)->{
-                    BetterCommandBlockUI.setConfig(
-                            BetterCommandBlockUI.VAR_FORMAT_STRINGS,
-                            String.valueOf(button.getValue())
-                    );
-                    this.commandField.refreshFormatting();
-                },
-                screen,
-                BetterCommandBlockUI.BUTTON_CHECKBOX,
-                BetterCommandBlockUI.FORMAT_STRINGS ? 1 : 0,
-                new Boolean[]{false, true},
-                formatStringsTooltips
-            )
+        ));*/
+        posY += 18;
+        this.piOutput = (TextFieldWidget) addWidget(
+                new OutputTextFieldWidget(
+                        textRenderer,
+                        x + leftMargin,
+                        posY,
+                        60,
+                        10,
+                        Text.of("")
+                )
         );
+        this.piOutput.setEditable(false);
+        String piOutputText = Double.toString(piSetting * 2*Math.PI);
+        this.piOutput.setText(piOutputText.substring(0, Math.min(8,piOutputText.length())));
+        this.piSlider.setChangedListener((value)->{
+            piSetting = value;
+            this.piRotationIndicator.setAngle(value);
+            String text = Double.toString(piSetting * 2*Math.PI);
+            this.piOutput.setText(text.substring(0, Math.min(8,text.length())));
+        });
+
+        this.piRotationIndicator = (RotationIndicator) addWidget(
+                new RotationIndicator(
+                        piOutput.getX() + piOutput.getWidth() + 8,
+                        piOutput.getY() - 2,
+                        Text.of("")
+                )
+        );
+        this.piRotationIndicator.setChangedListener((value)->{
+            this.piSlider.setPos(value);
+            piSetting = value;
+            String text = Double.toString(piSetting * 2*Math.PI);
+            this.piOutput.setText(text.substring(0, Math.min(8,text.length())));
+        });
+        this.piRotationIndicator.setAngle(piSetting);
+
+        posY += 32;
+        this.colorTextR = (TextFieldWidget) addWidget(
+                new TextFieldWidget(
+                        textRenderer,
+                        x + leftMargin + textRenderer.getWidth("R:"),
+                        posY,
+                        30,
+                        10,
+                        Text.of("")
+                )
+        );
+        this.colorTextR.setMaxLength(3);
+        this.colorTextR.setChangedListener((input)->{
+            int value = 0;
+            try {
+                value = Integer.parseInt(input);
+            } catch (NumberFormatException ignored){}
+            ColorPicker.setColor(ColorPicker.COLOR.RED, value);
+            this.colorSliderR.updatePos(value/255.0);
+        });
+        this.colorSliderR = (ColorScrollbarWidget) addWidget(
+                new ColorScrollbarWidget(
+                        x + leftMargin + 40,
+                        posY,
+                        48,
+                        10,
+                        Text.of(""),
+                        ColorPicker.COLOR.RED
+                )
+        );
+        this.colorSliderR.setChangedListener((pos)->{
+            this.colorTextR.setText(""+((int)(Math.round(pos * 255.0))));
+            this.updateColorOutputs();
+        });
+        this.colorTextR.setText("" + ColorPicker.getColor(ColorPicker.COLOR.RED));
+
+        posY += 14;
+        this.colorTextG = (TextFieldWidget) addWidget(
+                new TextFieldWidget(
+                        textRenderer,
+                        x + leftMargin + textRenderer.getWidth("R:"),
+                        posY,
+                        30,
+                        10,
+                        Text.of("")
+                )
+        );
+        this.colorTextG.setMaxLength(3);
+        this.colorTextG.setChangedListener((input)->{
+            int value = 0;
+            try {
+                value = Integer.parseInt(input);
+            } catch (NumberFormatException ignored){}
+            ColorPicker.setColor(ColorPicker.COLOR.GREEN, value);
+            this.colorSliderG.updatePos(value/255.0);
+        });
+        this.colorSliderG = (ColorScrollbarWidget) addWidget(
+                new ColorScrollbarWidget(
+                        x + leftMargin + 40,
+                        posY,
+                        48,
+                        10,
+                        Text.of(""),
+                        ColorPicker.COLOR.GREEN
+                )
+        );
+        this.colorSliderG.setChangedListener((pos)->{
+            this.colorTextG.setText(""+((int)(Math.round(pos * 255.0))));
+            this.updateColorOutputs();
+        });
+        this.colorTextG.setText("" + ColorPicker.getColor(ColorPicker.COLOR.GREEN));
+
+        posY += 14;
+        this.colorTextB = (TextFieldWidget) addWidget(
+                new TextFieldWidget(
+                        textRenderer,
+                        x + leftMargin + textRenderer.getWidth("R:"),
+                        posY,
+                        30,
+                        10,
+                        Text.of("")
+                )
+        );
+        this.colorTextB.setMaxLength(3);
+        this.colorTextB.setChangedListener((input)->{
+            int value = 0;
+            try {
+                value = Integer.parseInt(input);
+            } catch (NumberFormatException ignored){}
+            ColorPicker.setColor(ColorPicker.COLOR.BLUE, value);
+            this.colorSliderB.updatePos(value/255.0);
+        });
+        this.colorSliderB = (ColorScrollbarWidget) addWidget(
+                new ColorScrollbarWidget(
+                        x + leftMargin + 40,
+                        posY,
+                        48,
+                        10,
+                        Text.of(""),
+                        ColorPicker.COLOR.BLUE
+                )
+        );
+        this.colorSliderB.setChangedListener((pos)->{
+            this.colorTextB.setText(""+((int)(Math.round(pos * 255.0))));
+            this.updateColorOutputs();
+        });
+        this.colorTextB.setText("" + ColorPicker.getColor(ColorPicker.COLOR.BLUE));
+
+        posY += 16;
+        this.colorHex = (TextFieldWidget) addWidget(
+                new OutputTextFieldWidget(
+                        textRenderer,
+                        x + leftMargin + textRenderer.getWidth("R:"),
+                        posY,
+                        60,
+                        10,
+                        Text.of("")
+                )
+        );
+        this.colorHex.setEditable(false);
+        posY += 14;
+        this.colorInt = (TextFieldWidget) addWidget(
+                new OutputTextFieldWidget(
+                        textRenderer,
+                        x + leftMargin + textRenderer.getWidth("R:"),
+                        posY,
+                        60,
+                        10,
+                        Text.of("")
+                )
+        );
+        this.colorInt.setEditable(false);
+        updateColorOutputs();
+
+        posY += 20;
+        this.configButton = (ButtonWidget) addWidget(ButtonWidget
+                .builder(Text.literal("Config"), button -> ((AbstractBetterCommandBlockScreen)screen).openConfig())
+                .dimensions(x+leftMargin, posY, width - leftMargin*2, 20).build());
+
+        this.height = (posY - y) + 20 + topMargin;
+    }
+
+    public void updateColorOutputs(){
+        colorHex.setText(""+ColorPicker.getInteger());
+        String hexText = ColorPicker.getHexString().toUpperCase();
+        colorInt.setText("#"+"0".repeat(6-hexText.length())+hexText);
     }
 
     @Override
@@ -188,22 +291,24 @@ public class SideWindow implements Drawable, Element {
 
         context.drawBorder(x-1, y-1, width+4, height+2, 0xFFFFFFFF);
 
-        context.drawTextWithShadow(this.textRenderer, piFractionInputText, x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
+        context.drawTextWithShadow(this.textRenderer, "2π / ", x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
         this.piFractionInput.render(context, mouseX, mouseY, delta);
         this.piSlider.render(context, mouseX, mouseY, delta);
-        this.piCopyButton.render(context, mouseX, mouseY, delta);
-
-        context.drawTextWithShadow(this.textRenderer, indentationInputText, x + leftMargin, indentationInput.getY() - 12, 0xFFFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, wraparoundInputText, x + leftMargin, wraparoundInput.getY() - 12, 0xFFFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, scrollXInputText, x + leftMargin, scrollXInput.getY() - 12, 0xFFFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, scrollYInputText, x + leftMargin, scrollYInput.getY() - 12, 0xFFFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, formatStringsText, x + leftMargin, formatStrings.getY() - 12, 0xFFFFFFFF);
-
-        this.indentationInput.render(context, mouseX, mouseY, delta);
-        this.wraparoundInput.render(context, mouseX, mouseY, delta);
-        this.scrollXInput.render(context, mouseX, mouseY, delta);
-        this.scrollYInput.render(context, mouseX, mouseY, delta);
-        this.formatStrings.render(context, mouseX, mouseY, delta);
+        this.piOutput.render(context, mouseX, mouseY, delta);
+        this.piRotationIndicator.render(context, mouseX, mouseY, delta);
+        this.configButton.render(context, mouseX, mouseY, delta);
+        context.drawTextWithShadow(this.textRenderer, "R:", x + leftMargin, colorTextR.getY(), 0xFFFF0000);
+        this.colorTextR.render(context, mouseX, mouseY, delta);
+        this.colorSliderR.render(context, mouseX, mouseY, delta);
+        context.drawTextWithShadow(this.textRenderer, "G:", x + leftMargin, colorTextG.getY(), 0xFF00FF00);
+        this.colorTextG.render(context, mouseX, mouseY, delta);
+        this.colorSliderG.render(context, mouseX, mouseY, delta);
+        context.drawTextWithShadow(this.textRenderer, "B:", x + leftMargin, colorTextB.getY(), 0xFF0000FF);
+        this.colorTextB.render(context, mouseX, mouseY, delta);
+        this.colorSliderB.render(context, mouseX, mouseY, delta);
+        context.fill(x + leftMargin, colorHex.getY(), x + leftMargin + 7, colorHex.getY() + 24, 0xFF000000 | ColorPicker.getInteger());
+        this.colorHex.render(context, mouseX, mouseY, delta);
+        this.colorInt.render(context, mouseX, mouseY, delta);
     }
 
     Widget addWidget(ClickableWidget widget){
@@ -220,15 +325,15 @@ public class SideWindow implements Drawable, Element {
     public void setFocused(boolean focused) {
         if(!focused){
             this.piFractionInput.setFocused(false);
-            this.indentationInput.setFocused(false);
-            this.wraparoundInput.setFocused(false);
-            this.scrollXInput.setFocused(false);
-            this.scrollYInput.setFocused(false);
+            this.configButton.setFocused(false);
         }
     }
 
     @Override
     public boolean isFocused() {
+        for(ClickableWidget w : widgets){
+            if (w.isFocused()) return true;
+        }
         return false;
     }
 
@@ -236,16 +341,23 @@ public class SideWindow implements Drawable, Element {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if(!visible) return false;
         boolean widgetClicked = false;
+        int index = 0;
         for(ClickableWidget w : widgets){
             if(!widgetClicked && w.mouseClicked(mouseX, mouseY, button)){
                 w.setFocused(true);
                 widgetClicked = true;
+                focusedWidget = index;
             } else {
                 w.setFocused(false);
             }
+            index++;
         }
-        if(widgetClicked) return true;
-        if(mouseX > x && mouseY > y && mouseY < y + height) return true;
+        boolean returnVal = widgetClicked;
+        if(mouseX > x && mouseY > y && mouseY < y + height) returnVal = true;
+        if (returnVal){
+            ((AbstractBetterCommandBlockScreen)screen).sideWindowFocused();
+            return returnVal;
+        }
         setFocused(false);
         return false;
     }
@@ -253,14 +365,19 @@ public class SideWindow implements Drawable, Element {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if(!visible) return false;
-        if(piFractionInput.mouseReleased(mouseX,mouseY,button)) return true;
-        return piSlider.mouseReleased(mouseX,mouseY,button);
+        for(ClickableWidget w : widgets){
+            w.mouseReleased(mouseX,mouseY,button);
+        }
+        return false;
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
         if(!visible) return false;
-        return piSlider.mouseDragged(mouseX,mouseY,button,deltaX,deltaY);
+        for(ClickableWidget w : widgets){
+            w.mouseDragged(mouseX,mouseY,button,deltaX,deltaY);
+        }
+        return false;
     }
 
     @Override
@@ -268,6 +385,21 @@ public class SideWindow implements Drawable, Element {
         if(!visible) return false;
         for(ClickableWidget w : widgets){
             if(w.keyPressed(keyCode,scanCode,modifiers)) return true;
+        }
+        if (keyCode == 258) {
+            focusedWidget += Screen.hasShiftDown() ? -1 : 1;
+            focusedWidget %= widgets.size();
+            if (focusedWidget < 0) focusedWidget = widgets.size() + focusedWidget;
+
+            if (widgets.get(focusedWidget) instanceof ColorScrollbarWidget){
+                keyPressed(keyCode, scanCode, modifiers); // Skip color sliders
+            } else {
+                int index = 0;
+                for(ClickableWidget w : widgets){
+                    w.setFocused(index == focusedWidget);
+                    index++;
+                }
+            }
         }
         return false;
     }
