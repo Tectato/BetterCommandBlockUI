@@ -58,10 +58,7 @@ public interface TextFieldWidgetAccessor {
     int getFirstCharacterIndex();
 
     @Accessor
-    long getLastSwitchFocusTime();
-
-    @Accessor("lastSwitchFocusTime")
-    void setLastSwitchFocusTime(long value);
+    int getFocusedTicks();
 
     @Accessor
     String getText();

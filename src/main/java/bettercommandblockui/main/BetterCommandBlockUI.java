@@ -19,12 +19,12 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final Identifier BUTTON_TRACK_OUTPUT = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_track_output.png");
     public static final Identifier SCROLLBAR_HORIZONTAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_horizontal.png");
     public static final Identifier SCROLLBAR_VERTICAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_vertical.png");
-
+    public static final Identifier BUTTON_SIDE_WINDOW = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_side_window.png");
     public static final Identifier SLIDER = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider.png");
     public static final Identifier SLIDER_NOTCH = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_notch.png");
     public static final Identifier SLIDER_PICK = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_pick.png");
-    public static final Identifier COMPASS_FRAME = new Identifier("bettercommandblockui:compass_frame");
-    public static final Identifier COMPASS_NEEDLE = new Identifier("bettercommandblockui:compass_needle");
+    public static final Identifier COMPASS_FRAME = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/compass_frame.png");
+    public static final Identifier COMPASS_NEEDLE = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/compass_needle.png");
 
     private static SimpleConfig CONFIG = SimpleConfig.of("betterCommandBlockUI").provider(BetterCommandBlockUI::provider).request();
 

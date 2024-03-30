@@ -34,12 +34,12 @@ public class RotationIndicator extends ClickableWidget {
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_FRAME, getX(), getY(), 32, 32);
+    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+        context.drawTexture(BetterCommandBlockUI.COMPASS_FRAME, getX(), getY(), 0, 0, 32, 32, 32, 32);
         context.getMatrices().push();
         context.getMatrices().translate(getX() + 16, getY() + 16, 0);
         context.getMatrices().multiply(new Quaternionf(new AxisAngle4d((angle + 1) * Math.PI, 0, 0, 1)));
-        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32);
+        context.drawTexture(BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 0, 0, 32, 32, 32, 32);
         context.getMatrices().pop();
     }
 

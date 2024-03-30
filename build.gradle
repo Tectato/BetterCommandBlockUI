@@ -29,7 +29,7 @@ dependencies {
             
     //Fabric api
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modApi "com.terraformersmc:modmenu:9.0.0"
+	modApi "com.terraformersmc:modmenu:7.0.0"
 	//modImplementation ":g4mespeed:1.2.1:mc1.17.1-release"
 
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.

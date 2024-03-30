@@ -34,7 +34,7 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!this.visible) {
             return;
         }
@@ -171,6 +171,10 @@ public class ScrollbarWidget extends ClickableWidget {
         this.barLength = (int) ((double)length / Math.min(scale,8));
     }
 
+    public void setHeight(int value){
+        this.height = value;
+    }
+
     public void updatePos(double newPos){
         this.pos = Math.max(Math.min(newPos,1),0);
     }
@@ -180,8 +184,8 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        return super.mouseScrolled(mouseX, mouseY, amount);
     }
 
     @Override
