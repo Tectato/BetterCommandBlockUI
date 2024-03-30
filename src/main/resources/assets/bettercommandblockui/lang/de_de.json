@@ -1,0 +1,23 @@
+{
+  "key.category.bcbui.keybinds": "Better Command Block UI",
+  "key.bcbui.areaselectioninput": "Bereichauswahl starten/stoppen",
+  "bcbui.trackOutput.true": "Ausgabe wird gespeichert",
+  "bcbui.trackOutput.false": "Ausgabe wird ignoriert",
+  "bcbui.trackOutput.setDefault": "Zum Standard machen",
+  "bcbui.view.command": "Befehl",
+  "bcbui.view.output": "Ausgabe",
+  "bcbui.view.outputDefault": "Erst Ausgabe anzeigen",
+  "bcbui.tools": "Werkzeuge",
+  "bcbui.config": "Konfiguration",
+  "bcbui.config.title": "Better Command Block UI Konfiguration",
+  "bcbui.config.colorError": "Farben funktionieren nur im Spiel, sorry...",
+  "bcbui.config.before": "Vor",
+  "bcbui.config.after": "Nach",
+  "bcbui.config.avoidEmpty": "Leerzeilen vermeiden",
+  "bcbui.config.formatStrings": "Texte formatieren",
+  "bcbui.config.wraparoundWidth": "Zeilenumbruchsbreite",
+  "bcbui.config.scrollX": "Scrollschritt X",
+  "bcbui.config.scrollY": "Scrollschritt Y",
+  "bcbui.config.lineBreaks": "Zeilenumbrüche",
+  "bcbui.config.indentation": "Einschub"
+}

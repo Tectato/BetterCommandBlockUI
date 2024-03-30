@@ -269,7 +269,7 @@ public class SideWindow implements Drawable, Element {
 
         posY += 20;
         this.configButton = (ButtonWidget) addWidget(ButtonWidget
-                .builder(Text.literal("Config"), button -> ((AbstractBetterCommandBlockScreen)screen).openConfig())
+                .builder(Text.translatable("bcbui.config"), button -> ((AbstractBetterCommandBlockScreen)screen).openConfig())
                 .dimensions(x+leftMargin, posY, width - leftMargin*2, 20).build());
 
         this.height = (posY - y) + 20 + topMargin;

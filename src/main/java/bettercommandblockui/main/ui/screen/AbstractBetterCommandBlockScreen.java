@@ -113,8 +113,8 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         }
 
         Text[] trackOutputTooltips = {
-                Text.of("Tracking Output"),
-                Text.of("Ignoring Output")
+                Text.translatable("bcbui.trackOutput.true"),
+                Text.translatable("bcbui.trackOutput.false")
         };
 
         this.toggleTrackingOutputButton = this.addDrawableChild(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + (textBoxWidth/2 + buttonMargin + buttonMargin/2), this.height/2 - (buttonHeight + buttonMargin), cycleButtonWidth, buttonHeight, Text.of(""), (button) -> {
@@ -136,14 +136,14 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                                 BetterCommandBlockUI.setConfig(VAR_TRACK_OUTPUT_DEFAULT_VALUE, ""+trackOutput);
                             }
                         })
-                        .tooltip(Tooltip.of(Text.of("Make default state")))
+                        .tooltip(Tooltip.of(Text.translatable("bcbui.trackOutput.setDefault")))
                         .build());
         this.setTrackingOutputDefaultCheckbox.active =
                 (!setTrackingOutputDefaultCheckbox.isChecked()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
 
         Text[] outputTooltips = {
-                Text.of("Command"),
-                Text.of("Output")
+                Text.translatable("bcbui.view.command"),
+                Text.translatable("bcbui.view.output")
         };
         this.showOutputButton = this.addDrawableChild(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + (textBoxWidth/2 + buttonMargin + buttonMargin/2), this.height/2, cycleButtonWidth, buttonHeight, Text.of(""), (button) -> {
             this.showOutput = ((CyclingTexturedButtonWidget<Boolean>)button).getValue();
@@ -162,7 +162,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                                 BetterCommandBlockUI.setConfig(VAR_SHOW_OUTPUT_DEFAULT, ""+checked);
                             }
                         })
-                        .tooltip(Tooltip.of(Text.of("Show output by default")))
+                        .tooltip(Tooltip.of(Text.translatable("bcbui.view.outputDefault")))
                         .build());
         this.setShowOutputDefaultCheckbox.active = showOutput;
 
@@ -181,9 +181,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                     this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
                     this.setTrackingOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
                 },
-                Text.of("Tools"))
+                Text.translatable("bcbui.tools"))
         );
-        Tooltip showSideWindowTooltip = Tooltip.of(Text.of("Tools"));
+        Tooltip showSideWindowTooltip = Tooltip.of(Text.translatable("bcbui.tools"));
         this.showSideWindowButton.setTooltip(showSideWindowTooltip);
 
         this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, (Text)Text.translatable("advMode.command"), this){
