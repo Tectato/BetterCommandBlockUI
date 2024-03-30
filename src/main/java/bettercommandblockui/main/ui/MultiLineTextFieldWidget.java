@@ -335,6 +335,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         this.updateScrollPositions();
     }
 
+    private boolean isAlphanumeric(char a){
+        return Character.isLetter(a) || Character.isDigit(a) || a == '_';
+    }
+
     private int getWordLength(int offsetDir){
         /*
          * If traversing letters or numbers, keep going until reaching a non-alphanumeric character.
@@ -346,14 +350,14 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         char current = text.charAt(startIndex);
         char startChar = current;
         //System.out.println("Starting at: " + startChar + ", wordOffset = " + offsetDir);
-        boolean erasingAlphanumeric = Character.isLetter(startChar) || Character.isDigit(startChar);
+        boolean erasingAlphanumeric = isAlphanumeric(startChar);
         int endIndex = startIndex;
         do{
             endIndex += offsetDir;
             if (endIndex < 0 || endIndex >= text.length()) break;
             current = text.charAt(endIndex);
         } while (
-                (erasingAlphanumeric && (Character.isLetter(current) || Character.isDigit(current)))
+                (erasingAlphanumeric && isAlphanumeric(current))
                         || (!erasingAlphanumeric && current == startChar)
         );
         endIndex -= offsetDir;
