@@ -8,7 +8,6 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.render.GameRenderer;
@@ -21,11 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class SideWindow implements Drawable, Element {
-    protected static final ButtonTextures COPY_BUTTON_TEXTURES = new ButtonTextures(
-            new Identifier("bettercommandblockui:button_copy_enabled"),
-            new Identifier("bettercommandblockui:button_copy_disabled"),
-            new Identifier("bettercommandblockui:button_copy_focused")
-    );
 
     private static int piFraction = 4;
     private static double piSetting = 0.0;

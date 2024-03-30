@@ -13,10 +13,6 @@ public class OutputTextFieldWidget extends TextFieldWidget {
 
     private TextFieldWidgetAccessor accessor = (TextFieldWidgetAccessor)this;
 
-    public OutputTextFieldWidget(TextRenderer textRenderer, int width, int height, Text text) {
-        super(textRenderer, width, height, text);
-    }
-
     public OutputTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, Text text) {
         super(textRenderer, x, y, width, height, text);
     }
@@ -35,7 +31,6 @@ public class OutputTextFieldWidget extends TextFieldWidget {
         if (accessor.getFocusUnlocked() || focused) {
             super.setFocused(focused);
             if (focused) {
-                accessor.setLastSwitchFocusTime(Util.getMeasuringTimeMs());
                 accessor.setSelectionStart(0);
                 accessor.setSelectionEnd(accessor.getText().length());
             }

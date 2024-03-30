@@ -28,7 +28,7 @@ public class NotchedSlider extends ClickableWidget {
     }
 
     @Override
-    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
         //RenderSystem.setShaderTexture(0, SLIDER);
         context.drawTexture(
                 SLIDER,

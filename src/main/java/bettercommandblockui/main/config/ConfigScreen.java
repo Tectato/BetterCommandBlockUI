@@ -76,22 +76,71 @@ public class ConfigScreen extends Screen {
         textField.setChangedListener(this::onCommandChanged);
         textField.setRawText(sampleText);
 
-        CheckboxWidget.Callback callback = new CheckboxWidget.Callback() {
+        //newLinePreOpen = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET).callback(callback).build();
+        newLinePreOpen = new CheckboxWidget(0, 0, 20, 20, Text.literal(""), BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET, false){
             @Override
-            public void onValueChange(CheckboxWidget checkbox, boolean checked) {
-                checkboxCallback(checkbox, checked);
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
             }
         };
-        newLinePreOpen = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET).callback(callback).build();
-        newLinePostOpen = CheckboxWidget.builder(Text.translatable("bcbui.config.after"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET).callback(callback).build();
-        newLinePreClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET).callback(callback).build();
-        newLinePostClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET).callback(callback).build();
+        //newLinePostOpen = CheckboxWidget.builder(Text.translatable("bcbui.config.after"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET).callback(callback).build();
+        newLinePostOpen = new CheckboxWidget(0, 0, 20, 20, Text.translatable("bcbui.config.after"), BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET, true){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
+        //newLinePreClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET).callback(callback).build();
+        newLinePreClose = new CheckboxWidget(0, 0, 20, 20, Text.literal(""), BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET, false){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
+        //newLinePostClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET).callback(callback).build();
+        newLinePostClose = new CheckboxWidget(0, 0, 20, 20, Text.literal(""), BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET, false){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
         //newLinePostLastClose = CheckboxWidget.builder(Text.literal("After last closing bracket"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_LAST_CLOSE_BRACKET).callback(callback).build();
-        newLinePostComma = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_COMMA).callback(callback).build();
-        avoidDoubleNewline = CheckboxWidget.builder(Text.translatable("bcbui.config.avoidEmpty"), textRenderer).checked(BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE).callback(callback).build();
+        //newLinePostComma = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_COMMA).callback(callback).build();
+        newLinePostComma = new CheckboxWidget(0, 0, 20, 20, Text.literal(""), BetterCommandBlockUI.NEWLINE_POST_COMMA, false){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
+        //avoidDoubleNewline = CheckboxWidget.builder(Text.translatable("bcbui.config.avoidEmpty"), textRenderer).checked(BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE).callback(callback).build();
+        avoidDoubleNewline = new CheckboxWidget(0, 0, 20, 20, Text.translatable("bcbui.config.avoidEmpty"), BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE, true){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
         //bracketAutocomplete = CheckboxWidget.builder(Text.literal("Bracket autocomplete"), textRenderer).checked(BetterCommandBlockUI.BRACKET_AUTOCOMPLETE).callback(callback).build();
-        formatStrings = CheckboxWidget.builder(Text.translatable("bcbui.config.formatStrings"), textRenderer).checked(BetterCommandBlockUI.FORMAT_STRINGS).callback(callback).build();
-        ignoreEnter = CheckboxWidget.builder(Text.translatable("bcbui.config.ignoreEnter"), textRenderer).checked(BetterCommandBlockUI.IGNORE_ENTER).callback(callback).build();
+        //formatStrings = CheckboxWidget.builder(Text.translatable("bcbui.config.formatStrings"), textRenderer).checked(BetterCommandBlockUI.FORMAT_STRINGS).callback(callback).build();
+        formatStrings = new CheckboxWidget(0, 0, 20, 20, Text.translatable("bcbui.config.formatStrings"), BetterCommandBlockUI.FORMAT_STRINGS, true){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
+        ignoreEnter = new CheckboxWidget(0, 0, 20, 20, Text.translatable("bcbui.config.ignoreEnter"), BetterCommandBlockUI.IGNORE_ENTER, true){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
 
         indentationFac = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.translatable("bcbui.config.indentation"));
         indentationFac.setText(String.valueOf(BetterCommandBlockUI.INDENTATION_FACTOR));
@@ -206,6 +255,7 @@ public class ConfigScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        renderBackground(context);
         super.render(context, mouseX, mouseY, delta);
         if(parent != null){
             back.render(context, mouseX, mouseY, delta);
