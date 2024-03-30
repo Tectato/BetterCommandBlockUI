@@ -1,8 +1,8 @@
 package bettercommandblockui.mixin;
 
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.OrderedText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 public interface TextFieldWidgetAccessor {
 
     @Invoker("drawSelectionHighlight")
-    void invokeDrawSelectionHighlight(DrawContext context, int x1, int y1, int x2, int y2);
+    void invokeDrawSelectionHighlight(MatrixStack matrices, int x1, int y1, int x2, int y2);
 
     @Invoker("getMaxLength")
     int invokeGetMaxLength();
@@ -58,10 +58,7 @@ public interface TextFieldWidgetAccessor {
     int getFirstCharacterIndex();
 
     @Accessor
-    long getLastSwitchFocusTime();
-
-    @Accessor("lastSwitchFocusTime")
-    void setLastSwitchFocusTime(long value);
+    int getFocusedTicks();
 
     @Accessor
     String getText();

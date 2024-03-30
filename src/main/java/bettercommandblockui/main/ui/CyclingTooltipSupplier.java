@@ -37,5 +37,4 @@ public class CyclingTooltipSupplier {
     public Tooltip getTooltip() {
         return Tooltip.of(tooltips[currentIndex]);
     }
-
 }

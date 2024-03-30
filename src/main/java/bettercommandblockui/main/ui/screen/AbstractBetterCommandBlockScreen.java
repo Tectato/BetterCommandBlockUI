@@ -11,11 +11,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.AbstractCommandBlockScreen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.util.NarratorManager;
@@ -50,11 +49,6 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected static final Text SET_COMMAND_TEXT = Text.translatable("advMode.setCommand");
     protected static final Text COMMAND_TEXT = Text.translatable("advMode.command");
     protected static final Text PREVIOUS_OUTPUT_TEXT = Text.translatable("advMode.previousOutput");
-    protected static final ButtonTextures SIDE_WINDOW_BUTTON_TEXTURES = new ButtonTextures(
-            new Identifier("bettercommandblockui:button_side_window_enabled"),
-            new Identifier("bettercommandblockui:button_side_window_disabled"),
-            new Identifier("bettercommandblockui:button_side_window_focused")
-    );
 
     protected CommandBlockState priorState;
 
@@ -126,20 +120,24 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         }, client.currentScreen, BUTTON_TRACK_OUTPUT, trackOutput?0:1, new Boolean[]{true, false}, trackOutputTooltips));
 
         this.setTrackingOutputDefaultCheckbox = this.addDrawableChild(
-                CheckboxWidget.builder(Text.of(""), textRenderer)
-                        .pos(toggleTrackingOutputButton.getX() + toggleTrackingOutputButton.getWidth() + 2, toggleTrackingOutputButton.getY() + 2)
-                        .checked(TRACK_OUTPUT_DEFAULT_USED)
-                        .callback(new CheckboxWidget.Callback() {
-                            @Override
-                            public void onValueChange(CheckboxWidget checkbox, boolean checked) {
-                                BetterCommandBlockUI.setConfig(VAR_TRACK_OUTPUT_DEFAULT_USED, ""+checked);
-                                BetterCommandBlockUI.setConfig(VAR_TRACK_OUTPUT_DEFAULT_VALUE, ""+trackOutput);
-                            }
-                        })
-                        .tooltip(Tooltip.of(Text.translatable("bcbui.trackOutput.setDefault")))
-                        .build());
+                new CheckboxWidget(
+                        toggleTrackingOutputButton.getX() + toggleTrackingOutputButton.getWidth() + 2,
+                        toggleTrackingOutputButton.getY(),
+                        20, 20,
+                        Text.empty(),
+                        TRACK_OUTPUT_DEFAULT_USED,
+                        false){
+                    public void onPress() {
+                        super.onPress();
+                        BetterCommandBlockUI.setConfig(VAR_TRACK_OUTPUT_DEFAULT_USED, ""+this.isChecked());
+                        BetterCommandBlockUI.setConfig(VAR_TRACK_OUTPUT_DEFAULT_VALUE, ""+trackOutput);
+                    }
+                });
+
+
         this.setTrackingOutputDefaultCheckbox.active =
                 (!setTrackingOutputDefaultCheckbox.isChecked()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
+        this.setTrackingOutputDefaultCheckbox.setTooltip(Tooltip.of(Text.translatable("bcbui.trackOutput.setDefault")));
 
         Text[] outputTooltips = {
                 Text.translatable("bcbui.view.command"),
@@ -153,29 +151,35 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         }, client.currentScreen, BUTTON_OUTPUT, SHOW_OUTPUT_DEFAULT?1:0, new Boolean[]{false, true}, outputTooltips));
 
         this.setShowOutputDefaultCheckbox = this.addDrawableChild(
-                CheckboxWidget.builder(Text.of(""), textRenderer)
-                        .pos(showOutputButton.getX() + showOutputButton.getWidth() + 2, showOutputButton.getY() + 2)
-                        .checked(SHOW_OUTPUT_DEFAULT)
-                        .callback(new CheckboxWidget.Callback() {
-                            @Override
-                            public void onValueChange(CheckboxWidget checkbox, boolean checked) {
-                                BetterCommandBlockUI.setConfig(VAR_SHOW_OUTPUT_DEFAULT, ""+checked);
-                            }
-                        })
-                        .tooltip(Tooltip.of(Text.translatable("bcbui.view.outputDefault")))
-                        .build());
+                new CheckboxWidget(
+                        showOutputButton.getX() + showOutputButton.getWidth() + 2,
+                        showOutputButton.getY(),
+                        20, 20,
+                        Text.empty(),
+                        SHOW_OUTPUT_DEFAULT,
+                        false){
+                    public void onPress() {
+                        super.onPress();
+                        BetterCommandBlockUI.setConfig(VAR_SHOW_OUTPUT_DEFAULT, ""+this.isChecked());
+                    }
+                });
         this.setShowOutputDefaultCheckbox.active = showOutput;
+        this.setShowOutputDefaultCheckbox.setTooltip(Tooltip.of(Text.translatable("bcbui.view.outputDefault")));
 
         this.showSideWindowButton = this.addDrawableChild(new TexturedButtonWidget(
                 this.width - (buttonMargin + cycleButtonWidth),
                 this.height - (buttonMargin + cycleButtonWidth),
                 cycleButtonWidth,
                 buttonHeight,
-                SIDE_WINDOW_BUTTON_TEXTURES,
+                0,
+                20,
+                20,
+                BUTTON_SIDE_WINDOW,
+                20,
+                60,
                 (button) -> {
                     showSideWindow = !showSideWindow;
                     this.sideWindow.setVisible(showSideWindow);
-
                     this.showOutputButton.setTooltipVisible(!showSideWindow);
                     this.setShowOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
                     this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
@@ -263,7 +267,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     public boolean mouseClicked(double mouseX, double mouseY, int button){
         if(showSideWindow && sideWindow.mouseClicked(mouseX, mouseY, button)) return true;
-        if(commandSuggestor.isOpen() && commandSuggestor.mouseClicked(mouseX, mouseY, button)) return true;
+        if(/*commandSuggestor.isOpen() && */commandSuggestor.mouseClicked(mouseX, mouseY, button)) return true;
         if(consoleCommandTextField.mouseClicked(mouseX,mouseY,button)) {
             setFocused(consoleCommandTextField);
             return true;
@@ -364,37 +368,37 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     abstract protected void syncSettingsToServer(CommandBlockExecutor commandExecutor);
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        this.renderBackground(matrices);
+        AbstractCommandBlockScreen.drawCenteredTextWithShadow(matrices, this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
         if(showOutput){
-            context.drawTextWithShadow(this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
-            this.previousOutputTextField.render(context, mouseX, mouseY, delta);
+            AbstractCommandBlockScreen.drawTextWithShadow(matrices, this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
+            this.previousOutputTextField.render(matrices, mouseX, mouseY, delta);
         } else {
-            context.drawTextWithShadow(this.textRenderer, COMMAND_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
-            this.consoleCommandTextField.render(context, mouseX, mouseY, delta);
+            AbstractCommandBlockScreen.drawTextWithShadow(matrices, this.textRenderer, COMMAND_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
+            this.consoleCommandTextField.render(matrices, mouseX, mouseY, delta);
         }
-        renderAsterisk(context, toggleTrackingOutputButton, toggleTrackingOutputButton.getValue() != priorState.trackOutput);
+        matrices.push();
+        matrices.translate(0, 0, 0.5f);
+        renderAsterisk(matrices, toggleTrackingOutputButton, toggleTrackingOutputButton.getValue() != priorState.trackOutput);
         for (Drawable drawable : ((ScreenAccessor)this).getDrawables()) {
-            if(!drawable.equals(sideWindow)) drawable.render(context, mouseX, mouseY, delta);
+            if(!drawable.equals(sideWindow)) drawable.render(matrices, mouseX, mouseY, delta);
         }
-        darkenCheckbox(context, setTrackingOutputDefaultCheckbox);
-        darkenCheckbox(context, setShowOutputDefaultCheckbox);
+        darkenCheckbox(matrices, setTrackingOutputDefaultCheckbox);
+        darkenCheckbox(matrices, setShowOutputDefaultCheckbox);
 
-        MatrixStack matrixStack = context.getMatrices();
-        matrixStack.push();
-        matrixStack.translate(0,0,1);
-        sideWindow.render(context, mouseX, mouseY, delta);
-        matrixStack.pop();
+        matrices.translate(0,0,1);
+        sideWindow.render(matrices, mouseX, mouseY, delta);
+        matrices.pop();
     }
 
-    private void darkenCheckbox(DrawContext context, CheckboxWidget checkbox){
+    private void darkenCheckbox(MatrixStack matrices, CheckboxWidget checkbox){
         if(checkbox.active) return;
-        context.fill(checkbox.getX(), checkbox.getY(), checkbox.getX() + checkbox.getWidth() - 4, checkbox.getY() + checkbox.getHeight(), 0xA0000000);
+        fill(matrices, checkbox.getX(), checkbox.getY(), checkbox.getX() + checkbox.getWidth(), checkbox.getY() + checkbox.getHeight(), 0xA0000000);
     }
 
-    protected void renderAsterisk(DrawContext context, Widget widget, boolean draw){
+    protected void renderAsterisk(MatrixStack matrices, Widget widget, boolean draw){
         if(!draw) return;
-        context.drawTextWithShadow(textRenderer, "*", widget.getX() + widget.getWidth(), widget.getY() - 4, 0xFFC000);
+        drawTextWithShadow(matrices, textRenderer, "*", widget.getX() + widget.getWidth(), widget.getY() - 4, 0xFFC000);
     }
 }

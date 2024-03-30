@@ -10,7 +10,7 @@ import com.mojang.brigadier.context.ParsedArgument;
 import com.mojang.brigadier.context.SuggestionContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -40,16 +40,16 @@ public class MultiLineCommandSuggestor extends ChatInputSuggestor {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY) {
-        context.fill(this.x - 1, this.y - 1, this.x + 1, this.y + 1, 0xff8000);
+    public void render(MatrixStack matrices, int mouseX, int mouseY) {
+        DrawableHelper.fill(matrices, this.x - 1, this.y - 1, this.x + 1, this.y + 1, 0xff8000);
         if (accessor.getWindow() != null) {
-            accessor.getWindow().render(context, mouseX, mouseY);
+            accessor.getWindow().render(matrices, mouseX, mouseY);
         } else {
             int i = 0;
             for (OrderedText orderedText : accessor.getMessages()) {
                 int j = i * 10;
-                context.fill(this.x - 1, j + this.y, this.x + accessor.getWidth() + 1, j + 12 + this.y, accessor.getColor());
-                context.drawTextWithShadow(accessor.getTextRenderer(), orderedText, this.x, (this.y + j + 2), -1);
+                DrawableHelper.fill(matrices, this.x - 1, j + this.y, this.x + accessor.getWidth() + 1, j + 12 + this.y, accessor.getColor());
+                accessor.getTextRenderer().drawWithShadow(matrices, orderedText, this.x, (this.y + j + 2), -1);
                 ++i;
             }
         }

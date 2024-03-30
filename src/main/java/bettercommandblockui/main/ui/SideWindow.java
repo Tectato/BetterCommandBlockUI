@@ -5,13 +5,13 @@ import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.joml.AxisAngle4d;
@@ -21,11 +21,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class SideWindow implements Drawable, Element {
-    protected static final ButtonTextures COPY_BUTTON_TEXTURES = new ButtonTextures(
-            new Identifier("bettercommandblockui:button_copy_enabled"),
-            new Identifier("bettercommandblockui:button_copy_disabled"),
-            new Identifier("bettercommandblockui:button_copy_focused")
-    );
 
     private static int piFraction = 4;
     private static double piSetting = 0.0;
@@ -282,33 +277,33 @@ public class SideWindow implements Drawable, Element {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         if(!visible) return;
         RenderSystem.setShader(GameRenderer::getPositionTexProgram);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-        context.fill(x, y, x+width, y+height, 0xB0000000);
+        DrawableHelper.fill(matrices, x, y, x+width, y+height, 0xB0000000);
 
-        context.drawBorder(x-1, y-1, width+4, height+2, 0xFFFFFFFF);
+        DrawableHelper.drawBorder(matrices, x-1, y-1, width+4, height+2, 0xFFFFFFFF);
 
-        context.drawTextWithShadow(this.textRenderer, "2π / ", x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
-        this.piFractionInput.render(context, mouseX, mouseY, delta);
-        this.piSlider.render(context, mouseX, mouseY, delta);
-        this.piOutput.render(context, mouseX, mouseY, delta);
-        this.piRotationIndicator.render(context, mouseX, mouseY, delta);
-        this.configButton.render(context, mouseX, mouseY, delta);
-        context.drawTextWithShadow(this.textRenderer, "R:", x + leftMargin, colorTextR.getY(), 0xFFFF0000);
-        this.colorTextR.render(context, mouseX, mouseY, delta);
-        this.colorSliderR.render(context, mouseX, mouseY, delta);
-        context.drawTextWithShadow(this.textRenderer, "G:", x + leftMargin, colorTextG.getY(), 0xFF00FF00);
-        this.colorTextG.render(context, mouseX, mouseY, delta);
-        this.colorSliderG.render(context, mouseX, mouseY, delta);
-        context.drawTextWithShadow(this.textRenderer, "B:", x + leftMargin, colorTextB.getY(), 0xFF0000FF);
-        this.colorTextB.render(context, mouseX, mouseY, delta);
-        this.colorSliderB.render(context, mouseX, mouseY, delta);
-        context.fill(x + leftMargin, colorHex.getY(), x + leftMargin + 7, colorHex.getY() + 24, 0xFF000000 | ColorPicker.getInteger());
-        this.colorHex.render(context, mouseX, mouseY, delta);
-        this.colorInt.render(context, mouseX, mouseY, delta);
+        this.textRenderer.drawWithShadow(matrices, "2π / ", x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
+        this.piFractionInput.render(matrices, mouseX, mouseY, delta);
+        this.piSlider.render(matrices, mouseX, mouseY, delta);
+        this.piOutput.render(matrices, mouseX, mouseY, delta);
+        this.piRotationIndicator.render(matrices, mouseX, mouseY, delta);
+        this.configButton.render(matrices, mouseX, mouseY, delta);
+        this.textRenderer.drawWithShadow(matrices, "R:", x + leftMargin, colorTextR.getY(), 0xFFFF0000);
+        this.colorTextR.render(matrices, mouseX, mouseY, delta);
+        this.colorSliderR.render(matrices, mouseX, mouseY, delta);
+        this.textRenderer.drawWithShadow(matrices, "G:", x + leftMargin, colorTextG.getY(), 0xFF00FF00);
+        this.colorTextG.render(matrices, mouseX, mouseY, delta);
+        this.colorSliderG.render(matrices, mouseX, mouseY, delta);
+        this.textRenderer.drawWithShadow(matrices, "B:", x + leftMargin, colorTextB.getY(), 0xFF0000FF);
+        this.colorTextB.render(matrices, mouseX, mouseY, delta);
+        this.colorSliderB.render(matrices, mouseX, mouseY, delta);
+        DrawableHelper.fill(matrices, x + leftMargin, colorHex.getY(), x + leftMargin + 7, colorHex.getY() + 24, 0xFF000000 | ColorPicker.getInteger());
+        this.colorHex.render(matrices, mouseX, mouseY, delta);
+        this.colorInt.render(matrices, mouseX, mouseY, delta);
     }
 
     Widget addWidget(ClickableWidget widget){

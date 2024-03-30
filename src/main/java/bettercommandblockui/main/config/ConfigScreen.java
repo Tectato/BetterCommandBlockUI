@@ -7,12 +7,12 @@ import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CheckboxWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
@@ -21,7 +21,7 @@ import org.lwjgl.glfw.GLFW;
 public class ConfigScreen extends Screen {
 
     private Screen parent;
-    private final String sampleText = "setblock ~ ~1 ~ oak_hanging_sign{front_text:{messages:['[\"[Brackets within a String]\"]','[\"Some more text\"]','[\"A really long example text to demonstrate text wraparound. Remember to stay hydrated and take care of yourself, I hope you have a lovely day :)\"]','[\"\"]']}}";
+    private final String sampleText = "setblock ~ ~1 ~ oak_sign{Text1:'{\"text\":\"[Brackets within a String]\"}',Text2:'{\"text\":\"Some more text\"}',Text3:'{\"text\":\"A really long example text to demonstrate text wraparound. Remember to stay hydrated and take care of yourself, I hope you have a lovely day :)\"}'}";
     public MultiLineTextFieldWidget textField;
     private MultiLineCommandSuggestor commandSuggestor;
 
@@ -76,22 +76,71 @@ public class ConfigScreen extends Screen {
         textField.setChangedListener(this::onCommandChanged);
         textField.setRawText(sampleText);
 
-        CheckboxWidget.Callback callback = new CheckboxWidget.Callback() {
+        //newLinePreOpen = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET).callback(callback).build();
+        newLinePreOpen = new CheckboxWidget(0, 0, 20, 20, Text.literal(""), BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET, false){
             @Override
-            public void onValueChange(CheckboxWidget checkbox, boolean checked) {
-                checkboxCallback(checkbox, checked);
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
             }
         };
-        newLinePreOpen = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET).callback(callback).build();
-        newLinePostOpen = CheckboxWidget.builder(Text.translatable("bcbui.config.after"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET).callback(callback).build();
-        newLinePreClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET).callback(callback).build();
-        newLinePostClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET).callback(callback).build();
+        //newLinePostOpen = CheckboxWidget.builder(Text.translatable("bcbui.config.after"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET).callback(callback).build();
+        newLinePostOpen = new CheckboxWidget(0, 0, 20, 20, Text.translatable("bcbui.config.after"), BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET, true){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
+        //newLinePreClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET).callback(callback).build();
+        newLinePreClose = new CheckboxWidget(0, 0, 20, 20, Text.literal(""), BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET, false){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
+        //newLinePostClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET).callback(callback).build();
+        newLinePostClose = new CheckboxWidget(0, 0, 20, 20, Text.literal(""), BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET, false){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
         //newLinePostLastClose = CheckboxWidget.builder(Text.literal("After last closing bracket"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_LAST_CLOSE_BRACKET).callback(callback).build();
-        newLinePostComma = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_COMMA).callback(callback).build();
-        avoidDoubleNewline = CheckboxWidget.builder(Text.translatable("bcbui.config.avoidEmpty"), textRenderer).checked(BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE).callback(callback).build();
+        //newLinePostComma = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_COMMA).callback(callback).build();
+        newLinePostComma = new CheckboxWidget(0, 0, 20, 20, Text.literal(""), BetterCommandBlockUI.NEWLINE_POST_COMMA, false){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
+        //avoidDoubleNewline = CheckboxWidget.builder(Text.translatable("bcbui.config.avoidEmpty"), textRenderer).checked(BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE).callback(callback).build();
+        avoidDoubleNewline = new CheckboxWidget(0, 0, 20, 20, Text.translatable("bcbui.config.avoidEmpty"), BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE, true){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
         //bracketAutocomplete = CheckboxWidget.builder(Text.literal("Bracket autocomplete"), textRenderer).checked(BetterCommandBlockUI.BRACKET_AUTOCOMPLETE).callback(callback).build();
-        formatStrings = CheckboxWidget.builder(Text.translatable("bcbui.config.formatStrings"), textRenderer).checked(BetterCommandBlockUI.FORMAT_STRINGS).callback(callback).build();
-        ignoreEnter = CheckboxWidget.builder(Text.translatable("bcbui.config.ignoreEnter"), textRenderer).checked(BetterCommandBlockUI.IGNORE_ENTER).callback(callback).build();
+        //formatStrings = CheckboxWidget.builder(Text.translatable("bcbui.config.formatStrings"), textRenderer).checked(BetterCommandBlockUI.FORMAT_STRINGS).callback(callback).build();
+        formatStrings = new CheckboxWidget(0, 0, 20, 20, Text.translatable("bcbui.config.formatStrings"), BetterCommandBlockUI.FORMAT_STRINGS, true){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
+        ignoreEnter = new CheckboxWidget(0, 0, 20, 20, Text.translatable("bcbui.config.ignoreEnter"), BetterCommandBlockUI.IGNORE_ENTER, true){
+            @Override
+            public void onPress() {
+                super.onPress();
+                checkboxCallback(this, this.isChecked());
+            }
+        };
 
         indentationFac = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.translatable("bcbui.config.indentation"));
         indentationFac.setText(String.valueOf(BetterCommandBlockUI.INDENTATION_FACTOR));
@@ -205,26 +254,31 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        renderBackground(matrices);
+        super.render(matrices, mouseX, mouseY, delta);
+        matrices.push();
+        matrices.translate(0,0,1f);
         if(parent != null){
-            back.render(context, mouseX, mouseY, delta);
+            back.render(matrices, mouseX, mouseY, delta);
         }
         if(client == null || client.player == null){
-            context.drawCenteredTextWithShadow(textRenderer, Text.translatable("bcbui.config.colorError"), width/2, 4, 0xffe0e0e0);
+            int textWidth = textRenderer.getWidth(Text.translatable("bcbui.config.colorError"));
+            textRenderer.drawWithShadow(matrices, Text.translatable("bcbui.config.colorError"), width/2 - textWidth/2, 4, 0xffe0e0e0);
         }
-        context.drawCenteredTextWithShadow(textRenderer, Text.translatable("bcbui.config.lineBreaks"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() - 12, 0xffffff);
-        String beforeText = Text.translatable("bcbui.config.before").getString();
+        int textWidth = textRenderer.getWidth(Text.translatable("bcbui.config.lineBreaks"));
+        textRenderer.drawWithShadow(matrices, Text.translatable("bcbui.config.lineBreaks"), newLinePreOpen.getX() + 20 - textWidth/2, newLinePreOpen.getY() - 12, 0xffffff);
         int beforeTextWidth = textRenderer.getWidth(Text.translatable("bcbui.config.before").getString());
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.before"), newLinePreOpen.getX() - (beforeTextWidth + 2), newLinePreOpen.getY() + 4, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.literal("{"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() + 6, 0xffffff);
-        context.drawTextWithShadow(textRenderer, Text.literal("}"), newLinePreClose.getX() + 20, newLinePreClose.getY() + 6, 0xffffff);
-        context.drawTextWithShadow(textRenderer, Text.literal(","), newLinePreClose.getX() + 20, newLinePostComma.getY() + 6, 0xffffff);
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.indentation"), indentationFac.getX() + numberInputWidth + 4, indentationFac.getY() + 2, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.wraparoundWidth"), wraparound.getX() + numberInputWidth + 4, wraparound.getY() + 2, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.scrollX"), scrollSpeedX.getX() + numberInputWidth + 4, scrollSpeedX.getY() + 2, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.scrollY"), scrollSpeedY.getX() + numberInputWidth + 4, scrollSpeedY.getY() + 2, 0xFFE0E0E0);
-        textField.render(context, mouseX, mouseY, delta);
+        textRenderer.drawWithShadow(matrices, Text.translatable("bcbui.config.before"), newLinePreOpen.getX() - (beforeTextWidth + 2), newLinePreOpen.getY() + 4, 0xFFE0E0E0);
+        textRenderer.drawWithShadow(matrices, Text.literal("{"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() + 6, 0xffffff);
+        textRenderer.drawWithShadow(matrices, Text.literal("}"), newLinePreClose.getX() + 20, newLinePreClose.getY() + 6, 0xffffff);
+        textRenderer.drawWithShadow(matrices, Text.literal(","), newLinePreClose.getX() + 20, newLinePostComma.getY() + 6, 0xffffff);
+        textRenderer.drawWithShadow(matrices, Text.translatable("bcbui.config.indentation"), indentationFac.getX() + numberInputWidth + 4, indentationFac.getY() + 2, 0xFFE0E0E0);
+        textRenderer.drawWithShadow(matrices, Text.translatable("bcbui.config.wraparoundWidth"), wraparound.getX() + numberInputWidth + 4, wraparound.getY() + 2, 0xFFE0E0E0);
+        textRenderer.drawWithShadow(matrices, Text.translatable("bcbui.config.scrollX"), scrollSpeedX.getX() + numberInputWidth + 4, scrollSpeedX.getY() + 2, 0xFFE0E0E0);
+        textRenderer.drawWithShadow(matrices, Text.translatable("bcbui.config.scrollY"), scrollSpeedY.getX() + numberInputWidth + 4, scrollSpeedY.getY() + 2, 0xFFE0E0E0);
+        textField.render(matrices, mouseX, mouseY, delta);
+        matrices.pop();
     }
 
     public void checkboxCallback(CheckboxWidget source, boolean checked){

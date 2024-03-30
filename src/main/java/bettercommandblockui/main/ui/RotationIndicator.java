@@ -1,10 +1,13 @@
 package bettercommandblockui.main.ui;
 
 import bettercommandblockui.main.BetterCommandBlockUI;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import org.joml.AxisAngle4d;
 import org.joml.Quaternionf;
@@ -34,13 +37,20 @@ public class RotationIndicator extends ClickableWidget {
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_FRAME, getX(), getY(), 32, 32);
-        context.getMatrices().push();
-        context.getMatrices().translate(getX() + 16, getY() + 16, 0);
-        context.getMatrices().multiply(new Quaternionf(new AxisAngle4d((angle + 1) * Math.PI, 0, 0, 1)));
-        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32);
-        context.getMatrices().pop();
+    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+        RenderSystem.setShaderTexture(0, BetterCommandBlockUI.COMPASS_FRAME);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.enableDepthTest();
+        DrawableHelper.drawTexture(matrices, getX(), getY(), 0, 0, 32, 32, 32, 32);
+        matrices.push();
+        matrices.translate(getX() + 16, getY() + 16, 0);
+        matrices.multiply(new Quaternionf(new AxisAngle4d((angle + 1) * Math.PI, 0, 0, 1)));
+        RenderSystem.setShaderTexture(0, BetterCommandBlockUI.COMPASS_NEEDLE);
+        DrawableHelper.drawTexture(matrices, -16, -16, 0, 0, 32, 32, 32, 32);
+        matrices.pop();
     }
 
     @Override

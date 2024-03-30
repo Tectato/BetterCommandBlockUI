@@ -2,7 +2,7 @@ package bettercommandblockui.main.ui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.util.math.MatrixStack;
@@ -13,12 +13,12 @@ import static bettercommandblockui.main.BetterCommandBlockUI.SLIDER_NOTCH;
 import static bettercommandblockui.main.BetterCommandBlockUI.SLIDER_PICK;
 
 public class NotchedSlider extends ClickableWidget {
-    protected int subdivisions = 4;
-    protected double pos = 0.0d;
-    protected boolean dragging = false;
-    protected int length;
-    protected double prevMouseX = 0.0d;
-    protected double prevMouseY = 0.0d;
+    static int subdivisions = 4;
+    static double pos = 0.0d;
+    boolean dragging = false;
+    int length;
+    double prevMouseX = 0.0d;
+    double prevMouseY = 0.0d;
 
     protected java.util.function.Consumer<Double> changedListener;
 
@@ -28,10 +28,10 @@ public class NotchedSlider extends ClickableWidget {
     }
 
     @Override
-    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        //RenderSystem.setShaderTexture(0, SLIDER);
-        context.drawTexture(
-                SLIDER,
+    public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        RenderSystem.setShaderTexture(0, SLIDER);
+        DrawableHelper.drawTexture(
+                matrices,
                 getX()-2,
                 getY(),
                 0,
@@ -41,8 +41,8 @@ public class NotchedSlider extends ClickableWidget {
                 512,
                 16
         );
-        context.drawTexture(
-                SLIDER,
+        DrawableHelper.drawTexture(
+                matrices,
                 getX()+2,
                 getY(),
                 4,
@@ -52,8 +52,8 @@ public class NotchedSlider extends ClickableWidget {
                 512,
                 16
         );
-        context.drawTexture(
-                SLIDER,
+        DrawableHelper.drawTexture(
+                matrices,
                 getX()+getWidth()-2,
                 getY(),
                 508,
@@ -64,11 +64,11 @@ public class NotchedSlider extends ClickableWidget {
                 16
         );
 
-        //RenderSystem.setShaderTexture(0, SLIDER_NOTCH);
+        RenderSystem.setShaderTexture(0, SLIDER_NOTCH);
         float step = 1.0f/((float)subdivisions);
         for(int i=1; i<subdivisions; i++){
-            context.drawTexture(
-                    SLIDER_NOTCH,
+            DrawableHelper.drawTexture(
+                    matrices,
                     (int) (getX() + (i * step * getWidth())) - 2,
                     getY(),
                     0,
@@ -80,9 +80,9 @@ public class NotchedSlider extends ClickableWidget {
             );
         }
 
-        //RenderSystem.setShaderTexture(0, SLIDER_PICK);
-        context.drawTexture(
-                SLIDER_PICK,
+        RenderSystem.setShaderTexture(0, SLIDER_PICK);
+        DrawableHelper.drawTexture(
+                matrices,
                 (int) (getX() + (pos * getWidth()) - 4),
                 getY(),
                 0,
@@ -111,10 +111,6 @@ public class NotchedSlider extends ClickableWidget {
 
     }
 
-    public void setPos(double value){
-        pos = snap(Math.min(Math.max(value, 0.0d), 1.0d), 1.0d/subdivisions);
-    }
-
     @Override
     protected boolean clicked(double mouseX, double mouseY){
         if (!this.visible) {
@@ -129,13 +125,12 @@ public class NotchedSlider extends ClickableWidget {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button) && checkHovered(mouseX, mouseY) && this.clicked(mouseX, mouseY)) {
+        if (this.isValidClickButton(button) && this.clicked(mouseX, mouseY)) {
             this.dragging = true;
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
             this.onClick(mouseX, mouseY);
             return true;
         }
-        this.dragging = false;
         return false;
     }
 
@@ -151,8 +146,7 @@ public class NotchedSlider extends ClickableWidget {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        if (!this.visible || !checkHovered(mouseX, mouseY)) {
-            dragging = false;
+        if (!this.visible) {
             return;
         }
         dragging = true;
@@ -209,6 +203,10 @@ public class NotchedSlider extends ClickableWidget {
 
     public void setSubdivisions(int value){
         subdivisions = value;
+    }
+
+    public void setPos(double value){
+        pos = value;
     }
 
     double snap(double x, double step){

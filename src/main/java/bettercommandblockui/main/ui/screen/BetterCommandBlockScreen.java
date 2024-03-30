@@ -7,7 +7,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.network.packet.c2s.play.UpdateCommandBlockC2SPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -156,10 +156,13 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderAsterisk(context, modeButton, modeButton.getValue() != priorState.type);
-        renderAsterisk(context, conditionalModeButton, conditionalModeButton.getValue() != priorState.conditional);
-        renderAsterisk(context, redstoneTriggerButton, redstoneTriggerButton.getValue() != priorState.needsRedstone);
-        super.render(context, mouseX, mouseY, delta);
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        super.render(matrices, mouseX, mouseY, delta);
+        matrices.push();
+        matrices.translate(0, 0, 0.5f);
+        renderAsterisk(matrices, modeButton, modeButton.getValue() != priorState.type);
+        renderAsterisk(matrices, conditionalModeButton, conditionalModeButton.getValue() != priorState.conditional);
+        renderAsterisk(matrices, redstoneTriggerButton, redstoneTriggerButton.getValue() != priorState.needsRedstone);
+        matrices.pop();
     }
 }
