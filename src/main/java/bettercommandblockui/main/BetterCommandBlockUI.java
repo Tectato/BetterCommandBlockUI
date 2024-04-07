@@ -34,6 +34,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final String VAR_INDENT_CHAR = "indentation_char";
     public static final String VAR_WRAPAROUND = "wraparound";
     public static final String VAR_FORMAT_STRINGS = "format_strings";
+    public static final String VAR_IGNORE_ENTER = "ignore_enter";
     public static final String VAR_NEWLINE_PRE_OPEN_BRACKET = "newline_pre_open_bracket";
     public static final String VAR_NEWLINE_POST_OPEN_BRACKET = "newline_post_open_bracket";
     public static final String VAR_NEWLINE_PRE_CLOSE_BRACKET = "newline_pre_close_bracket";
@@ -53,6 +54,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static char INDENTATION_CHAR = ' ';//CONFIG.getOrDefault(VAR_INDENT_CHAR, " ").charAt(0);
     public static int WRAPAROUND_WIDTH = CONFIG.getOrDefault(VAR_WRAPAROUND, 250);
     public static boolean FORMAT_STRINGS = CONFIG.getOrDefault(VAR_FORMAT_STRINGS, true);
+    public static boolean IGNORE_ENTER = CONFIG.getOrDefault(VAR_IGNORE_ENTER, false);
     public static boolean NEWLINE_PRE_OPEN_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_PRE_OPEN_BRACKET, true);
     public static boolean NEWLINE_POST_OPEN_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_POST_OPEN_BRACKET, true);
     public static boolean NEWLINE_PRE_CLOSE_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_PRE_CLOSE_BRACKET, true);
@@ -80,7 +82,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (areaSelectionInput.wasPressed()) {
                 boolean startedSelection = AreaSelectionHandler.areaSelectionInput();
-                client.player.sendMessage(Text.literal(startedSelection ? "[Started Area Selection]" : "[Area Selector pasted to clipboard]"), true);
+                client.player.sendMessage(startedSelection ? Text.translatable("bcbui.areaSelection.start") : Text.translatable("bcbui.areaSelection.end"), true);
             }
         });
 
@@ -100,6 +102,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
         if(key.equals(VAR_INDENTATION)) INDENTATION_FACTOR = CONFIG.getOrDefault(key, 2);
         if(key.equals(VAR_WRAPAROUND)) WRAPAROUND_WIDTH = CONFIG.getOrDefault(key, 250);
         if(key.equals(VAR_FORMAT_STRINGS)) FORMAT_STRINGS = CONFIG.getOrDefault(key, true);
+        if(key.equals(VAR_IGNORE_ENTER)) IGNORE_ENTER = CONFIG.getOrDefault(key, false);
         if(key.equals(VAR_NEWLINE_PRE_OPEN_BRACKET)) NEWLINE_PRE_OPEN_BRACKET = CONFIG.getOrDefault(key, true);
         if(key.equals(VAR_NEWLINE_POST_OPEN_BRACKET)) NEWLINE_POST_OPEN_BRACKET = CONFIG.getOrDefault(key, true);
         if(key.equals(VAR_NEWLINE_PRE_CLOSE_BRACKET)) NEWLINE_PRE_CLOSE_BRACKET = CONFIG.getOrDefault(key, true);
@@ -129,6 +132,8 @@ public class BetterCommandBlockUI implements ClientModInitializer {
                 "wraparound=250\n\n" +
                 "# Whether to apply parentheses-based formatting to string arguments\n" +
                 "format_strings=true\n\n" +
+                "# Whether to ignore enter presses\n" +
+                "ignore_enter=false\n\n" +
                 "# Newline settings\n" +
                 "newline_pre_open_bracket=true\n" +
                 "newline_post_open_bracket=true\n" +

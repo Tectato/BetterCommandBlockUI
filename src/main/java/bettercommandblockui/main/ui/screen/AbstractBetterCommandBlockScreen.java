@@ -201,8 +201,6 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.consoleCommandTextField.setMaxLength(32500);
         this.consoleCommandTextField.setChangedListener(this::onCommandChanged);
         this.addSelectableChild(this.consoleCommandTextField);
-        this.setInitialFocus(this.consoleCommandTextField);
-        this.consoleCommandTextField.setFocused(true);
         this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, Text.translatable("advMode.previousOutput"), this);
         this.previousOutputTextField.setMaxLength(32500);
         this.previousOutputTextField.setEditable(false);
@@ -214,6 +212,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
         this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 7*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
         this.sideWindow.setVisible(showSideWindow);
+        this.sideWindow.setFocused(false);
         this.showOutputButton.setTooltipVisible(!showSideWindow);
         this.setShowOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
         this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
@@ -221,6 +220,13 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
         this.consoleCommandTextField.setVisible(!showOutput);
         this.previousOutputTextField.setVisible(showOutput);
+
+        this.setInitialFocus(showOutput ? this.previousOutputTextField : this.consoleCommandTextField);
+        if(showOutput) {
+            this.previousOutputTextField.setFocused(true);
+        } else {
+            this.consoleCommandTextField.setFocused(true);
+        }
     }
 
     @Override
@@ -291,7 +297,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if(showSideWindow && sideWindow.keyPressed(keyCode,scanCode,modifiers)) return true;
+        if(showSideWindow && sideWindow.isFocused() && sideWindow.keyPressed(keyCode,scanCode,modifiers)) return true;
         if(keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
             if (showOutput) {
                 this.previousOutputTextField.keyPressed(keyCode, scanCode, modifiers);
@@ -306,7 +312,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         if (super.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
-        if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
+        if (!IGNORE_ENTER && (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER)) {
             this.commitAndClose();
             return true;
         }
