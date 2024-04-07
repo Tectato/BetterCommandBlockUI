@@ -62,6 +62,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         scrollX.setWidth(width);
     }
 
+    @Override
     public void setHeight(int height){
         this.height = height;
         this.visibleLines = (height-4) / 10;
@@ -147,7 +148,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         selectionEndOffset = Math.max(selectionEndOffset,0);
 
         boolean renderVerticalCursor = selectionStart < accessor.getText().length();
-        boolean verticalCursorVisible = this.isFocused() && accessor.getFocusedTicks() / 6 % 2 == 0;
+        boolean verticalCursorVisible = this.isFocused() && (Util.getMeasuringTimeMs() - accessor.getLastSwitchFocusTime()) / 300L % 2L == 0L;
 
         context.getMatrices().translate(0.0,0.0,0.1);
 
@@ -399,7 +400,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             return;
         }
         accessor.setTextVariable(string);
-        this.setCursor(j);
+        this.setCursor(j, false);
     }
 
     @Override
@@ -416,7 +417,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
 
         if (Screen.isSelectAll(keyCode)) {
-            this.setCursorToEnd();
+            this.setCursorToEnd(Screen.hasShiftDown());
             this.setSelectionEnd(0);
             return true;
         }
@@ -441,10 +442,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             case 263: {
                 if (Screen.hasControlDown()) {
                     //this.setCursor(this.getWordSkipPosition(-1), Screen.hasShiftDown());
-                    this.setCursor(getCursor() + getWordLength(-1));
+                    this.setCursor(getCursor() + getWordLength(-1), Screen.hasShiftDown());
                     updateScrollPositions();
                 } else {
-                    this.moveCursor(-1);
+                    this.moveCursor(-1, Screen.hasShiftDown());
                 }
                 return true;
             }
@@ -459,10 +460,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             case 262: {
                 if (Screen.hasControlDown()) {
                     //this.setCursor(this.getWordSkipPosition(1), Screen.hasShiftDown());
-                    this.setCursor(getCursor() + getWordLength(1));
+                    this.setCursor(getCursor() + getWordLength(1), Screen.hasShiftDown());
                     updateScrollPositions();
                 } else {
-                    this.moveCursor(1);
+                    this.moveCursor(1, Screen.hasShiftDown());
                 }
                 return true;
             }
@@ -479,12 +480,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 return true;
             }
             case 268: {
-                this.setCursorToStart();
+                this.setCursorToStart(Screen.hasShiftDown());
                 updateScrollPositions();
                 return true;
             }
             case 269: {
-                this.setCursorToEnd();
+                this.setCursorToEnd(Screen.hasShiftDown());
                 updateScrollPositions();
                 return true;
             }
@@ -531,7 +532,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             return;
         }
         accessor.setTextVariable(text.length() > accessor.invokeGetMaxLength() ? text.substring(0, accessor.invokeGetMaxLength()) : text);
-        this.setCursorToEnd();
+        this.setCursorToEnd(Screen.hasShiftDown());
         this.setSelectionEnd(accessor.getSelectionStart());
         this.onChanged(text, true);
     }
@@ -837,7 +838,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             this.setFocused(hovered);
         }
         if(this.isFocused() && hovered && button == 0) {
-            this.setCursor(pointToIndex(mouseX, mouseY));
+            this.setCursor(pointToIndex(mouseX, mouseY), Screen.hasShiftDown());
             cursorPosPreference = new Pair<>((int)mouseX, (int)mouseY);
             return true;
         }
@@ -845,18 +846,18 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount){
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount){
         if (!this.isVisible()) {
             return false;
         }
-        if(screen != null && screen.scroll(amount)){
+        if(screen != null && screen.scroll(verticalAmount)){
             return true;
         }
         if(LShiftPressed || RShiftPressed){
-            horizontalOffset = clamp(horizontalOffset-(int)amount*BetterCommandBlockUI.SCROLL_STEP_X, 0, maxLineWidth-20);
+            horizontalOffset = clamp(horizontalOffset-(int)verticalAmount*BetterCommandBlockUI.SCROLL_STEP_X, 0, maxLineWidth-20);
             scrollX.updatePos((double)horizontalOffset / (maxLineWidth-20));
         } else {
-            scrolledLines = clamp(scrolledLines-(int)amount*BetterCommandBlockUI.SCROLL_STEP_Y, 0, lines.size()-visibleLines);
+            scrolledLines = clamp(scrolledLines-(int)verticalAmount*BetterCommandBlockUI.SCROLL_STEP_Y, 0, lines.size()-visibleLines);
             scrollY.updatePos((double)scrolledLines / (lines.size() - visibleLines));
         }
         refreshSuggestorPos();
@@ -905,15 +906,15 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int yPreference = getY() + 5 + (lineAndOffset.getLeft() - scrolledLines) * 10;
         cursorPosPreference.setRight(yPreference + delta * 10);
         int index = pointToIndex(cursorPosPreference.getLeft(), cursorPosPreference.getRight());
-        setCursor(index);
+        setCursor(index, Screen.hasShiftDown());
 
         updateScrollPositions();
     }
 
     @Override
-    public void moveCursor(int offset) {
+    public void moveCursor(int offset, boolean shiftKeyPressed) {
         TextRenderer textRenderer = accessor.getTextRenderer();
-        this.setCursor(accessor.invokeGetCursorPosWithOffset(offset));
+        this.setCursor(accessor.invokeGetCursorPosWithOffset(offset), shiftKeyPressed);
         if(lines.isEmpty()) return;
         Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPosWithOffset(0));
         String line = lines.get(lineAndOffset.getLeft());
@@ -969,10 +970,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
-    public void setCursor(int cursor) {
+    public void setCursor(int cursor, boolean shiftKeyPressed) {
         //System.out.println(cursor);
         this.setSelectionStart(cursor);
-        if (!Screen.hasShiftDown()) {
+        if (!shiftKeyPressed) {
             this.setSelectionEnd(accessor.getSelectionStart());
         }
         this.onChanged(accessor.getText(), false);

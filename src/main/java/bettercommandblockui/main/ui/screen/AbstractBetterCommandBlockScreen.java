@@ -13,6 +13,7 @@ import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
+import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
@@ -49,6 +50,11 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected static final Text SET_COMMAND_TEXT = Text.translatable("advMode.setCommand");
     protected static final Text COMMAND_TEXT = Text.translatable("advMode.command");
     protected static final Text PREVIOUS_OUTPUT_TEXT = Text.translatable("advMode.previousOutput");
+    protected static final ButtonTextures SIDE_WINDOW_BUTTON_TEXTURES = new ButtonTextures(
+            new Identifier("bettercommandblockui:button_side_window_enabled"),
+            new Identifier("bettercommandblockui:button_side_window_disabled"),
+            new Identifier("bettercommandblockui:button_side_window_focused")
+    );
 
     protected CommandBlockState priorState;
 
@@ -170,12 +176,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                 this.height - (buttonMargin + cycleButtonWidth),
                 cycleButtonWidth,
                 buttonHeight,
-                0,
-                20,
-                20,
-                BUTTON_SIDE_WINDOW,
-                20,
-                60,
+                SIDE_WINDOW_BUTTON_TEXTURES,
                 (button) -> {
                     showSideWindow = !showSideWindow;
                     this.sideWindow.setVisible(showSideWindow);
@@ -368,7 +369,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
+        this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
         if(showOutput){
             context.drawTextWithShadow(this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
