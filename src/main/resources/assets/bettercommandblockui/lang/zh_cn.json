@@ -1,0 +1,26 @@
+{
+  "key.category.bcbui.keybinds": "Better Command Block UI",
+  "key.bcbui.areaselectioninput": "开始/停止区域选择",
+  "bcbui.trackOutput.true": "记录输出",
+  "bcbui.trackOutput.false": "忽略输出",
+  "bcbui.trackOutput.setDefault": "设置默认状态",
+  "bcbui.view.command": "命令",
+  "bcbui.view.output": "输出",
+  "bcbui.view.outputDefault": "默认显示输出",
+  "bcbui.tools": "工具",
+  "bcbui.config": "配置",
+  "bcbui.config.title": "Better Command Block UI 配置",
+  "bcbui.config.colorError": "颜色仅在游戏内生效，抱歉……",
+  "bcbui.config.before": "之前",
+  "bcbui.config.after": "之后",
+  "bcbui.config.avoidEmpty": "避免空行",
+  "bcbui.config.formatStrings": "格式化文本",
+  "bcbui.config.wraparoundWidth": "自动换行宽度",
+  "bcbui.config.scrollX": "横轴滑行速度",
+  "bcbui.config.scrollY": "竖轴滑行速度",
+  "bcbui.config.lineBreaks": "换行",
+  "bcbui.config.indentation": "缩进",
+  "bcbui.config.ignoreEnter": "忽略回车键"
+  "bcbui.areaSelection.start": "[开始区域选择]",
+  "bcbui.areaSelection.end": "[复制区域选择器]"
+}
