@@ -19,5 +19,8 @@
   "bcbui.config.scrollX": "Scroll speed X",
   "bcbui.config.scrollY": "Scroll speed Y",
   "bcbui.config.lineBreaks": "Line breaks",
-  "bcbui.config.indentation": "Indentation"
+  "bcbui.config.indentation": "Indentation",
+  "bcbui.config.ignoreEnter": "Ignore Enter presses",
+  "bcbui.areaSelection.start": "[Started Area Selection]",
+  "bcbui.areaSelection.end": "[Area Selector pasted to clipboard]"
 }

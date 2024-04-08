@@ -36,7 +36,7 @@ public class ConfigScreen extends Screen {
     private static int screenMarginY = 20;
     private static int numberInputWidth = 40;
     private CheckboxWidget newLinePreOpen, newLinePostOpen, newLinePreClose, newLinePostClose, //newLinePostLastClose,
-            newLinePostComma, avoidDoubleNewline, formatStrings;//, bracketAutocomplete;
+            newLinePostComma, avoidDoubleNewline, formatStrings, ignoreEnter;//, bracketAutocomplete;
     private TextFieldWidget indentationFac, wraparound, scrollSpeedX, scrollSpeedY;
     private ButtonWidget back;
 
@@ -91,6 +91,7 @@ public class ConfigScreen extends Screen {
         avoidDoubleNewline = CheckboxWidget.builder(Text.translatable("bcbui.config.avoidEmpty"), textRenderer).checked(BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE).callback(callback).build();
         //bracketAutocomplete = CheckboxWidget.builder(Text.literal("Bracket autocomplete"), textRenderer).checked(BetterCommandBlockUI.BRACKET_AUTOCOMPLETE).callback(callback).build();
         formatStrings = CheckboxWidget.builder(Text.translatable("bcbui.config.formatStrings"), textRenderer).checked(BetterCommandBlockUI.FORMAT_STRINGS).callback(callback).build();
+        ignoreEnter = CheckboxWidget.builder(Text.translatable("bcbui.config.ignoreEnter"), textRenderer).checked(BetterCommandBlockUI.IGNORE_ENTER).callback(callback).build();
 
         indentationFac = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.translatable("bcbui.config.indentation"));
         indentationFac.setText(String.valueOf(BetterCommandBlockUI.INDENTATION_FACTOR));
@@ -169,6 +170,7 @@ public class ConfigScreen extends Screen {
         //newLinePostLastClose.setPosition(textField.getX() + textField.getWidth() + 16, newLinePreClose.getY() + checkboxDistY);
         newLinePostComma.setPosition(newLinePostOpen.getX(), newLinePreClose.getY() + checkboxDistY);
         formatStrings.setPosition(newLinePreOpen.getX() + 80, newLinePreOpen.getY());
+        ignoreEnter.setPosition(newLinePreOpen.getX() + 80, newLinePostComma.getY());
         avoidDoubleNewline.setPosition(formatStrings.getX(), formatStrings.getY() + checkboxDistY);
         //bracketAutocomplete.setPosition(newLinePostLastClose.getX(), avoidDoubleNewline.getY() + checkboxDistY*2);
         indentationFac.setPosition(formatStrings.getX() + 130, newLinePreOpen.getY() + 2);
@@ -190,6 +192,7 @@ public class ConfigScreen extends Screen {
         addDrawableChild(newLinePostComma);
         addDrawableChild(formatStrings);
         addDrawableChild(avoidDoubleNewline);
+        addDrawableChild(ignoreEnter);
         //addDrawableChild(bracketAutocomplete);
         addDrawableChild(indentationFac);
         addDrawableChild(wraparound);
@@ -232,6 +235,7 @@ public class ConfigScreen extends Screen {
         //if (source.equals(newLinePostLastClose)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_NEWLINE_POST_LAST_CLOSE_BRACKET, String.valueOf(checked));
         if (source.equals(newLinePostComma)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_NEWLINE_POST_COMMA, String.valueOf(checked));
         if (source.equals(formatStrings)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_FORMAT_STRINGS, String.valueOf(checked));
+        if (source.equals(ignoreEnter)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_IGNORE_ENTER, String.valueOf(checked));
         if (source.equals(avoidDoubleNewline)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_AVOID_DOUBLE_NEWLINE, String.valueOf(checked));
         //if (source.equals(bracketAutocomplete)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_BRACKET_AUTOCOMPLETE, String.valueOf(checked));
         textField.refreshFormatting();

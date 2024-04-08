@@ -214,7 +214,6 @@ public class SimpleConfig {
 
     public void writeIfModified(){
         if(modified){
-            System.out.println("Config modified, proceeding with write.");
             writeToFile();
         }
     }
