@@ -22,5 +22,5 @@
   "bcbui.config.indentation": "缩进",
   "bcbui.config.ignoreEnter": "忽略回车键"
   "bcbui.areaSelection.start": "[开始区域选择]",
-"bcbui.areaSelection.end": "[复制区域选择器]"
+  "bcbui.areaSelection.end": "[复制区域选择器]"
 }
