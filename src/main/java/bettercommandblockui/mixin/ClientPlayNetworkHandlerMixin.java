@@ -22,9 +22,9 @@ public class ClientPlayNetworkHandlerMixin {
         MinecraftClient client = ((ClientCommonNetworkHandlerAccessor)(Object)this).getClient();
         client.world.getBlockEntity(blockPos, packet.getBlockEntityType()).ifPresent(blockEntity -> {
             NbtCompound nbtCompound = packet.getNbt();
-            if (nbtCompound != null) {
+            /*if (nbtCompound != null) {
                 blockEntity.readNbt(nbtCompound);
-            }
+            }*/
             if (blockEntity instanceof CommandBlockBlockEntity && client.currentScreen instanceof BetterCommandBlockScreen) {
                 ((BetterCommandBlockScreen)client.currentScreen).updateCommandBlock();
             }

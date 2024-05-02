@@ -19,6 +19,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
+import net.minecraft.util.StringHelper;
 import net.minecraft.util.Util;
 
 import java.util.LinkedList;
@@ -311,7 +312,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int i = Math.min(accessor.getSelectionStart(), accessor.getSelectionEnd());
         int j = Math.max(accessor.getSelectionStart(), accessor.getSelectionEnd());
         int k = accessor.invokeGetMaxLength() - accessor.getText().length() - (i - j);
-        if (k < (l = (string = SharedConstants.stripInvalidChars(text)).length())) {
+        if (k < (l = (string = StringHelper.stripInvalidChars(text)).length())) {
             string = string.substring(0, k);
             l = k;
         }
@@ -509,7 +510,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isActive()) {
             return false;
         }
-        if (SharedConstants.isValidChar(chr)) {
+        if (StringHelper.isValidChar(chr)) {
             if (accessor.getEditable()) {
                 this.write(Character.toString(chr));
                 if (BetterCommandBlockUI.BRACKET_AUTOCOMPLETE) {

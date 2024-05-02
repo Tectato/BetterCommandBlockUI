@@ -28,6 +28,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.CommandBlockExecutor;
 import org.lwjgl.glfw.GLFW;
 
+import java.time.Duration;
+
 import static bettercommandblockui.main.BetterCommandBlockUI.*;
 
 @Environment(EnvType.CLIENT)
@@ -177,9 +179,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                     this.sideWindow.setVisible(showSideWindow);
 
                     this.showOutputButton.setTooltipVisible(!showSideWindow);
-                    this.setShowOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
+                    this.setShowOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Duration.ofDays(Integer.MAX_VALUE) : Duration.ofSeconds(0));
                     this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
-                    this.setTrackingOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
+                    this.setTrackingOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Duration.ofDays(Integer.MAX_VALUE) : Duration.ofSeconds(0));
                 },
                 Text.translatable("bcbui.tools"))
         );
@@ -214,9 +216,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.sideWindow.setVisible(showSideWindow);
         this.sideWindow.setFocused(false);
         this.showOutputButton.setTooltipVisible(!showSideWindow);
-        this.setShowOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
+        this.setShowOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Duration.ofDays(Integer.MAX_VALUE) : Duration.ofSeconds(0));
         this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
-        this.setTrackingOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Integer.MAX_VALUE : 0);
+        this.setTrackingOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Duration.ofDays(Integer.MAX_VALUE) : Duration.ofSeconds(0));
 
         this.consoleCommandTextField.setVisible(!showOutput);
         this.previousOutputTextField.setVisible(showOutput);
