@@ -5,10 +5,16 @@ import bettercommandblockui.main.config.SimpleConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.CommandBlock;
+import net.minecraft.block.entity.CommandBlockBlockEntity;
+import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
 import org.lwjgl.glfw.GLFW;
 
 public class BetterCommandBlockUI implements ClientModInitializer {
@@ -25,6 +31,51 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final Identifier SLIDER_PICK = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_pick.png");
     public static final Identifier COMPASS_FRAME = new Identifier("bettercommandblockui:compass_frame");
     public static final Identifier COMPASS_NEEDLE = new Identifier("bettercommandblockui:compass_needle");
+
+    public static final Identifier ID_BLOCK_IMPULSE = new Identifier("bettercommandblockui:block_impulse");
+    public static final Identifier ID_BLOCK_IMPULSE_FOCUSED = new Identifier("bettercommandblockui:block_impulse_focused");
+    public static final Identifier ID_BLOCK_IMPULSE_CONDITIONAL = new Identifier("bettercommandblockui:block_impulse_conditional");
+    public static final Identifier ID_BLOCK_IMPULSE_CONDITIONAL_FOCUSED = new Identifier("bettercommandblockui:block_impulse_conditional_focused");
+    public static final Identifier ID_BLOCK_CHAIN = new Identifier("bettercommandblockui:block_chain");
+    public static final Identifier ID_BLOCK_CHAIN_FOCUSED = new Identifier("bettercommandblockui:block_chain_focused");
+    public static final Identifier ID_BLOCK_CHAIN_CONDITIONAL = new Identifier("bettercommandblockui:block_chain_conditional");
+    public static final Identifier ID_BLOCK_CHAIN_CONDITIONAL_FOCUSED = new Identifier("bettercommandblockui:block_chain_conditional_focused");
+    public static final Identifier ID_BLOCK_REPEAT = new Identifier("bettercommandblockui:block_repeat");
+    public static final Identifier ID_BLOCK_REPEAT_FOCUSED = new Identifier("bettercommandblockui:block_repeat_focused");
+    public static final Identifier ID_BLOCK_REPEAT_CONDITIONAL = new Identifier("bettercommandblockui:block_repeat_conditional");
+    public static final Identifier ID_BLOCK_REPEAT_CONDITIONAL_FOCUSED = new Identifier("bettercommandblockui:block_repeat_conditional_focused");
+
+    public static final ButtonTextures BLOCK_IMPULSE = new ButtonTextures(ID_BLOCK_IMPULSE, ID_BLOCK_IMPULSE_FOCUSED);
+    public static final ButtonTextures BLOCK_IMPULSE_CONDITIONAL = new ButtonTextures(ID_BLOCK_IMPULSE_CONDITIONAL, ID_BLOCK_IMPULSE_CONDITIONAL_FOCUSED);
+    public static final ButtonTextures BLOCK_CHAIN = new ButtonTextures(ID_BLOCK_CHAIN, ID_BLOCK_CHAIN_FOCUSED);
+    public static final ButtonTextures BLOCK_CHAIN_CONDITIONAL = new ButtonTextures(ID_BLOCK_CHAIN_CONDITIONAL, ID_BLOCK_CHAIN_CONDITIONAL_FOCUSED);
+    public static final ButtonTextures BLOCK_REPEAT = new ButtonTextures(ID_BLOCK_REPEAT, ID_BLOCK_REPEAT_FOCUSED);
+    public static final ButtonTextures BLOCK_REPEAT_CONDITIONAL = new ButtonTextures(ID_BLOCK_REPEAT_CONDITIONAL, ID_BLOCK_REPEAT_CONDITIONAL_FOCUSED);
+
+    public static ButtonTextures BlockStateToButtonTextures(BlockState state){
+        boolean conditional = state.get(CommandBlock.CONDITIONAL);
+        if(state.getBlock().equals(Registries.BLOCK.get(Identifier.of("minecraft","command_block")))){
+            return conditional ? BLOCK_IMPULSE_CONDITIONAL : BLOCK_IMPULSE;
+        }
+        if(state.getBlock().equals(Registries.BLOCK.get(Identifier.of("minecraft","chain_command_block")))){
+            return conditional ? BLOCK_CHAIN_CONDITIONAL : BLOCK_CHAIN;
+        }
+        if(state.getBlock().equals(Registries.BLOCK.get(Identifier.of("minecraft","repeating_command_block")))){
+            return conditional ? BLOCK_REPEAT_CONDITIONAL : BLOCK_REPEAT;
+        }
+        return null;
+    }
+
+    public static Text DirectionToText(Direction dir){
+        return switch(dir){
+            case UP -> Text.translatable("bcbui.direction.up");
+            case DOWN -> Text.translatable("bcbui.direction.down");
+            case NORTH -> Text.translatable("bcbui.direction.north");
+            case SOUTH -> Text.translatable("bcbui.direction.south");
+            case EAST -> Text.translatable("bcbui.direction.east");
+            case WEST -> Text.translatable("bcbui.direction.west");
+        };
+    }
 
     private static SimpleConfig CONFIG = SimpleConfig.of("betterCommandBlockUI").provider(BetterCommandBlockUI::provider).request();
 

@@ -38,6 +38,7 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
 
     @Override
     public void onPress(){
+        if(!active) return;
         this.tooltipSupplier.incrementIndex();
         this.setTooltip(tooltipSupplier.getTooltip());
         action.onPress(this);
@@ -45,6 +46,7 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
+        if(!active) return;
         if(mouseX > getX() && mouseX <= getX() + getWidth() && mouseY > getY() && mouseY <= getY() + getHeight()){
             this.tooltipSupplier.incrementIndex();
             this.setTooltip(tooltipSupplier.getTooltip());
@@ -59,6 +61,10 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
     public void setIndex(int index){
         this.tooltipSupplier.setIndex(index);
         this.setTooltip(tooltipSupplier.getTooltip());
+    }
+
+    public void setActive(boolean value){
+        this.active = value;
     }
 
     @Override

@@ -22,5 +22,14 @@
   "bcbui.config.indentation": "Einschub",
   "bcbui.config.ignoreEnter": "Eingabetaste ignorieren",
   "bcbui.areaSelection.start": "[Bereichauswahl gestartet]",
-  "bcbui.areaSelection.end": "[Bereichselektor in Zwischenablage gespeichert]"
+  "bcbui.areaSelection.end": "[Bereichselektor in Zwischenablage gespeichert]",
+  "bcbui.direction.up": "Oben",
+  "bcbui.direction.down": "Unten",
+  "bcbui.direction.north": "Nord",
+  "bcbui.direction.south": "Süd",
+  "bcbui.direction.east": "Ost",
+  "bcbui.direction.west": "West",
+  "bcbui.chain.next": "Nächster",
+  "bcbui.chain.tooFar": "[Block ist zu weit entfernt]",
+  "bcbui.save": "Speichern"
 }

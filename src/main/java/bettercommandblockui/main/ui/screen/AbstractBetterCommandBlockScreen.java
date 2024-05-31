@@ -58,6 +58,12 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             new Identifier("bettercommandblockui:button_side_window_focused")
     );
 
+    protected static final ButtonTextures SAVE_BUTTON_TEXTURES = new ButtonTextures(
+            new Identifier("bettercommandblockui:button_save_enabled"),
+            new Identifier("bettercommandblockui:button_save_disabled"),
+            new Identifier("bettercommandblockui:button_save_focused")
+    );
+
     protected CommandBlockState priorState;
 
     protected TextFieldWidget consoleCommandTextField;
@@ -70,7 +76,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected CheckboxWidget setTrackingOutputDefaultCheckbox;
     protected CyclingTexturedButtonWidget<Boolean> showOutputButton;
     protected CheckboxWidget setShowOutputDefaultCheckbox;
-    protected TexturedButtonWidget showSideWindowButton;
+    protected TexturedButtonWidget showSideWindowButton, saveButton;
 
     protected SideWindow sideWindow;
 
@@ -78,6 +84,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected ChatInputSuggestor commandSuggestor;
     protected boolean trackOutput = true;
     protected boolean showOutput = SHOW_OUTPUT_DEFAULT;
+    protected boolean updated = false;
     protected static boolean showSideWindow = false;
 
     protected static int buttonHeight = 20;
@@ -229,6 +236,22 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         } else {
             this.consoleCommandTextField.setFocused(true);
         }
+
+        this.saveButton = this.addDrawableChild(new TexturedButtonWidget(
+                27,
+                27,
+                cycleButtonWidth,
+                buttonHeight,
+                SAVE_BUTTON_TEXTURES,
+                (button) -> {
+                    if(wasModified()){
+                        commit();
+                    }
+                },
+                Text.translatable("bcbui.save"))
+        );
+        Tooltip saveTooltip = Tooltip.of(Text.translatable("bcbui.save"));
+        this.saveButton.setTooltip(saveTooltip);
     }
 
     @Override
@@ -314,7 +337,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         if (super.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
-        if (!IGNORE_ENTER && (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER)) {
+        if (updated && !IGNORE_ENTER && (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER)) {
             this.commitAndClose();
             return true;
         }
@@ -347,20 +370,32 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected void setButtonsActive(boolean active) {
         this.doneButton.active = active;
         this.toggleTrackingOutputButton.active = active;
+        this.consoleCommandTextField.setEditable(active);
+        this.saveButton.active = active;
     }
 
     protected void setPreviousOutputText(boolean trackOutput) {
         ((MultiLineTextFieldWidget)this.previousOutputTextField).setRawText(trackOutput ? this.commandExecutor.getLastOutput().getString() : "-");
     }
 
-    protected void commitAndClose() {
+    protected void commit(){
         trackOutput = toggleTrackingOutputButton.getValue();
         this.syncSettingsToServer(commandExecutor);
         if (!commandExecutor.isTrackingOutput()) {
             commandExecutor.setLastOutput(null);
         }
+        ((MultiLineTextFieldWidget)consoleCommandTextField).resetModified();
+        priorState.trackOutput = trackOutput;
+    }
+
+    protected void commitAndClose() {
+        commit();
         assert this.client != null;
         close();
+    }
+
+    protected boolean wasModified(){
+        return ((MultiLineTextFieldWidget)consoleCommandTextField).wasModified() || toggleTrackingOutputButton.getValue() != priorState.trackOutput;
     }
 
     abstract protected void syncSettingsToServer(CommandBlockExecutor commandExecutor);
@@ -397,6 +432,11 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     protected void renderAsterisk(DrawContext context, Widget widget, boolean draw){
         if(!draw) return;
-        context.drawTextWithShadow(textRenderer, "*", widget.getX() + widget.getWidth(), widget.getY() - 4, 0xFFC000);
+        renderAsterisk(context, widget.getX() + widget.getWidth(), widget.getY() - 4, draw);
+    }
+
+    protected void renderAsterisk(DrawContext context, int x, int y, boolean draw){
+        if(!draw) return;
+        context.drawTextWithShadow(textRenderer, "*", x, y, 0xFFC000);
     }
 }
