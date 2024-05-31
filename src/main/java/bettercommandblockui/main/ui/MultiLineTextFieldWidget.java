@@ -315,7 +315,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int i = Math.min(accessor.getSelectionStart(), accessor.getSelectionEnd());
         int j = Math.max(accessor.getSelectionStart(), accessor.getSelectionEnd());
         int k = accessor.invokeGetMaxLength() - accessor.getText().length() - (i - j);
-        if (k < (l = (string = StringHelper.stripInvalidChars(text)).length())) {
+        if (k < (l = (string = SharedConstants.stripInvalidChars(text)).length())) {
             string = string.substring(0, k);
             l = k;
         }
@@ -521,7 +521,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         if (!this.isActive()) {
             return false;
         }
-        if (StringHelper.isValidChar(chr)) {
+        if (SharedConstants.isValidChar(chr)) {
             if (accessor.getEditable()) {
                 this.write(Character.toString(chr));
                 if (BetterCommandBlockUI.BRACKET_AUTOCOMPLETE) {
