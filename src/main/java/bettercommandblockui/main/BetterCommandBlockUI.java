@@ -5,10 +5,15 @@ import bettercommandblockui.main.config.SimpleConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.CommandBlock;
+import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
 import org.lwjgl.glfw.GLFW;
 
 public class BetterCommandBlockUI implements ClientModInitializer {
@@ -25,6 +30,38 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final Identifier SLIDER_PICK = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_pick.png");
     public static final Identifier COMPASS_FRAME = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/compass_frame.png");
     public static final Identifier COMPASS_NEEDLE = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/compass_needle.png");
+
+    public static final Identifier BLOCK_IMPULSE = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_block_impulse.png");
+    public static final Identifier BLOCK_IMPULSE_CONDITIONAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_block_impulse_conditional.png");
+    public static final Identifier BLOCK_CHAIN = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_block_chain.png");
+    public static final Identifier BLOCK_CHAIN_CONDITIONAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_block_chain_conditional.png");
+    public static final Identifier BLOCK_REPEAT = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_block_repeat.png");
+    public static final Identifier BLOCK_REPEAT_CONDITIONAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_block_repeat_conditional.png");
+
+    public static Identifier BlockStateToButtonTexture(BlockState state){
+        boolean conditional = state.get(CommandBlock.CONDITIONAL);
+        if(state.getBlock().equals(Registries.BLOCK.get(Identifier.of("minecraft","command_block")))){
+            return conditional ? BLOCK_IMPULSE_CONDITIONAL : BLOCK_IMPULSE;
+        }
+        if(state.getBlock().equals(Registries.BLOCK.get(Identifier.of("minecraft","chain_command_block")))){
+            return conditional ? BLOCK_CHAIN_CONDITIONAL : BLOCK_CHAIN;
+        }
+        if(state.getBlock().equals(Registries.BLOCK.get(Identifier.of("minecraft","repeating_command_block")))){
+            return conditional ? BLOCK_REPEAT_CONDITIONAL : BLOCK_REPEAT;
+        }
+        return null;
+    }
+
+    public static Text DirectionToText(Direction dir){
+        return switch(dir){
+            case UP -> Text.translatable("bcbui.direction.up");
+            case DOWN -> Text.translatable("bcbui.direction.down");
+            case NORTH -> Text.translatable("bcbui.direction.north");
+            case SOUTH -> Text.translatable("bcbui.direction.south");
+            case EAST -> Text.translatable("bcbui.direction.east");
+            case WEST -> Text.translatable("bcbui.direction.west");
+        };
+    }
 
     private static SimpleConfig CONFIG = SimpleConfig.of("betterCommandBlockUI").provider(BetterCommandBlockUI::provider).request();
 

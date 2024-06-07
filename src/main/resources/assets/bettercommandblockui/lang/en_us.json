@@ -22,5 +22,14 @@
   "bcbui.config.indentation": "Indentation",
   "bcbui.config.ignoreEnter": "Ignore Enter presses",
   "bcbui.areaSelection.start": "[Started Area Selection]",
-  "bcbui.areaSelection.end": "[Area Selector pasted to clipboard]"
+  "bcbui.areaSelection.end": "[Area Selector pasted to clipboard]",
+  "bcbui.direction.up": "Up",
+  "bcbui.direction.down": "Down",
+  "bcbui.direction.north": "North",
+  "bcbui.direction.south": "South",
+  "bcbui.direction.east": "East",
+  "bcbui.direction.west": "West",
+  "bcbui.chain.next": "Next",
+  "bcbui.chain.tooFar": "[Block is too far away]",
+  "bcbui.save": "Save"
 }

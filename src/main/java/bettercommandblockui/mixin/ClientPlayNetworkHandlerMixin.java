@@ -17,14 +17,14 @@ public class ClientPlayNetworkHandlerMixin {
 
     @Inject(method="onBlockEntityUpdate(Lnet/minecraft/network/packet/s2c/play/BlockEntityUpdateS2CPacket;)V",
     at=@At("TAIL"))
-    public void testInject(BlockEntityUpdateS2CPacket packet, CallbackInfo ci){
+    public void blockEntityUpdateInject(BlockEntityUpdateS2CPacket packet, CallbackInfo ci){
         BlockPos blockPos = packet.getPos();
         MinecraftClient client = ((ClientCommonNetworkHandlerAccessor)(Object)this).getClient();
         client.world.getBlockEntity(blockPos, packet.getBlockEntityType()).ifPresent(blockEntity -> {
             NbtCompound nbtCompound = packet.getNbt();
-            if (nbtCompound != null) {
+            /*if (nbtCompound != null) {
                 blockEntity.readNbt(nbtCompound);
-            }
+            }*/
             if (blockEntity instanceof CommandBlockBlockEntity && client.currentScreen instanceof BetterCommandBlockScreen) {
                 ((BetterCommandBlockScreen)client.currentScreen).updateCommandBlock();
             }

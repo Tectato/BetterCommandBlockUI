@@ -40,8 +40,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     private Pair<Integer, Integer> cursorPosPreference;
     private boolean LShiftPressed, RShiftPressed = false;
     private boolean hasCommandSuggestor = false;
+    private boolean textModified = false;
     private MultiLineCommandSuggestor suggestor;
     private TextFieldWidgetAccessor accessor = (TextFieldWidgetAccessor)this;
+    private float timeSinceClick = 0.0f;
 
     public MultiLineTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, Text text, AbstractBetterCommandBlockScreen screen) {
         super(textRenderer, x, y, width, height, text);
@@ -85,6 +87,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta){
         //TODO: render line at x of cursor if currently at parenthesis
+        timeSinceClick += delta/20.0f;
         int color;
         if (!this.isVisible()) {
             return;
@@ -332,6 +335,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         this.onChanged(accessor.getText(), true);
         this.updateScrollPositions();
+        textModified = true;
     }
 
     private boolean isAlphanumeric(char a){
@@ -364,6 +368,13 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int max = Math.max(startIndex, endIndex);
         //System.out.println("Word: " + text.substring(min, max + 1));
         return ((max-min) + 1) * offsetDir;
+    }
+
+    private void selectWord(){
+        int forward = getWordLength(1);
+        int backward = getWordLength(-1);
+        accessor.setSelectionStart(accessor.getSelectionStart()+forward);
+        accessor.setSelectionEnd((accessor.getSelectionStart()-forward)+backward);
     }
 
     @Override
@@ -520,6 +531,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     }
                 }
             }
+            textModified = true;
             return true;
         }
         return false;
@@ -837,8 +849,13 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             this.setFocused(hovered);
         }
         if(this.isFocused() && hovered && button == 0) {
+            int previousIndex = accessor.getSelectionStart();
             this.setCursor(pointToIndex(mouseX, mouseY));
             cursorPosPreference = new Pair<>((int)mouseX, (int)mouseY);
+            if(timeSinceClick < 0.5f && previousIndex == accessor.getSelectionStart()){
+                selectWord();
+            }
+            timeSinceClick = 0.0f;
             return true;
         }
         return false;
@@ -986,6 +1003,20 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     public void setHorizontalOffset(double value){
         this.horizontalOffset = (int)Math.max(Math.floor((maxLineWidth - visibleChars) * value),0);
         refreshSuggestorPos();
+    }
+
+    @Override
+    public void setEditable(boolean value){
+        super.setEditable(value);
+        if(this.suggestor != null) this.suggestor.setWindowActive(value);
+    }
+
+    public boolean wasModified(){
+        return textModified;
+    }
+
+    public void resetModified(){
+        textModified = false;
     }
 
     void refreshSuggestorPos(){

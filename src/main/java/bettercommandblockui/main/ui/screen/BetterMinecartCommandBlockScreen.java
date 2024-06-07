@@ -13,6 +13,7 @@ public class BetterMinecartCommandBlockScreen extends AbstractBetterCommandBlock
         this.commandExecutor = commandExecutor;
         this.client = client;
         instance = this;
+        updated = true;
     }
 
     public void init(){
