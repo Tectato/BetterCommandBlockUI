@@ -4,8 +4,14 @@ import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import bettercommandblockui.main.ui.screen.BetterCommandBlockScreen;
 import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.mixin.TextFieldWidgetAccessor;
+import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.shurik.betterhighlighting.api.BuiltinGrammar;
+import me.shurik.betterhighlighting.api.TextMateRegistry;
+import me.shurik.betterhighlighting.api.syntax.Styler;
+import me.shurik.betterhighlighting.api.syntax.Tokenizer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -14,6 +20,7 @@ import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.OrderedText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
@@ -21,10 +28,15 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
 import net.minecraft.util.StringHelper;
 import net.minecraft.util.Util;
+import org.eclipse.tm4e.core.grammar.IToken;
+import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
+
+import static me.shurik.betterhighlighting.api.syntax.Tokenizer.command;
 
 public class MultiLineTextFieldWidget extends TextFieldWidget implements Element {
     private final int visibleChars = 20;
@@ -820,6 +832,10 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             textColors.add(new Pair<>(suggestor.getColor(p.getLeft()),p.getRight()));
         }
 
+        if(!text.isEmpty() && FabricLoader.getInstance().isModLoaded("better-highlighting")){
+            transformTokenOutput(Tokenizer.tokenizeAndFormatComponent(text, BuiltinGrammar.mcfunction(), TextMateRegistry.instance().getCurrentTheme()).getSiblings());
+        }
+
         maxLineWidth = 0;
         for(String line : lines){
             maxLineWidth = Math.max(line.length(), maxLineWidth);
@@ -831,6 +847,17 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int count = suggestor.getHighlighColorCount();
         if(index < 0) index+= count;
         return (index % count) + 2;
+    }
+
+    private void transformTokenOutput(List<Text> output){
+        textColors.clear();
+        int index = 0;
+        for(Text text : output) {
+            if (text.getStyle().getColor() != null) {
+                textColors.add(new Pair<>(text.getStyle(), index));
+            }
+            index += text.getString().length();
+        }
     }
 
     private boolean getHovered(double mouseX, double mouseY){

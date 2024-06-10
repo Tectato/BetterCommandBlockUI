@@ -2,9 +2,11 @@ package bettercommandblockui.main;
 
 import bettercommandblockui.main.config.ConfigScreen;
 import bettercommandblockui.main.config.SimpleConfig;
+import me.shurik.betterhighlighting.api.syntax.Tokenizer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.CommandBlock;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
