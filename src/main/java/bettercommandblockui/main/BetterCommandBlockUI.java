@@ -2,7 +2,6 @@ package bettercommandblockui.main;
 
 import bettercommandblockui.main.config.ConfigScreen;
 import bettercommandblockui.main.config.SimpleConfig;
-import me.shurik.betterhighlighting.api.syntax.Tokenizer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -20,32 +19,32 @@ import net.minecraft.util.math.Direction;
 import org.lwjgl.glfw.GLFW;
 
 public class BetterCommandBlockUI implements ClientModInitializer {
-    public static final Identifier BUTTON_MODE = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_mode.png");
-    public static final Identifier BUTTON_CONDITIONAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_conditional.png");
-    public static final Identifier BUTTON_ACTIVE = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_active.png");
-    public static final Identifier BUTTON_OUTPUT = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_output.png");
-    public static final Identifier BUTTON_TRACK_OUTPUT = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/button_track_output.png");
-    public static final Identifier SCROLLBAR_HORIZONTAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_horizontal.png");
-    public static final Identifier SCROLLBAR_VERTICAL = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_vertical.png");
+    public static final Identifier BUTTON_MODE = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_mode.png");
+    public static final Identifier BUTTON_CONDITIONAL = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_conditional.png");
+    public static final Identifier BUTTON_ACTIVE = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_active.png");
+    public static final Identifier BUTTON_OUTPUT = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_output.png");
+    public static final Identifier BUTTON_TRACK_OUTPUT = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_track_output.png");
+    public static final Identifier SCROLLBAR_HORIZONTAL = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_horizontal.png");
+    public static final Identifier SCROLLBAR_VERTICAL = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_vertical.png");
 
-    public static final Identifier SLIDER = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider.png");
-    public static final Identifier SLIDER_NOTCH = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_notch.png");
-    public static final Identifier SLIDER_PICK = new Identifier("bettercommandblockui","textures/gui/bettercommandblockui/slider_pick.png");
-    public static final Identifier COMPASS_FRAME = new Identifier("bettercommandblockui:compass_frame");
-    public static final Identifier COMPASS_NEEDLE = new Identifier("bettercommandblockui:compass_needle");
+    public static final Identifier SLIDER = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/slider.png");
+    public static final Identifier SLIDER_NOTCH = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/slider_notch.png");
+    public static final Identifier SLIDER_PICK = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/slider_pick.png");
+    public static final Identifier COMPASS_FRAME = Identifier.of("bettercommandblockui:compass_frame");
+    public static final Identifier COMPASS_NEEDLE = Identifier.of("bettercommandblockui:compass_needle");
 
-    public static final Identifier ID_BLOCK_IMPULSE = new Identifier("bettercommandblockui:block_impulse");
-    public static final Identifier ID_BLOCK_IMPULSE_FOCUSED = new Identifier("bettercommandblockui:block_impulse_focused");
-    public static final Identifier ID_BLOCK_IMPULSE_CONDITIONAL = new Identifier("bettercommandblockui:block_impulse_conditional");
-    public static final Identifier ID_BLOCK_IMPULSE_CONDITIONAL_FOCUSED = new Identifier("bettercommandblockui:block_impulse_conditional_focused");
-    public static final Identifier ID_BLOCK_CHAIN = new Identifier("bettercommandblockui:block_chain");
-    public static final Identifier ID_BLOCK_CHAIN_FOCUSED = new Identifier("bettercommandblockui:block_chain_focused");
-    public static final Identifier ID_BLOCK_CHAIN_CONDITIONAL = new Identifier("bettercommandblockui:block_chain_conditional");
-    public static final Identifier ID_BLOCK_CHAIN_CONDITIONAL_FOCUSED = new Identifier("bettercommandblockui:block_chain_conditional_focused");
-    public static final Identifier ID_BLOCK_REPEAT = new Identifier("bettercommandblockui:block_repeat");
-    public static final Identifier ID_BLOCK_REPEAT_FOCUSED = new Identifier("bettercommandblockui:block_repeat_focused");
-    public static final Identifier ID_BLOCK_REPEAT_CONDITIONAL = new Identifier("bettercommandblockui:block_repeat_conditional");
-    public static final Identifier ID_BLOCK_REPEAT_CONDITIONAL_FOCUSED = new Identifier("bettercommandblockui:block_repeat_conditional_focused");
+    public static final Identifier ID_BLOCK_IMPULSE = Identifier.of("bettercommandblockui:block_impulse");
+    public static final Identifier ID_BLOCK_IMPULSE_FOCUSED = Identifier.of("bettercommandblockui:block_impulse_focused");
+    public static final Identifier ID_BLOCK_IMPULSE_CONDITIONAL = Identifier.of("bettercommandblockui:block_impulse_conditional");
+    public static final Identifier ID_BLOCK_IMPULSE_CONDITIONAL_FOCUSED = Identifier.of("bettercommandblockui:block_impulse_conditional_focused");
+    public static final Identifier ID_BLOCK_CHAIN = Identifier.of("bettercommandblockui:block_chain");
+    public static final Identifier ID_BLOCK_CHAIN_FOCUSED = Identifier.of("bettercommandblockui:block_chain_focused");
+    public static final Identifier ID_BLOCK_CHAIN_CONDITIONAL = Identifier.of("bettercommandblockui:block_chain_conditional");
+    public static final Identifier ID_BLOCK_CHAIN_CONDITIONAL_FOCUSED = Identifier.of("bettercommandblockui:block_chain_conditional_focused");
+    public static final Identifier ID_BLOCK_REPEAT = Identifier.of("bettercommandblockui:block_repeat");
+    public static final Identifier ID_BLOCK_REPEAT_FOCUSED = Identifier.of("bettercommandblockui:block_repeat_focused");
+    public static final Identifier ID_BLOCK_REPEAT_CONDITIONAL = Identifier.of("bettercommandblockui:block_repeat_conditional");
+    public static final Identifier ID_BLOCK_REPEAT_CONDITIONAL_FOCUSED = Identifier.of("bettercommandblockui:block_repeat_conditional_focused");
 
     public static final ButtonTextures BLOCK_IMPULSE = new ButtonTextures(ID_BLOCK_IMPULSE, ID_BLOCK_IMPULSE_FOCUSED);
     public static final ButtonTextures BLOCK_IMPULSE_CONDITIONAL = new ButtonTextures(ID_BLOCK_IMPULSE_CONDITIONAL, ID_BLOCK_IMPULSE_CONDITIONAL_FOCUSED);

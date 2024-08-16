@@ -4,9 +4,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.ColorHelper;
+import org.joml.AxisAngle4d;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 
 public class ColorScrollbarWidget extends ScrollbarWidget{
     int color;
@@ -24,7 +27,11 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
 
     @Override
     protected void renderFrame(DrawContext context){
-        fillHorizontalGradient(context, getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF000000, color);
+        context.getMatrices().push();
+        context.getMatrices().translate(getX() + getWidth()/2.0f, getY() + getHeight()/2.0f, 0);
+        context.getMatrices().multiply(new Quaternionf(new AxisAngle4d(0.5f * Math.PI, 0, 0, 1)));
+        context.fillGradient(-getHeight()/2, -getWidth()/2, getHeight()/2, getWidth()/2, color, 0xFF000000);
+        context.getMatrices().pop();
     }
 
     @Override
@@ -34,23 +41,6 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
         int posY = this.getY();
         context.fill(posX, posY, posX + 1, posY + 9, highlighted ? 0xFFFFFFFF : 0xFFA0A0A0);
         context.fill(posX + 1, posY + 1, posX + 2, posY + 10, 0xFF000000);
-    }
-
-    private void fillHorizontalGradient(DrawContext context, int startX, int startY, int endX, int endY, int colorStart, int colorEnd) {
-        VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
-        float startA = (float) ColorHelper.Argb.getAlpha(colorStart) / 255.0F;
-        float startR = (float) ColorHelper.Argb.getRed(colorStart) / 255.0F;
-        float startG = (float) ColorHelper.Argb.getGreen(colorStart) / 255.0F;
-        float startB = (float) ColorHelper.Argb.getBlue(colorStart) / 255.0F;
-        float endA = (float) ColorHelper.Argb.getAlpha(colorEnd) / 255.0F;
-        float endR = (float) ColorHelper.Argb.getRed(colorEnd) / 255.0F;
-        float endG = (float) ColorHelper.Argb.getGreen(colorEnd) / 255.0F;
-        float endB = (float) ColorHelper.Argb.getBlue(colorEnd) / 255.0F;
-        Matrix4f matrix4f = context.getMatrices().peek().getPositionMatrix();
-        vertexConsumer.vertex(matrix4f, (float)startX, (float)startY, 0.0f).color(startR, startG, startB, startA).next();
-        vertexConsumer.vertex(matrix4f, (float)startX, (float)endY, 0.0f).color(startR, startG, startB, startA).next();
-        vertexConsumer.vertex(matrix4f, (float)endX, (float)endY, 0.0f).color(endR, endG, endB, endA).next();
-        vertexConsumer.vertex(matrix4f, (float)endX, (float)startY, 0.0f).color(endR, endG, endB, endA).next();
     }
 
     @Override

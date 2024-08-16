@@ -22,9 +22,9 @@ import java.util.List;
 
 public class SideWindow implements Drawable, Element {
     protected static final ButtonTextures COPY_BUTTON_TEXTURES = new ButtonTextures(
-            new Identifier("bettercommandblockui:button_copy_enabled"),
-            new Identifier("bettercommandblockui:button_copy_disabled"),
-            new Identifier("bettercommandblockui:button_copy_focused")
+            Identifier.of("bettercommandblockui:button_copy_enabled"),
+            Identifier.of("bettercommandblockui:button_copy_disabled"),
+            Identifier.of("bettercommandblockui:button_copy_focused")
     );
 
     private static int piFraction = 4;

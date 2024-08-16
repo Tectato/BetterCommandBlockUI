@@ -53,15 +53,15 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected static final Text COMMAND_TEXT = Text.translatable("advMode.command");
     protected static final Text PREVIOUS_OUTPUT_TEXT = Text.translatable("advMode.previousOutput");
     protected static final ButtonTextures SIDE_WINDOW_BUTTON_TEXTURES = new ButtonTextures(
-            new Identifier("bettercommandblockui:button_side_window_enabled"),
-            new Identifier("bettercommandblockui:button_side_window_disabled"),
-            new Identifier("bettercommandblockui:button_side_window_focused")
+            Identifier.of("bettercommandblockui:button_side_window_enabled"),
+            Identifier.of("bettercommandblockui:button_side_window_disabled"),
+            Identifier.of("bettercommandblockui:button_side_window_focused")
     );
 
     protected static final ButtonTextures SAVE_BUTTON_TEXTURES = new ButtonTextures(
-            new Identifier("bettercommandblockui:button_save_enabled"),
-            new Identifier("bettercommandblockui:button_save_disabled"),
-            new Identifier("bettercommandblockui:button_save_focused")
+            Identifier.of("bettercommandblockui:button_save_enabled"),
+            Identifier.of("bettercommandblockui:button_save_disabled"),
+            Identifier.of("bettercommandblockui:button_save_focused")
     );
 
     protected CommandBlockState priorState;

@@ -35,14 +35,14 @@ dependencies {
             
     //Fabric api
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modApi "com.terraformersmc:modmenu:10.0.0-beta.1"
-	implementation("org.eclipse:org.eclipse.tm4e.core:0.12.1")
+	modApi "com.terraformersmc:modmenu:11.0.0-beta.1"
+	/*implementation("org.eclipse:org.eclipse.tm4e.core:0.12.1")
 	implementation("org.snakeyaml:snakeyaml-engine:2.7")
 	// Required dependencies for TM4E
 	implementation("org.jruby.joni:joni:2.2.1")
 	compileOnly("org.jruby.jcodings:jcodings:1.0.39")
 	modCompileOnly("me.shurik:better-highlighting:${project.better_highlighting_version}")
-	modRuntimeOnly("me.shurik:better-highlighting:${project.better_highlighting_version}")
+	modRuntimeOnly("me.shurik:better-highlighting:${project.better_highlighting_version}")*/
 	//modImplementation ":g4mespeed:1.2.1:mc1.17.1-release"
 
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
