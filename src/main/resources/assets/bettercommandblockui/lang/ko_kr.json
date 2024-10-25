@@ -22,7 +22,7 @@
   "bcbui.config.indentation": "들여쓰기",
   "bcbui.config.ignoreEnter": "엔터 키 무시",
   "bcbui.areaSelection.start": "[영역을 선택하세요]",
-  "bcbui.areaSelection.end": "[선택한 영역의 좌표가 클립보드에 복사되었습니다]"
+  "bcbui.areaSelection.end": "[선택한 영역의 좌표가 클립보드에 복사되었습니다]",
   "bcbui.direction.up": "위",
   "bcbui.direction.down": "아래",
   "bcbui.direction.north": "북",
