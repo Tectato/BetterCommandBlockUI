@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 
@@ -30,67 +31,68 @@ public class NotchedSlider extends ClickableWidget {
     @Override
     public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         //RenderSystem.setShaderTexture(0, SLIDER);
-        context.drawTexture(
+        context.drawGuiTexture(
+                RenderLayer::getGuiTextured,
                 SLIDER,
+                512,
+                16,
+                0,
+                0,
                 getX()-2,
                 getY(),
-                0,
-                0,
                 4,
-                16,
-                512,
                 16
         );
-        context.drawTexture(
+        context.drawGuiTexture(
+                RenderLayer::getGuiTextured,
                 SLIDER,
+                512,
+                16,
+                4,
+                0,
                 getX()+2,
                 getY(),
-                4,
-                0,
                 getWidth()-4,
-                16,
-                512,
                 16
         );
-        context.drawTexture(
+        context.drawGuiTexture(
+                RenderLayer::getGuiTextured,
                 SLIDER,
-                getX()+getWidth()-2,
-                getY(),
+                512,
+                16,
                 508,
                 0,
+                getX()+getWidth()-2,
+                getY(),
                 4,
-                16,
-                512,
                 16
         );
 
         //RenderSystem.setShaderTexture(0, SLIDER_NOTCH);
         float step = 1.0f/((float)subdivisions);
         for(int i=1; i<subdivisions; i++){
-            context.drawTexture(
+            context.drawGuiTexture(
+                    RenderLayer::getGuiTextured,
                     SLIDER_NOTCH,
-                    (int) (getX() + (i * step * getWidth())) - 2,
-                    getY(),
-                    0,
-                    0,
                     4,
                     16,
+                    0,
+                    0,
+                    (int) (getX() + (i * step * getWidth())) - 2,
+                    getY(),
                     4,
                     16
             );
         }
 
         //RenderSystem.setShaderTexture(0, SLIDER_PICK);
-        context.drawTexture(
-                SLIDER_PICK,
+        context.drawGuiTexture(
+                RenderLayer::getGuiTextured,
+                SLIDER_PICK.get(true, hovered),
                 (int) (getX() + (pos * getWidth()) - 4),
                 getY(),
-                0,
-                hovered ? 16 : 0,
                 8,
-                16,
-                8,
-                32
+                16
         );
     }
 

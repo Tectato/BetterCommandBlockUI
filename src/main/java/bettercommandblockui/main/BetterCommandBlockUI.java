@@ -19,17 +19,8 @@ import net.minecraft.util.math.Direction;
 import org.lwjgl.glfw.GLFW;
 
 public class BetterCommandBlockUI implements ClientModInitializer {
-    public static final Identifier BUTTON_MODE = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_mode.png");
-    public static final Identifier BUTTON_CONDITIONAL = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_conditional.png");
-    public static final Identifier BUTTON_ACTIVE = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_active.png");
-    public static final Identifier BUTTON_OUTPUT = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_output.png");
-    public static final Identifier BUTTON_TRACK_OUTPUT = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/button_track_output.png");
-    public static final Identifier SCROLLBAR_HORIZONTAL = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_horizontal.png");
-    public static final Identifier SCROLLBAR_VERTICAL = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/scrollbar_vertical.png");
-
-    public static final Identifier SLIDER = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/slider.png");
-    public static final Identifier SLIDER_NOTCH = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/slider_notch.png");
-    public static final Identifier SLIDER_PICK = Identifier.of("bettercommandblockui","textures/gui/bettercommandblockui/slider_pick.png");
+    public static final Identifier SLIDER = Identifier.of("bettercommandblockui:slider");
+    public static final Identifier SLIDER_NOTCH = Identifier.of("bettercommandblockui:slider_notch");
     public static final Identifier COMPASS_FRAME = Identifier.of("bettercommandblockui:compass_frame");
     public static final Identifier COMPASS_NEEDLE = Identifier.of("bettercommandblockui:compass_needle");
 
@@ -45,6 +36,47 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final Identifier ID_BLOCK_REPEAT_FOCUSED = Identifier.of("bettercommandblockui:block_repeat_focused");
     public static final Identifier ID_BLOCK_REPEAT_CONDITIONAL = Identifier.of("bettercommandblockui:block_repeat_conditional");
     public static final Identifier ID_BLOCK_REPEAT_CONDITIONAL_FOCUSED = Identifier.of("bettercommandblockui:block_repeat_conditional_focused");
+    public static final Identifier ID_BUTTON_IMPULSE_DISABLED = Identifier.of("bettercommandblockui:button_impulse_disabled");
+    public static final Identifier ID_BUTTON_IMPULSE_ENABLED = Identifier.of("bettercommandblockui:button_impulse_enabled");
+    public static final Identifier ID_BUTTON_IMPULSE_FOCUSED = Identifier.of("bettercommandblockui:button_impulse_focused");
+    public static final Identifier ID_BUTTON_CHAIN_DISABLED = Identifier.of("bettercommandblockui:button_chain_disabled");
+    public static final Identifier ID_BUTTON_CHAIN_ENABLED = Identifier.of("bettercommandblockui:button_chain_enabled");
+    public static final Identifier ID_BUTTON_CHAIN_FOCUSED = Identifier.of("bettercommandblockui:button_chain_focused");
+    public static final Identifier ID_BUTTON_REPEAT_DISABLED = Identifier.of("bettercommandblockui:button_repeat_disabled");
+    public static final Identifier ID_BUTTON_REPEAT_ENABLED = Identifier.of("bettercommandblockui:button_repeat_enabled");
+    public static final Identifier ID_BUTTON_REPEAT_FOCUSED = Identifier.of("bettercommandblockui:button_repeat_focused");
+    public static final Identifier ID_BUTTON_COMMAND_DISABLED = Identifier.of("bettercommandblockui:button_command_disabled");
+    public static final Identifier ID_BUTTON_COMMAND_ENABLED = Identifier.of("bettercommandblockui:button_command_enabled");
+    public static final Identifier ID_BUTTON_COMMAND_FOCUSED = Identifier.of("bettercommandblockui:button_command_focused");
+    public static final Identifier ID_BUTTON_OUTPUT_DISABLED = Identifier.of("bettercommandblockui:button_output_disabled");
+    public static final Identifier ID_BUTTON_OUTPUT_ENABLED = Identifier.of("bettercommandblockui:button_output_enabled");
+    public static final Identifier ID_BUTTON_OUTPUT_FOCUSED = Identifier.of("bettercommandblockui:button_output_focused");
+    public static final Identifier ID_BUTTON_POWER_INACTIVE_DISABLED = Identifier.of("bettercommandblockui:button_power_inactive_disabled");
+    public static final Identifier ID_BUTTON_POWER_INACTIVE_ENABLED = Identifier.of("bettercommandblockui:button_power_inactive_enabled");
+    public static final Identifier ID_BUTTON_POWER_INACTIVE_FOCUSED = Identifier.of("bettercommandblockui:button_power_inactive_focused");
+    public static final Identifier ID_BUTTON_POWER_ACTIVE_DISABLED = Identifier.of("bettercommandblockui:button_power_active_disabled");
+    public static final Identifier ID_BUTTON_POWER_ACTIVE_ENABLED = Identifier.of("bettercommandblockui:button_power_active_enabled");
+    public static final Identifier ID_BUTTON_POWER_ACTIVE_FOCUSED = Identifier.of("bettercommandblockui:button_power_active_focused");
+    public static final Identifier ID_BUTTON_IGNORE_OUTPUT_DISABLED = Identifier.of("bettercommandblockui:button_ignore_output_disabled");
+    public static final Identifier ID_BUTTON_IGNORE_OUTPUT_ENABLED = Identifier.of("bettercommandblockui:button_ignore_output_enabled");
+    public static final Identifier ID_BUTTON_IGNORE_OUTPUT_FOCUSED = Identifier.of("bettercommandblockui:button_ignore_output_focused");
+    public static final Identifier ID_BUTTON_TRACK_OUTPUT_DISABLED = Identifier.of("bettercommandblockui:button_track_output_disabled");
+    public static final Identifier ID_BUTTON_TRACK_OUTPUT_ENABLED = Identifier.of("bettercommandblockui:button_track_output_enabled");
+    public static final Identifier ID_BUTTON_TRACK_OUTPUT_FOCUSED = Identifier.of("bettercommandblockui:button_track_output_focused");
+    public static final Identifier ID_BUTTON_UNCONDITIONAL_DISABLED = Identifier.of("bettercommandblockui:button_unconditional_disabled");
+    public static final Identifier ID_BUTTON_UNCONDITIONAL_ENABLED = Identifier.of("bettercommandblockui:button_unconditional_enabled");
+    public static final Identifier ID_BUTTON_UNCONDITIONAL_FOCUSED = Identifier.of("bettercommandblockui:button_unconditional_focused");
+    public static final Identifier ID_BUTTON_CONDITIONAL_DISABLED = Identifier.of("bettercommandblockui:button_conditional_disabled");
+    public static final Identifier ID_BUTTON_CONDITIONAL_ENABLED = Identifier.of("bettercommandblockui:button_conditional_enabled");
+    public static final Identifier ID_BUTTON_CONDITIONAL_FOCUSED = Identifier.of("bettercommandblockui:button_conditional_focused");
+    public static final Identifier ID_SCROLLBAR_HORIZONTAL_DISABLED = Identifier.of("bettercommandblockui:scrollbar_horizontal_disabled");
+    public static final Identifier ID_SCROLLBAR_HORIZONTAL_ENABLED = Identifier.of("bettercommandblockui:scrollbar_horizontal_enabled");
+    public static final Identifier ID_SCROLLBAR_HORIZONTAL_FOCUSED = Identifier.of("bettercommandblockui:scrollbar_horizontal_focused");
+    public static final Identifier ID_SCROLLBAR_VERTICAL_DISABLED = Identifier.of("bettercommandblockui:scrollbar_vertical_disabled");
+    public static final Identifier ID_SCROLLBAR_VERTICAL_ENABLED = Identifier.of("bettercommandblockui:scrollbar_vertical_enabled");
+    public static final Identifier ID_SCROLLBAR_VERTICAL_FOCUSED = Identifier.of("bettercommandblockui:scrollbar_vertical_focused");
+    public static final Identifier ID_SLIDER_PICK_ENABLED = Identifier.of("bettercommandblockui:slider_pick_enabled");
+    public static final Identifier ID_SLIDER_PICK_FOCUSED = Identifier.of("bettercommandblockui:slider_pick_focused");
 
     public static final ButtonTextures BLOCK_IMPULSE = new ButtonTextures(ID_BLOCK_IMPULSE, ID_BLOCK_IMPULSE_FOCUSED);
     public static final ButtonTextures BLOCK_IMPULSE_CONDITIONAL = new ButtonTextures(ID_BLOCK_IMPULSE_CONDITIONAL, ID_BLOCK_IMPULSE_CONDITIONAL_FOCUSED);
@@ -52,6 +84,21 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final ButtonTextures BLOCK_CHAIN_CONDITIONAL = new ButtonTextures(ID_BLOCK_CHAIN_CONDITIONAL, ID_BLOCK_CHAIN_CONDITIONAL_FOCUSED);
     public static final ButtonTextures BLOCK_REPEAT = new ButtonTextures(ID_BLOCK_REPEAT, ID_BLOCK_REPEAT_FOCUSED);
     public static final ButtonTextures BLOCK_REPEAT_CONDITIONAL = new ButtonTextures(ID_BLOCK_REPEAT_CONDITIONAL, ID_BLOCK_REPEAT_CONDITIONAL_FOCUSED);
+
+    public static final ButtonTextures BUTTON_IMPULSE = new ButtonTextures(ID_BUTTON_IMPULSE_ENABLED, ID_BUTTON_IMPULSE_DISABLED, ID_BUTTON_IMPULSE_FOCUSED);
+    public static final ButtonTextures BUTTON_CHAIN = new ButtonTextures(ID_BUTTON_CHAIN_ENABLED, ID_BUTTON_CHAIN_DISABLED, ID_BUTTON_CHAIN_FOCUSED);
+    public static final ButtonTextures BUTTON_REPEAT = new ButtonTextures(ID_BUTTON_REPEAT_ENABLED, ID_BUTTON_REPEAT_DISABLED, ID_BUTTON_REPEAT_FOCUSED);
+    public static final ButtonTextures BUTTON_POWER_INACTIVE = new ButtonTextures(ID_BUTTON_POWER_INACTIVE_ENABLED, ID_BUTTON_POWER_INACTIVE_DISABLED, ID_BUTTON_POWER_INACTIVE_FOCUSED);
+    public static final ButtonTextures BUTTON_POWER_ACTIVE = new ButtonTextures(ID_BUTTON_POWER_ACTIVE_ENABLED, ID_BUTTON_POWER_ACTIVE_DISABLED, ID_BUTTON_POWER_ACTIVE_FOCUSED);
+    public static final ButtonTextures BUTTON_UNCONDITIONAL = new ButtonTextures(ID_BUTTON_UNCONDITIONAL_ENABLED, ID_BUTTON_UNCONDITIONAL_DISABLED, ID_BUTTON_UNCONDITIONAL_FOCUSED);
+    public static final ButtonTextures BUTTON_CONDITIONAL = new ButtonTextures(ID_BUTTON_CONDITIONAL_ENABLED, ID_BUTTON_CONDITIONAL_DISABLED, ID_BUTTON_CONDITIONAL_FOCUSED);
+    public static final ButtonTextures BUTTON_COMMAND = new ButtonTextures(ID_BUTTON_COMMAND_ENABLED, ID_BUTTON_COMMAND_DISABLED, ID_BUTTON_COMMAND_FOCUSED);
+    public static final ButtonTextures BUTTON_OUTPUT = new ButtonTextures(ID_BUTTON_OUTPUT_ENABLED, ID_BUTTON_OUTPUT_DISABLED, ID_BUTTON_OUTPUT_FOCUSED);
+    public static final ButtonTextures BUTTON_TRACK_OUTPUT = new ButtonTextures(ID_BUTTON_TRACK_OUTPUT_ENABLED, ID_BUTTON_TRACK_OUTPUT_DISABLED, ID_BUTTON_TRACK_OUTPUT_FOCUSED);
+    public static final ButtonTextures BUTTON_IGNORE_OUTPUT = new ButtonTextures(ID_BUTTON_IGNORE_OUTPUT_ENABLED, ID_BUTTON_IGNORE_OUTPUT_DISABLED, ID_BUTTON_IGNORE_OUTPUT_FOCUSED);
+    public static final ButtonTextures SLIDER_PICK = new ButtonTextures(ID_SLIDER_PICK_ENABLED, ID_SLIDER_PICK_FOCUSED);
+    public static final ButtonTextures SCROLLBAR_HORIZONTAL = new ButtonTextures(ID_SCROLLBAR_HORIZONTAL_ENABLED, ID_SCROLLBAR_HORIZONTAL_DISABLED, ID_SCROLLBAR_HORIZONTAL_FOCUSED);
+    public static final ButtonTextures SCROLLBAR_VERTICAL = new ButtonTextures(ID_SCROLLBAR_VERTICAL_ENABLED, ID_SCROLLBAR_VERTICAL_DISABLED, ID_SCROLLBAR_VERTICAL_FOCUSED);
 
     public static ButtonTextures BlockStateToButtonTextures(BlockState state){
         boolean conditional = state.get(CommandBlock.CONDITIONAL);

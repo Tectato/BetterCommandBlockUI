@@ -16,6 +16,7 @@ import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.network.packet.c2s.play.UpdateCommandBlockC2SPacket;
 import net.minecraft.registry.Registries;
@@ -82,7 +83,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                         Text.of(""),
                         (button -> this.mode = ((CyclingTexturedButtonWidget<CommandBlockBlockEntity.Type>)button).getValue()),
                         client.currentScreen,
-                        BUTTON_MODE,
+                        new net.minecraft.client.gui.screen.ButtonTextures[]{BUTTON_IMPULSE, BUTTON_CHAIN, BUTTON_REPEAT},
                         0,
                         new CommandBlockBlockEntity.Type[]{REDSTONE, SEQUENCE, AUTO},
                         modeTooltips
@@ -100,7 +101,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                         Text.of(""),
                         (button -> this.conditional = ((CyclingTexturedButtonWidget<Boolean>)button).getValue()),
                         client.currentScreen,
-                        BUTTON_CONDITIONAL,
+                        new net.minecraft.client.gui.screen.ButtonTextures[]{BUTTON_UNCONDITIONAL, BUTTON_CONDITIONAL},
                         0,
                         new Boolean[]{false, true},
                         conditionalTooltips
@@ -118,7 +119,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                         Text.of(""),
                         (button -> this.autoActivate = ((CyclingTexturedButtonWidget<Boolean>)button).getValue()),
                         client.currentScreen,
-                        BUTTON_ACTIVE,
+                        new net.minecraft.client.gui.screen.ButtonTextures[]{BUTTON_POWER_INACTIVE, BUTTON_POWER_ACTIVE},
                         0,
                         new Boolean[]{false, true},
                         activeTooltips
@@ -258,7 +259,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
             //context.fill(28,6,46,24, 0xFF000000);
             //context.drawBorder(27, 5, 20, 20, 0xFFA0A0A0);
             Identifier texture = BlockStateToButtonTextures(blockState).enabled();
-            context.drawGuiTexture(texture, 27, 5, 20, 20);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, texture, 27, 5, 20, 20);
             context.fill(27,5,46,24, 0x8F000000);
             renderAsterisk(context, 47, 1, wasModified());
 

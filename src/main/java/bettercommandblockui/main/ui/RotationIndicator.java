@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import org.joml.AxisAngle4d;
 import org.joml.Quaternionf;
@@ -35,11 +36,11 @@ public class RotationIndicator extends ClickableWidget {
 
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_FRAME, getX(), getY(), 32, 32);
+        context.drawGuiTexture(RenderLayer::getGuiTextured, BetterCommandBlockUI.COMPASS_FRAME, getX(), getY(), 32, 32);
         context.getMatrices().push();
         context.getMatrices().translate(getX() + 16, getY() + 16, 0);
         context.getMatrices().multiply(new Quaternionf(new AxisAngle4d((angle + 1) * Math.PI, 0, 0, 1)));
-        context.drawGuiTexture(BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32);
+        context.drawGuiTexture(RenderLayer::getGuiTextured, BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32);
         context.getMatrices().pop();
     }
 

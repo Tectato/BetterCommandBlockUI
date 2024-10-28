@@ -132,7 +132,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.setPreviousOutputText(trackOutput);
             this.setTrackingOutputDefaultCheckbox.active =
                     (!setTrackingOutputDefaultCheckbox.isChecked()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
-        }, client.currentScreen, BUTTON_TRACK_OUTPUT, trackOutput?0:1, new Boolean[]{true, false}, trackOutputTooltips));
+        }, client.currentScreen, new ButtonTextures[]{BUTTON_TRACK_OUTPUT, BUTTON_IGNORE_OUTPUT}, trackOutput?0:1, new Boolean[]{true, false}, trackOutputTooltips));
 
         this.setTrackingOutputDefaultCheckbox = this.addDrawableChild(
                 CheckboxWidget.builder(Text.of(""), textRenderer)
@@ -159,7 +159,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.consoleCommandTextField.setVisible(!showOutput);
             this.previousOutputTextField.setVisible(showOutput);
             this.setShowOutputDefaultCheckbox.active = showOutput;
-        }, client.currentScreen, BUTTON_OUTPUT, SHOW_OUTPUT_DEFAULT?1:0, new Boolean[]{false, true}, outputTooltips));
+        }, client.currentScreen, new ButtonTextures[]{BUTTON_COMMAND, BUTTON_OUTPUT}, SHOW_OUTPUT_DEFAULT?1:0, new Boolean[]{false, true}, outputTooltips));
 
         this.setShowOutputDefaultCheckbox = this.addDrawableChild(
                 CheckboxWidget.builder(Text.of(""), textRenderer)

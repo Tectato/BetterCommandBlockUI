@@ -7,6 +7,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
@@ -46,22 +47,15 @@ public class ScrollbarWidget extends ClickableWidget {
 
     protected void renderFrame(DrawContext context){
         if(horizontal){
-            RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-            context.drawTexture(SCROLLBAR_HORIZONTAL, this.getX(), this.getY(), 0, 0, 0, this.width / 2, this.height, 256, 30);
-            context.drawTexture(SCROLLBAR_HORIZONTAL, this.getX() + this.width / 2, this.getY(), 0, 256 - this.width / 2, 0, this.width / 2, this.height, 256, 30);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_HORIZONTAL.get(false,false), 256, 10, 0, 0, this.getX(), this.getY(), this.width / 2, this.height);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_HORIZONTAL.get(false,false), 256, 10, 256 - this.width / 2, 0, this.getX() + this.width / 2, this.getY(), this.width / 2, this.height);
         } else {
-            RenderSystem.setShaderTexture(0, SCROLLBAR_VERTICAL);
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-            context.drawTexture(SCROLLBAR_VERTICAL, this.getX(), this.getY(), 0, 0, 0, this.width, this.height / 2, 30 , 256);
-            context.drawTexture(SCROLLBAR_VERTICAL, this.getX(), this.getY() + height / 2, 0, 0, 256 - this.height / 2, this.width, this.height / 2, 30 , 256);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_VERTICAL.get(false,false), 10 , 256, 0, 0, this.getX(), this.getY(),  this.width, this.height / 2);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_VERTICAL.get(false,false), 10 , 256, 0, 256 - this.height / 2, this.getX(), this.getY() + height / 2, this.width, this.height / 2);
         }
     }
 
     protected void renderSlider(DrawContext context, int mouseX, int mouseY, float delta) {
-        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -69,15 +63,11 @@ public class ScrollbarWidget extends ClickableWidget {
         int i = (this.hovered || this.dragging)?1:0;
 
         if(horizontal){
-            RenderSystem.setShaderTexture(0, SCROLLBAR_HORIZONTAL);
-
-            context.drawTexture(SCROLLBAR_HORIZONTAL, this.getX() + (int)(pos * (length - barLength)), this.getY(), 0, 0, 10 + i * 10, barLength / 2, this.height, 256, 30);
-            context.drawTexture(SCROLLBAR_HORIZONTAL, this.getX() + (int)(pos * (length - barLength)) +  barLength / 2, this.getY(), 0, 256 - barLength / 2, 10 + i * 10,  barLength / 2, this.height, 256, 30);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_HORIZONTAL.get(true,hovered), 256, 10, 0, 0, this.getX() + (int)(pos * (length - barLength)), this.getY(), barLength / 2, this.height);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_HORIZONTAL.get(true,hovered), 256, 10, 256 - barLength / 2, 0,  this.getX() + (int)(pos * (length - barLength)) +  barLength / 2, this.getY(),  barLength / 2, this.height);
         } else {
-            RenderSystem.setShaderTexture(0, SCROLLBAR_VERTICAL);
-
-            context.drawTexture(SCROLLBAR_VERTICAL, this.getX(), this.getY() + (int)(pos * (length - barLength)), 0, 10 + i * 10, 0, this.width, barLength / 2, 30, 256);
-            context.drawTexture(SCROLLBAR_VERTICAL, this.getX(), this.getY() + (int)(pos * (length - barLength)) +  barLength / 2, 0, 10 + i * 10, 256 - barLength / 2,  this.width, barLength / 2, 30, 256);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_VERTICAL.get(true,hovered), 10, 256,0, 0, this.getX(), this.getY() + (int)(pos * (length - barLength)), this.width, barLength / 2);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_VERTICAL.get(true,hovered), 10, 256,0, 256 - barLength / 2, this.getX(), this.getY() + (int)(pos * (length - barLength)) +  barLength / 2,   this.width, barLength / 2);
         }
     }
 
