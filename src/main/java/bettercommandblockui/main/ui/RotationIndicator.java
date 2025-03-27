@@ -67,7 +67,6 @@ public class RotationIndicator extends ClickableWidget {
         return false;
     }
 
-    @Override
     public boolean clicked(double mouseX, double mouseY){
         return midPos.distance(new Vector2d(mouseX, mouseY)) <= getWidth() / 2.0;
     }

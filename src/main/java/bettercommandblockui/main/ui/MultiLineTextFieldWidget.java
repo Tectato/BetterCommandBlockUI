@@ -5,7 +5,6 @@ import bettercommandblockui.main.ui.screen.BetterCommandBlockScreen;
 import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.mixin.TextFieldWidgetAccessor;
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 //import me.shurik.betterhighlighting.api.BuiltinGrammar;
 //import me.shurik.betterhighlighting.api.TextMateRegistry;
@@ -171,8 +170,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
         context.getMatrices().translate(0.0,0.0,0.1);
 
-        RenderSystem.enableColorLogicOp();
-        RenderSystem.logicOp(GlStateManager.LogicOp.OR_REVERSE);
         for (int i = firstSelectedLine; i <= lastSelectedLine; i++) {
             if(i < scrolledLines || i >= scrolledLines+visibleLines) continue;
             int x1 = this.getX() + 5;
@@ -187,7 +184,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     if (renderVerticalCursor) {
                         context.fill(x1, y - 1, x1 + 1, y + 1 + accessor.getTextRenderer().fontHeight, -3092272);
                     } else {
-                        RenderSystem.disableColorLogicOp();
                         context.drawTextWithShadow(accessor.getTextRenderer(), "_", x1, y, -3092272);
                     }
                 }
@@ -205,7 +201,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             }
             accessor.invokeDrawSelectionHighlight(context, x1, y, x2, y + 10);
         }
-        RenderSystem.disableColorLogicOp();
 
         renderSuggestor(context, mouseX, mouseY);
     }
@@ -342,6 +337,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         this.setSelectionEnd(accessor.getSelectionStart());
         this.onChanged(accessor.getText(), true);
         this.updateScrollPositions();
+        textModified = true;
     }
 
     private void erase(int offset) {

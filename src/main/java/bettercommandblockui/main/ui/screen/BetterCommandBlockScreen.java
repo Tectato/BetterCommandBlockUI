@@ -169,9 +169,9 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
     }
 
     public void moveAlongChain(Direction dir){
-        /*if(wasModified()){
+        if(wasModified() && AUTOSAVE){
             commit();
-        }*/
+        }
         BlockPos position = BlockPos.ofFloored(commandExecutor.getPos());
         assert MinecraftClient.getInstance().interactionManager != null;
         MinecraftClient.getInstance().interactionManager.interactBlock(MinecraftClient.getInstance().player, Hand.MAIN_HAND, new BlockHitResult(

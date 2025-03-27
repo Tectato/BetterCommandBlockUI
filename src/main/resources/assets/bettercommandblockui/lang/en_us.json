@@ -21,6 +21,7 @@
   "bcbui.config.lineBreaks": "Line breaks",
   "bcbui.config.indentation": "Indentation",
   "bcbui.config.ignoreEnter": "Ignore Enter presses",
+  "bcbui.config.autosave": "Save automatically",
   "bcbui.areaSelection.start": "[Started Area Selection]",
   "bcbui.areaSelection.end": "[Area Selector pasted to clipboard]",
   "bcbui.direction.up": "Up",

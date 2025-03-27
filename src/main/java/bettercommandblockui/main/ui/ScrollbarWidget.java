@@ -4,12 +4,14 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 
 import static bettercommandblockui.main.BetterCommandBlockUI.SCROLLBAR_HORIZONTAL;
@@ -24,6 +26,9 @@ public class ScrollbarWidget extends ClickableWidget {
     protected double scale;
     protected int length;
     protected int barLength;
+    protected int frameRepeatLength;
+    protected int barRepeatLength;
+    protected final int textureLength = 256;
     protected java.util.function.Consumer<Double> changedListener;
 
     public ScrollbarWidget(int x, int y, int width, int height, Text message, boolean horizontal) {
@@ -32,6 +37,8 @@ public class ScrollbarWidget extends ClickableWidget {
         this.scale = 1.0d;
         this.length = horizontal?width:height;
         this.barLength =  (int) ((double)length / scale);
+        this.frameRepeatLength = length - textureLength;
+        this.barRepeatLength = barLength - textureLength;
     }
 
     @Override
@@ -46,28 +53,32 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     protected void renderFrame(DrawContext context){
-        if(horizontal){
-            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_HORIZONTAL.get(false,false), 256, 10, 0, 0, this.getX(), this.getY(), this.width / 2, this.height);
-            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_HORIZONTAL.get(false,false), 256, 10, 256 - this.width / 2, 0, this.getX() + this.width / 2, this.getY(), this.width / 2, this.height);
-        } else {
-            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_VERTICAL.get(false,false), 10 , 256, 0, 0, this.getX(), this.getY(),  this.width, this.height / 2);
-            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_VERTICAL.get(false,false), 10 , 256, 0, 256 - this.height / 2, this.getX(), this.getY() + height / 2, this.width, this.height / 2);
-        }
+        renderLongBox(context, false, false, 0, horizontal ? width : height, frameRepeatLength);
     }
 
     protected void renderSlider(DrawContext context, int mouseX, int mouseY, float delta) {
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
-        int i = (this.hovered || this.dragging)?1:0;
+        renderLongBox(context, true, hovered, (int)(pos * (length - barLength)), barLength, barRepeatLength);
+    }
 
+    protected void renderLongBox(DrawContext context, boolean enabled, boolean hovered, int position, int boxLength, int repeatLength){
         if(horizontal){
-            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_HORIZONTAL.get(true,hovered), 256, 10, 0, 0, this.getX() + (int)(pos * (length - barLength)), this.getY(), barLength / 2, this.height);
-            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_HORIZONTAL.get(true,hovered), 256, 10, 256 - barLength / 2, 0,  this.getX() + (int)(pos * (length - barLength)) +  barLength / 2, this.getY(),  barLength / 2, this.height);
+            Identifier textures = SCROLLBAR_HORIZONTAL.get(enabled,hovered);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, textures, textureLength, 10, 0, 0, this.getX() + position, this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, textures, textureLength, 10, Math.max(textureLength/2, textureLength - boxLength / 2), 0, Math.max(this.getX() + position + boxLength/2, this.getX() + position + boxLength - textureLength/2), this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
+            int drawX = this.getX() + position + textureLength/2;
+            for (int i=0; i<(repeatLength/(textureLength/2))+1; i++){
+                context.drawGuiTexture(RenderLayer::getGuiTextured, textures, textureLength, 10, textureLength/4, 0, drawX, this.getY(), Math.min((repeatLength - i*textureLength/2), textureLength/2), this.height);
+                drawX += textureLength/2;
+            }
         } else {
-            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_VERTICAL.get(true,hovered), 10, 256,0, 0, this.getX(), this.getY() + (int)(pos * (length - barLength)), this.width, barLength / 2);
-            context.drawGuiTexture(RenderLayer::getGuiTextured, SCROLLBAR_VERTICAL.get(true,hovered), 10, 256,0, 256 - barLength / 2, this.getX(), this.getY() + (int)(pos * (length - barLength)) +  barLength / 2,   this.width, barLength / 2);
+            Identifier textures = SCROLLBAR_VERTICAL.get(enabled,hovered);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, textures, 10 , textureLength, 0, 0, this.getX(), this.getY() + position,  this.width, Math.min(boxLength / 2, textureLength / 2));
+            context.drawGuiTexture(RenderLayer::getGuiTextured, textures, 10 , textureLength, 0, Math.max(textureLength/2, textureLength - boxLength / 2), this.getX(), Math.max(this.getY() + position + boxLength/2, this.getY() + position + boxLength - textureLength/2), this.width, Math.min(boxLength / 2, textureLength / 2));
+            int drawY = this.getY() + textureLength/2;
+            for (int i=0; i<(repeatLength/(textureLength/2))+1; i++){
+                context.drawGuiTexture(RenderLayer::getGuiTextured, textures, 10, textureLength, 0, textureLength/4, this.getX(), drawY, this.width, Math.min((repeatLength - i*textureLength/2), textureLength/2));
+                drawY += textureLength/2;
+            }
         }
     }
 
@@ -75,13 +86,13 @@ public class ScrollbarWidget extends ClickableWidget {
         this.changedListener = changedListener;
     }
 
-    @Override
+    /*@Override
     protected boolean clicked(double mouseX, double mouseY){
         if (!this.visible) {
             return false;
         }
         return checkHovered(mouseX, mouseY);
-    }
+    }*/
 
     protected boolean checkHovered(double mouseX, double mouseY){
         if(horizontal){
@@ -93,7 +104,7 @@ public class ScrollbarWidget extends ClickableWidget {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button) && this.clicked(mouseX, mouseY)) {
+        if (this.isValidClickButton(button) && this.checkHovered(mouseX, mouseY)) {
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
             this.onClick(mouseX, mouseY);
             return true;
@@ -159,6 +170,7 @@ public class ScrollbarWidget extends ClickableWidget {
     public void setScale(double newScale){
         this.scale = Math.max(newScale,1);
         this.barLength = (int) ((double)length / Math.min(scale,8));
+        this.barRepeatLength = barLength - textureLength;
     }
 
     public void updatePos(double newPos){

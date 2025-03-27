@@ -85,6 +85,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected boolean trackOutput = true;
     protected boolean showOutput = SHOW_OUTPUT_DEFAULT;
     protected boolean updated = false;
+    protected boolean closing = false;
     protected static boolean showSideWindow = false;
 
     protected static int buttonHeight = 20;
@@ -256,6 +257,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     @Override
     public void close(){
+        if (!closing && AUTOSAVE && wasModified()){
+            commit();
+        }
         super.close();
     }
 
@@ -341,6 +345,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.commitAndClose();
             return true;
         }
+        if (keyCode == 83 && hasControlDown() && ((MultiLineTextFieldWidget)this.consoleCommandTextField).wasModified()){ // CTRL + S
+            this.commit();
+        }
         return false;
     }
 
@@ -391,6 +398,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected void commitAndClose() {
         commit();
         assert this.client != null;
+        closing = true;
         close();
     }
 
@@ -405,10 +413,10 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
         if(showOutput){
-            context.drawTextWithShadow(this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
+            context.drawTextWithShadow(this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.previousOutputTextField.getX(), 40, 0xA0A0A0);
             this.previousOutputTextField.render(context, mouseX, mouseY, delta);
         } else {
-            context.drawTextWithShadow(this.textRenderer, COMMAND_TEXT, this.width / 2 - 150, 40, 0xA0A0A0);
+            context.drawTextWithShadow(this.textRenderer, COMMAND_TEXT, this.consoleCommandTextField.getX(), 40, 0xA0A0A0);
             this.consoleCommandTextField.render(context, mouseX, mouseY, delta);
         }
         renderAsterisk(context, toggleTrackingOutputButton, toggleTrackingOutputButton.getValue() != priorState.trackOutput);

@@ -134,6 +134,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static final String VAR_WRAPAROUND = "wraparound";
     public static final String VAR_FORMAT_STRINGS = "format_strings";
     public static final String VAR_IGNORE_ENTER = "ignore_enter";
+    public static final String VAR_AUTOSAVE = "autosave";
     public static final String VAR_NEWLINE_PRE_OPEN_BRACKET = "newline_pre_open_bracket";
     public static final String VAR_NEWLINE_POST_OPEN_BRACKET = "newline_post_open_bracket";
     public static final String VAR_NEWLINE_PRE_CLOSE_BRACKET = "newline_pre_close_bracket";
@@ -154,6 +155,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static int WRAPAROUND_WIDTH = CONFIG.getOrDefault(VAR_WRAPAROUND, 250);
     public static boolean FORMAT_STRINGS = CONFIG.getOrDefault(VAR_FORMAT_STRINGS, true);
     public static boolean IGNORE_ENTER = CONFIG.getOrDefault(VAR_IGNORE_ENTER, false);
+    public static boolean AUTOSAVE = CONFIG.getOrDefault(VAR_AUTOSAVE, false);
     public static boolean NEWLINE_PRE_OPEN_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_PRE_OPEN_BRACKET, true);
     public static boolean NEWLINE_POST_OPEN_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_POST_OPEN_BRACKET, true);
     public static boolean NEWLINE_PRE_CLOSE_BRACKET = CONFIG.getOrDefault(VAR_NEWLINE_PRE_CLOSE_BRACKET, true);
@@ -202,6 +204,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
         if(key.equals(VAR_WRAPAROUND)) WRAPAROUND_WIDTH = CONFIG.getOrDefault(key, 250);
         if(key.equals(VAR_FORMAT_STRINGS)) FORMAT_STRINGS = CONFIG.getOrDefault(key, true);
         if(key.equals(VAR_IGNORE_ENTER)) IGNORE_ENTER = CONFIG.getOrDefault(key, false);
+        if(key.equals(VAR_AUTOSAVE)) AUTOSAVE = CONFIG.getOrDefault(key, false);
         if(key.equals(VAR_NEWLINE_PRE_OPEN_BRACKET)) NEWLINE_PRE_OPEN_BRACKET = CONFIG.getOrDefault(key, true);
         if(key.equals(VAR_NEWLINE_POST_OPEN_BRACKET)) NEWLINE_POST_OPEN_BRACKET = CONFIG.getOrDefault(key, true);
         if(key.equals(VAR_NEWLINE_PRE_CLOSE_BRACKET)) NEWLINE_PRE_CLOSE_BRACKET = CONFIG.getOrDefault(key, true);
@@ -233,6 +236,8 @@ public class BetterCommandBlockUI implements ClientModInitializer {
                 "format_strings=true\n\n" +
                 "# Whether to ignore enter presses\n" +
                 "ignore_enter=false\n\n" +
+                "# Whether to save automatically when closing the screen or moving through the chain\n" +
+                "autosave=false\n\n" +
                 "# Newline settings\n" +
                 "newline_pre_open_bracket=true\n" +
                 "newline_post_open_bracket=true\n" +

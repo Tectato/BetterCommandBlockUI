@@ -117,13 +117,13 @@ public class NotchedSlider extends ClickableWidget {
         pos = snap(Math.min(Math.max(value, 0.0d), 1.0d), 1.0d/subdivisions);
     }
 
-    @Override
+    /*@Override
     protected boolean clicked(double mouseX, double mouseY){
         if (!this.visible) {
             return false;
         }
         return checkHovered(mouseX, mouseY);
-    }
+    }*/
 
     private boolean checkHovered(double mouseX, double mouseY){
         return mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + length && mouseY < this.getY() + this.height;
@@ -131,7 +131,7 @@ public class NotchedSlider extends ClickableWidget {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button) && checkHovered(mouseX, mouseY) && this.clicked(mouseX, mouseY)) {
+        if (this.isValidClickButton(button) && checkHovered(mouseX, mouseY) && this.visible) {
             this.dragging = true;
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
             this.onClick(mouseX, mouseY);

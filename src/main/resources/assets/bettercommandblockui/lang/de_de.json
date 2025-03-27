@@ -21,6 +21,7 @@
   "bcbui.config.lineBreaks": "Zeilenumbrüche",
   "bcbui.config.indentation": "Einschub",
   "bcbui.config.ignoreEnter": "Eingabetaste ignorieren",
+  "bcbui.config.autosave": "Automatisch speichern",
   "bcbui.areaSelection.start": "[Bereichauswahl gestartet]",
   "bcbui.areaSelection.end": "[Bereichselektor in Zwischenablage gespeichert]",
   "bcbui.direction.up": "Oben",
