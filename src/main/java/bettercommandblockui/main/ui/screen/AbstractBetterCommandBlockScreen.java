@@ -26,6 +26,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.CommandBlockExecutor;
+import org.joml.Matrix3x2fStack;
 import org.lwjgl.glfw.GLFW;
 
 import java.time.Duration;
@@ -410,13 +411,14 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFF);
+        super.render(context, mouseX, mouseY, delta);
+        //this.renderBackground(context, mouseX, mouseY, delta);
+        context.drawCenteredTextWithShadow(this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFFFF);
         if(showOutput){
-            context.drawTextWithShadow(this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.previousOutputTextField.getX(), 40, 0xA0A0A0);
+            context.drawTextWithShadow(this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.previousOutputTextField.getX(), 40, 0xFFA0A0A0);
             this.previousOutputTextField.render(context, mouseX, mouseY, delta);
         } else {
-            context.drawTextWithShadow(this.textRenderer, COMMAND_TEXT, this.consoleCommandTextField.getX(), 40, 0xA0A0A0);
+            context.drawTextWithShadow(this.textRenderer, COMMAND_TEXT, this.consoleCommandTextField.getX(), 40, 0xFFA0A0A0);
             this.consoleCommandTextField.render(context, mouseX, mouseY, delta);
         }
         renderAsterisk(context, toggleTrackingOutputButton, toggleTrackingOutputButton.getValue() != priorState.trackOutput);
@@ -426,11 +428,11 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         darkenCheckbox(context, setTrackingOutputDefaultCheckbox);
         darkenCheckbox(context, setShowOutputDefaultCheckbox);
 
-        MatrixStack matrixStack = context.getMatrices();
-        matrixStack.push();
-        matrixStack.translate(0,0,1);
+        /*Matrix3x2fStack matrixStack = context.getMatrices();
+        matrixStack.pushMatrix();
+        matrixStack.translate(0,0,1);*/
         sideWindow.render(context, mouseX, mouseY, delta);
-        matrixStack.pop();
+        //matrixStack.popMatrix();
     }
 
     private void darkenCheckbox(DrawContext context, CheckboxWidget checkbox){
@@ -445,6 +447,6 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     protected void renderAsterisk(DrawContext context, int x, int y, boolean draw){
         if(!draw) return;
-        context.drawTextWithShadow(textRenderer, "*", x, y, 0xFFC000);
+        context.drawTextWithShadow(textRenderer, "*", x, y, 0xFFFFC000);
     }
 }

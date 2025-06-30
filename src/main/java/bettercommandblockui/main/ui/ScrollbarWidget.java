@@ -3,6 +3,7 @@ package bettercommandblockui.main.ui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
@@ -63,20 +64,20 @@ public class ScrollbarWidget extends ClickableWidget {
     protected void renderLongBox(DrawContext context, boolean enabled, boolean hovered, int position, int boxLength, int repeatLength){
         if(horizontal){
             Identifier textures = SCROLLBAR_HORIZONTAL.get(enabled,hovered);
-            context.drawGuiTexture(RenderLayer::getGuiTextured, textures, textureLength, 10, 0, 0, this.getX() + position, this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
-            context.drawGuiTexture(RenderLayer::getGuiTextured, textures, textureLength, 10, Math.max(textureLength/2, textureLength - boxLength / 2), 0, Math.max(this.getX() + position + boxLength/2, this.getX() + position + boxLength - textureLength/2), this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, textures, textureLength, 10, 0, 0, this.getX() + position, this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, textures, textureLength, 10, Math.max(textureLength/2, textureLength - boxLength / 2), 0, Math.max(this.getX() + position + boxLength/2, this.getX() + position + boxLength - textureLength/2), this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
             int drawX = this.getX() + position + textureLength/2;
             for (int i=0; i<(repeatLength/(textureLength/2))+1; i++){
-                context.drawGuiTexture(RenderLayer::getGuiTextured, textures, textureLength, 10, textureLength/4, 0, drawX, this.getY(), Math.min((repeatLength - i*textureLength/2), textureLength/2), this.height);
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, textures, textureLength, 10, textureLength/4, 0, drawX, this.getY(), Math.min((repeatLength - i*textureLength/2), textureLength/2), this.height);
                 drawX += textureLength/2;
             }
         } else {
             Identifier textures = SCROLLBAR_VERTICAL.get(enabled,hovered);
-            context.drawGuiTexture(RenderLayer::getGuiTextured, textures, 10 , textureLength, 0, 0, this.getX(), this.getY() + position,  this.width, Math.min(boxLength / 2, textureLength / 2));
-            context.drawGuiTexture(RenderLayer::getGuiTextured, textures, 10 , textureLength, 0, Math.max(textureLength/2, textureLength - boxLength / 2), this.getX(), Math.max(this.getY() + position + boxLength/2, this.getY() + position + boxLength - textureLength/2), this.width, Math.min(boxLength / 2, textureLength / 2));
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, textures, 10 , textureLength, 0, 0, this.getX(), this.getY() + position,  this.width, Math.min(boxLength / 2, textureLength / 2));
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, textures, 10 , textureLength, 0, Math.max(textureLength/2, textureLength - boxLength / 2), this.getX(), Math.max(this.getY() + position + boxLength/2, this.getY() + position + boxLength - textureLength/2), this.width, Math.min(boxLength / 2, textureLength / 2));
             int drawY = this.getY() + textureLength/2;
             for (int i=0; i<(repeatLength/(textureLength/2))+1; i++){
-                context.drawGuiTexture(RenderLayer::getGuiTextured, textures, 10, textureLength, 0, textureLength/4, this.getX(), drawY, this.width, Math.min((repeatLength - i*textureLength/2), textureLength/2));
+                context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, textures, 10, textureLength, 0, textureLength/4, this.getX(), drawY, this.width, Math.min((repeatLength - i*textureLength/2), textureLength/2));
                 drawY += textureLength/2;
             }
         }

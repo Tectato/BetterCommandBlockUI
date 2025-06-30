@@ -2,6 +2,7 @@ package bettercommandblockui.main.ui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -32,7 +33,7 @@ public class NotchedSlider extends ClickableWidget {
     public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         //RenderSystem.setShaderTexture(0, SLIDER);
         context.drawGuiTexture(
-                RenderLayer::getGuiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 SLIDER,
                 512,
                 16,
@@ -44,7 +45,7 @@ public class NotchedSlider extends ClickableWidget {
                 16
         );
         context.drawGuiTexture(
-                RenderLayer::getGuiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 SLIDER,
                 512,
                 16,
@@ -56,7 +57,7 @@ public class NotchedSlider extends ClickableWidget {
                 16
         );
         context.drawGuiTexture(
-                RenderLayer::getGuiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 SLIDER,
                 512,
                 16,
@@ -72,7 +73,7 @@ public class NotchedSlider extends ClickableWidget {
         float step = 1.0f/((float)subdivisions);
         for(int i=1; i<subdivisions; i++){
             context.drawGuiTexture(
-                    RenderLayer::getGuiTextured,
+                    RenderPipelines.GUI_TEXTURED,
                     SLIDER_NOTCH,
                     4,
                     16,
@@ -87,7 +88,7 @@ public class NotchedSlider extends ClickableWidget {
 
         //RenderSystem.setShaderTexture(0, SLIDER_PICK);
         context.drawGuiTexture(
-                RenderLayer::getGuiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 SLIDER_PICK.get(true, hovered),
                 (int) (getX() + (pos * getWidth()) - 4),
                 getY(),

@@ -27,11 +27,11 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
 
     @Override
     protected void renderFrame(DrawContext context){
-        context.getMatrices().push();
-        context.getMatrices().translate(getX() + getWidth()/2.0f, getY() + getHeight()/2.0f, 0);
-        context.getMatrices().multiply(new Quaternionf(new AxisAngle4d(0.5f * Math.PI, 0, 0, 1)));
+        context.getMatrices().pushMatrix();
+        context.getMatrices().translate(getX() + getWidth()/2.0f, getY() + getHeight()/2.0f);
+        context.getMatrices().rotate((float) (0.5f * Math.PI));
         context.fillGradient(-getHeight()/2, -getWidth()/2, getHeight()/2, getWidth()/2, color, 0xFF000000);
-        context.getMatrices().pop();
+        context.getMatrices().popMatrix();
     }
 
     @Override

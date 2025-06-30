@@ -3,6 +3,7 @@ package bettercommandblockui.main.ui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
@@ -74,7 +75,7 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
         TextRenderer textRenderer = minecraftClient.textRenderer;
         int i = this.active?(this.isHovered()?2:1):0;
-        context.drawGuiTexture(RenderLayer::getGuiTextured, this.textures[this.tooltipSupplier.getCurrentIndex()].get(this.active,this.isHovered()), this.getX(), this.getY(), 20, 20);
+        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.textures[this.tooltipSupplier.getCurrentIndex()].get(this.active,this.isHovered()), this.getX(), this.getY(), 20, 20);
         //this.renderBackground(matrices, minecraftClient, mouseX, mouseY);
         int j = this.active ? 0xFFFFFF : 0xA0A0A0;
         context.drawCenteredTextWithShadow(textRenderer, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0f) << 24);

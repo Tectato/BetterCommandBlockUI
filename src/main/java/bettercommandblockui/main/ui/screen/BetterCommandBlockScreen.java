@@ -11,6 +11,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.CommandBlock;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -259,7 +260,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
             //context.fill(28,6,46,24, 0xFF000000);
             //context.drawBorder(27, 5, 20, 20, 0xFFA0A0A0);
             Identifier texture = BlockStateToButtonTextures(blockState).enabled();
-            context.drawGuiTexture(RenderLayer::getGuiTextured, texture, 27, 5, 20, 20);
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, 27, 5, 20, 20);
             context.fill(27,5,46,24, 0x8F000000);
             renderAsterisk(context, 47, 1, wasModified());
 

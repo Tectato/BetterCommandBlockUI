@@ -284,7 +284,6 @@ public class SideWindow implements Drawable, Element {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if(!visible) return;
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         context.fill(x, y, x+width, y+height, 0xB0000000);
 

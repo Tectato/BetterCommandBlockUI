@@ -168,8 +168,6 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         boolean renderVerticalCursor = selectionStart < accessor.getText().length();
         boolean verticalCursorVisible = this.isFocused() && (Util.getMeasuringTimeMs() - accessor.getLastSwitchFocusTime()) / 300L % 2L == 0L;
 
-        context.getMatrices().translate(0.0,0.0,0.1);
-
         for (int i = firstSelectedLine; i <= lastSelectedLine; i++) {
             if(i < scrolledLines || i >= scrolledLines+visibleLines) continue;
             int x1 = this.getX() + 5;
@@ -232,6 +230,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                     } catch (IndexOutOfBoundsException e){
                         color = TextColor.fromFormatting(Formatting.GRAY).getRgb();
                     }
+                    color |= 0xFF000000;
 
                     context.drawTextWithShadow(
                             textRenderer,
@@ -253,6 +252,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             } catch (IndexOutOfBoundsException e){
                 color = TextColor.fromFormatting(Formatting.GRAY).getRgb();
             }
+            color |= 0xFF000000;
             context.drawTextWithShadow(textRenderer, content, x, y, color);
         }
     }
