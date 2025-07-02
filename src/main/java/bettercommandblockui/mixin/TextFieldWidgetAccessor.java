@@ -15,9 +15,6 @@ import java.util.function.Predicate;
 @Mixin(TextFieldWidget.class)
 public interface TextFieldWidgetAccessor {
 
-    @Invoker("drawSelectionHighlight")
-    void invokeDrawSelectionHighlight(DrawContext context, int x1, int y1, int x2, int y2);
-
     @Invoker("getMaxLength")
     int invokeGetMaxLength();
 
