@@ -168,17 +168,20 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public static boolean TRACK_OUTPUT_DEFAULT_VALUE = CONFIG.getOrDefault(VAR_TRACK_OUTPUT_DEFAULT_VALUE, true);
     public static boolean SHOW_OUTPUT_DEFAULT = CONFIG.getOrDefault(VAR_SHOW_OUTPUT_DEFAULT, false);
 
+    private static KeyBinding.Category keybindCategory;
     private static KeyBinding areaSelectionInput;
 
     public static String commandBuffer = "";
 
     @Override
     public void onInitializeClient() {
+
+        keybindCategory = KeyBinding.Category.create(Identifier.of("key.category.bcbui.keybinds"));
         areaSelectionInput = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.bcbui.areaselectioninput",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_SEMICOLON,
-                "key.category.bcbui.keybinds"));
+                keybindCategory));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (areaSelectionInput.wasPressed()) {

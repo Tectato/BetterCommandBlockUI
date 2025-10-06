@@ -17,10 +17,13 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Style;
@@ -341,7 +344,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     private void erase(int offset) {
-        if (Screen.hasControlDown()) {
+        if (MinecraftClient.getInstance().isCtrlPressed()) {
             this.eraseWords(offset);
         } else {
             this.eraseCharacters(offset);
@@ -427,7 +430,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyInput input) {
+        int keyCode = input.getKeycode();
         if(keyCode == 340){
             LShiftPressed = true;
         }
@@ -439,22 +443,22 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             return false;
         }
 
-        if (Screen.isSelectAll(keyCode)) {
-            this.setCursorToEnd(Screen.hasShiftDown());
+        if (input.isSelectAll()) {
+            this.setCursorToEnd(MinecraftClient.getInstance().isShiftPressed());
             this.setSelectionEnd(0);
             return true;
         }
-        if (Screen.isCopy(keyCode)) {
+        if (input.isCopy()) {
             MinecraftClient.getInstance().keyboard.setClipboard(this.getSelectedText());
             return true;
         }
-        if (Screen.isPaste(keyCode)) {
+        if (input.isPaste()) {
             if (accessor.getEditable()) {
                 this.write(MinecraftClient.getInstance().keyboard.getClipboard());
             }
             return true;
         }
-        if (Screen.isCut(keyCode)) {
+        if (input.isCut()) {
             MinecraftClient.getInstance().keyboard.setClipboard(this.getSelectedText());
             if (accessor.getEditable()) {
                 this.write("");
@@ -463,12 +467,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         switch (keyCode) {
             case 263: {
-                if (Screen.hasControlDown()) {
+                if (MinecraftClient.getInstance().isCtrlPressed()) {
                     //this.setCursor(this.getWordSkipPosition(-1), Screen.hasShiftDown());
-                    this.setCursor(getCursor() + getWordLength(-1), Screen.hasShiftDown());
+                    this.setCursor(getCursor() + getWordLength(-1), MinecraftClient.getInstance().isShiftPressed());
                     updateScrollPositions();
                 } else {
-                    this.moveCursor(-1, Screen.hasShiftDown());
+                    this.moveCursor(-1, MinecraftClient.getInstance().isShiftPressed());
                 }
                 return true;
             }
@@ -481,12 +485,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 return true;
             }
             case 262: {
-                if (Screen.hasControlDown()) {
+                if (MinecraftClient.getInstance().isCtrlPressed()) {
                     //this.setCursor(this.getWordSkipPosition(1), Screen.hasShiftDown());
-                    this.setCursor(getCursor() + getWordLength(1), Screen.hasShiftDown());
+                    this.setCursor(getCursor() + getWordLength(1), MinecraftClient.getInstance().isShiftPressed());
                     updateScrollPositions();
                 } else {
-                    this.moveCursor(1, Screen.hasShiftDown());
+                    this.moveCursor(1, MinecraftClient.getInstance().isShiftPressed());
                 }
                 return true;
             }
@@ -503,12 +507,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
                 return true;
             }
             case 268: {
-                this.setCursorToStart(Screen.hasShiftDown());
+                this.setCursorToStart(MinecraftClient.getInstance().isShiftPressed());
                 updateScrollPositions();
                 return true;
             }
             case 269: {
-                this.setCursorToEnd(Screen.hasShiftDown());
+                this.setCursorToEnd(MinecraftClient.getInstance().isShiftPressed());
                 updateScrollPositions();
                 return true;
             }
@@ -517,29 +521,31 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+    public boolean keyReleased(KeyInput input) {
+        int keyCode = input.getKeycode();
         if(keyCode == 340){
             LShiftPressed = false;
         }
         if(keyCode == 344){
             RShiftPressed = false;
         }
-        return super.keyReleased(keyCode, scanCode, modifiers);
+        return super.keyReleased(input);
     }
 
     @Override
-    public boolean charTyped(char chr, int modifiers) {
+    public boolean charTyped(CharInput input) {
         if (!this.isActive()) {
             return false;
         }
-        if (StringHelper.isValidChar(chr)) {
+        if (input.isValidChar()) {
             if (accessor.getEditable()) {
-                this.write(Character.toString(chr));
+                String chr = input.asString();
+                this.write(chr);
                 if (BetterCommandBlockUI.BRACKET_AUTOCOMPLETE) {
                     // TODO: trace forward and check if needed
-                    if (chr == '{') {
+                    if (chr.equals("{")) {
                         this.write(Character.toString('}'));
-                    } else if (chr == '['){
+                    } else if (chr.equals("[")){
                         this.write(Character.toString(']'));
                     }
                 }
@@ -556,7 +562,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             return;
         }
         accessor.setTextVariable(text.length() > accessor.invokeGetMaxLength() ? text.substring(0, accessor.invokeGetMaxLength()) : text);
-        this.setCursorToEnd(Screen.hasShiftDown());
+        this.setCursorToEnd(MinecraftClient.getInstance().isShiftPressed());
         this.setSelectionEnd(accessor.getSelectionStart());
         this.onChanged(text, true);
     }
@@ -864,29 +870,29 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button){
+    public void onClick(Click click, boolean doubled){
         if (!this.isVisible()) {
-            return false;
+            return;
         }
 
-        scrollX.mouseClicked(mouseX, mouseY, button);
-        scrollY.mouseClicked(mouseX, mouseY, button);
+        double mouseX = click.x();
+        double mouseY = click.y();
+        scrollX.mouseClicked(mouseX, mouseY, click.button());
+        scrollY.mouseClicked(mouseX, mouseY, click.button());
 
         boolean hovered = getHovered(mouseX, mouseY);
         if (accessor.getFocusUnlocked()) {
             this.setFocused(hovered);
         }
-        if(this.isFocused() && hovered && button == 0) {
+        if(this.isFocused() && hovered && click.button() == 0) {
             int previousIndex = accessor.getSelectionStart();
-            this.setCursor(pointToIndex(mouseX, mouseY), Screen.hasShiftDown());
+            this.setCursor(pointToIndex(mouseX, mouseY), MinecraftClient.getInstance().isShiftPressed());
             cursorPosPreference = new Pair<>((int)mouseX, (int)mouseY);
             if(timeSinceClick < 0.5f && previousIndex == accessor.getSelectionStart()){
                 selectWord();
             }
             timeSinceClick = 0.0f;
-            return true;
         }
-        return false;
     }
 
     @Override
@@ -918,17 +924,18 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
+    public void onDrag(Click click, double offsetX, double offsetY){
         if (!this.isVisible()) {
-            return false;
+            return;
         }
-        scrollX.onDrag(mouseX, mouseY, deltaX, deltaY);
-        scrollY.onDrag(mouseX, mouseY, deltaX, deltaY);
+        double mouseX = click.x();
+        double mouseY = click.y();
+        scrollX.onDrag(mouseX, mouseY, offsetX, offsetY);
+        scrollY.onDrag(mouseX, mouseY, offsetX, offsetY);
 
         if (this.isHovered() && this.isFocused()){
             setSelectionStart(pointToIndex(mouseX, mouseY));
         }
-        return true;
     }
 
     @Override
@@ -946,7 +953,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         int yPreference = getY() + 5 + (lineAndOffset.getLeft() - scrolledLines) * 10;
         cursorPosPreference.setRight(yPreference + delta * 10);
         int index = pointToIndex(cursorPosPreference.getLeft(), cursorPosPreference.getRight());
-        setCursor(index, Screen.hasShiftDown());
+        setCursor(index, MinecraftClient.getInstance().isShiftPressed());
 
         updateScrollPositions();
     }

@@ -19,9 +19,6 @@ public interface TextFieldWidgetAccessor {
     int invokeGetMaxLength();
 
     @Invoker
-    void invokeErase(int i);
-
-    @Invoker
     int invokeGetCursorPosWithOffset(int characterOffset);
 
     @Accessor
@@ -83,6 +80,4 @@ public interface TextFieldWidgetAccessor {
     @Accessor
     Consumer<String> getChangedListener();
 
-    @Accessor
-    BiFunction<String, Integer, OrderedText> getRenderTextProvider();
 }
