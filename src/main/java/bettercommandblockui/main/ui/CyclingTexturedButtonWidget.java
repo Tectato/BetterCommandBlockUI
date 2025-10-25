@@ -4,11 +4,13 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.PressableWidget;
+import net.minecraft.client.input.AbstractInput;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
@@ -40,7 +42,7 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
     }
 
     @Override
-    public void onPress(){
+    public void onPress(AbstractInput input){
         if(!active) return;
         this.tooltipSupplier.incrementIndex();
         this.setTooltip(tooltipSupplier.getTooltip());
@@ -48,9 +50,9 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(Click click, boolean doubled) {
         if(!active) return;
-        if(mouseX > getX() && mouseX <= getX() + getWidth() && mouseY > getY() && mouseY <= getY() + getHeight()){
+        if(click.x() > getX() && click.x() <= getX() + getWidth() && click.y() > getY() && click.y() <= getY() + getHeight()){
             this.tooltipSupplier.incrementIndex();
             this.setTooltip(tooltipSupplier.getTooltip());
             action.onPress(this);

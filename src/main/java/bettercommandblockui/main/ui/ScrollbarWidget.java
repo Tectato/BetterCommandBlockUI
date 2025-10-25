@@ -4,10 +4,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.input.CharInput;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -104,36 +106,27 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button) && this.checkHovered(mouseX, mouseY)) {
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (this.isValidClickButton(click.buttonInfo()) && this.checkHovered(click.x(), click.y())) {
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
-            this.onClick(mouseX, mouseY);
+            this.onClick(click, doubled);
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button)) {
-            this.onRelease(mouseX, mouseY);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(Click click, boolean doubled) {
         if (!this.visible) {
             return;
         }
         dragging = true;
-        prevMouseX = mouseX;
-        prevMouseY = mouseY;
+        prevMouseX = click.x();
+        prevMouseY = click.y();
     }
 
     @Override
-    public void onRelease(double mouseX, double mouseY) {
+    public void onRelease(Click click) {
         if (!this.visible) {
             return;
         }
@@ -141,20 +134,7 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public void mouseMoved(double mouseX, double mouseY) {
-        super.mouseMoved(mouseX, mouseY);
-        if(dragging){
-            double distX = mouseX - prevMouseX;
-            double distY = mouseY - prevMouseY;
-            prevMouseX = mouseX;
-            prevMouseY = mouseY;
-
-            onDrag(mouseX, mouseY, distX, distY);
-        }
-    }
-
-    @Override
-    public void onDrag(double mouseX, double mouseY, double distX, double distY){
+    public void onDrag(Click click, double distX, double distY){
         if(dragging) {
             double posBefore = pos;
             if (horizontal) {
@@ -188,8 +168,8 @@ public class ScrollbarWidget extends ClickableWidget {
     }
 
     @Override
-    public boolean charTyped(char chr, int modifiers) {
-        return super.charTyped(chr, modifiers);
+    public boolean charTyped(CharInput input) {
+        return super.charTyped(input);
     }
 
     @Override

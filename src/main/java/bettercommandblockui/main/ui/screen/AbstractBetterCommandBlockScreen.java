@@ -11,6 +11,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.CommandBlockBlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.ButtonTextures;
@@ -18,6 +19,8 @@ import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.*;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.ScreenTexts;
@@ -291,84 +294,87 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         return commandSuggestor.mouseScrolled(MathHelper.clamp(amount, -1.0, 1.0));
     }
 
-    public boolean mouseClicked(double mouseX, double mouseY, int button){
-        if(showSideWindow && sideWindow.mouseClicked(mouseX, mouseY, button)) return true;
-        if(commandSuggestor.isOpen() && commandSuggestor.mouseClicked(mouseX, mouseY, button)) return true;
-        if(consoleCommandTextField.mouseClicked(mouseX,mouseY,button)) {
+    public boolean mouseClicked(Click click, boolean doubled){
+        if(showSideWindow && sideWindow.mouseClicked(click, doubled)) return true;
+        if(commandSuggestor.isOpen() && commandSuggestor.mouseClicked(click)) return true;
+        consoleCommandTextField.onClick(click, doubled);
+        /*if(consoleCommandTextField.mouseClicked(mouseX,mouseY,button)) {
             setFocused(consoleCommandTextField);
             return true;
-        }
-        return super.mouseClicked(mouseX,mouseY,button);
+        }*/
+        return super.mouseClicked(click, doubled);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
-        if(button == 0) {
-            if(showSideWindow && sideWindow.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) return true;
+    public boolean mouseDragged(Click click, double deltaX, double deltaY){
+        if(click.button() == 0) {
+            if(showSideWindow && sideWindow.mouseDragged(click, deltaX, deltaY)) return true;
             if(showOutput){
-                return this.previousOutputTextField.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+                return this.previousOutputTextField.mouseDragged(click, deltaX, deltaY);
             }
-            return this.consoleCommandTextField.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+            return this.consoleCommandTextField.mouseDragged(click, deltaX, deltaY);
         }
         return false;
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button){
-        if(showSideWindow && sideWindow.mouseReleased(mouseX, mouseY, button)) return true;
-        if(button == 0){
+    public boolean mouseReleased(Click click){
+        if(showSideWindow && sideWindow.mouseReleased(click)) return true;
+        if(click.button() == 0){
             if(showOutput){
-                return this.previousOutputTextField.mouseReleased(mouseX, mouseY, button);
+                return this.previousOutputTextField.mouseReleased(click);
             }
-            return this.consoleCommandTextField.mouseReleased(mouseX, mouseY, button);
+            return this.consoleCommandTextField.mouseReleased(click);
         }
         return false;
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if(showSideWindow && sideWindow.isFocused() && sideWindow.keyPressed(keyCode,scanCode,modifiers)) return true;
+    public boolean keyPressed(KeyInput input) {
+        if(showSideWindow && sideWindow.isFocused() && sideWindow.keyPressed(input)) return true;
+        int keyCode = input.getKeycode();
         if(keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
             if (showOutput) {
-                this.previousOutputTextField.keyPressed(keyCode, scanCode, modifiers);
+                this.previousOutputTextField.keyPressed(input);
             } else {
-                this.consoleCommandTextField.keyPressed(keyCode, scanCode, modifiers);
+                this.consoleCommandTextField.keyPressed(input);
             }
         }
-        if (this.commandSuggestor.keyPressed(keyCode, scanCode, modifiers)) {
+        if (this.commandSuggestor.keyPressed(input)) {
             return true;
         }
         if (keyCode == 258 && sideWindow.isFocused()) return true;
-        if (super.keyPressed(keyCode, scanCode, modifiers)) {
+        if (super.keyPressed(input)) {
             return true;
         }
         if (updated && !IGNORE_ENTER && (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER)) {
             this.commitAndClose();
             return true;
         }
-        if (keyCode == 83 && hasControlDown() && ((MultiLineTextFieldWidget)this.consoleCommandTextField).wasModified()){ // CTRL + S
+        if (keyCode == 83 && MinecraftClient.getInstance().isCtrlPressed() && ((MultiLineTextFieldWidget)this.consoleCommandTextField).wasModified()){ // CTRL + S
             this.commit();
         }
         return false;
     }
 
     @Override
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+    public boolean keyReleased(KeyInput input) {
+        int keyCode = input.getKeycode();
         if(keyCode == 340 || keyCode == 344){
             if(showOutput){
-                this.previousOutputTextField.keyReleased(keyCode, scanCode, modifiers);
+                this.previousOutputTextField.keyReleased(input);
             } else {
-                this.consoleCommandTextField.keyReleased(keyCode, scanCode, modifiers);
+                this.consoleCommandTextField.keyReleased(input);
             }
         }
-        return super.keyReleased(keyCode, scanCode, modifiers);
+        return super.keyReleased(input);
     }
 
     @Override
-    public boolean charTyped(char c, int modifiers){
-        if(showSideWindow && sideWindow.charTyped(c, modifiers)) return true;
+    public boolean charTyped(CharInput input){
+        if(showSideWindow && sideWindow.charTyped(input)) return true;
         if(showOutput) return false;
-        return this.consoleCommandTextField.charTyped(c, modifiers);
+        return this.consoleCommandTextField.charTyped(input);
     }
 
     protected void onCommandChanged(String s){

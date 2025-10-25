@@ -6,13 +6,10 @@ import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.mixin.TextFieldWidgetAccessor;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
-//import me.shurik.betterhighlighting.api.BuiltinGrammar;
-//import me.shurik.betterhighlighting.api.TextMateRegistry;
-//import me.shurik.betterhighlighting.api.syntax.Styler;
-//import me.shurik.betterhighlighting.api.syntax.Tokenizer;
 import me.shurik.betterhighlighting.api.BuiltinGrammar;
 import me.shurik.betterhighlighting.api.TextMateRegistry;
 import me.shurik.betterhighlighting.api.syntax.Tokenizer;
+import static me.shurik.betterhighlighting.api.syntax.Tokenizer.command;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
@@ -41,7 +38,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
-import static me.shurik.betterhighlighting.api.syntax.Tokenizer.command;
 
 public class MultiLineTextFieldWidget extends TextFieldWidget implements Element {
     private final int visibleChars = 20;
@@ -877,8 +873,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
 
         double mouseX = click.x();
         double mouseY = click.y();
-        scrollX.mouseClicked(mouseX, mouseY, click.button());
-        scrollY.mouseClicked(mouseX, mouseY, click.button());
+        scrollX.mouseClicked(click, doubled);
+        scrollY.mouseClicked(click, doubled);
 
         boolean hovered = getHovered(mouseX, mouseY);
         if (accessor.getFocusUnlocked()) {
@@ -888,7 +884,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             int previousIndex = accessor.getSelectionStart();
             this.setCursor(pointToIndex(mouseX, mouseY), MinecraftClient.getInstance().isShiftPressed());
             cursorPosPreference = new Pair<>((int)mouseX, (int)mouseY);
-            if(timeSinceClick < 0.5f && previousIndex == accessor.getSelectionStart()){
+            if(doubled){
                 selectWord();
             }
             timeSinceClick = 0.0f;
@@ -930,8 +926,8 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
         }
         double mouseX = click.x();
         double mouseY = click.y();
-        scrollX.onDrag(mouseX, mouseY, offsetX, offsetY);
-        scrollY.onDrag(mouseX, mouseY, offsetX, offsetY);
+        scrollX.onDrag(click, offsetX, offsetY);
+        scrollY.onDrag(click, offsetX, offsetY);
 
         if (this.isHovered() && this.isFocused()){
             setSelectionStart(pointToIndex(mouseX, mouseY));
@@ -939,13 +935,12 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button){
+    public void onRelease(Click click){
         if (!this.isVisible()) {
-            return false;
+            return;
         }
-        scrollX.mouseReleased(mouseX, mouseY, button);
-        scrollY.mouseReleased(mouseX, mouseY, button);
-        return true;
+        scrollX.mouseReleased(click);
+        scrollY.mouseReleased(click);
     }
 
     private void moveCursorVertical(int delta){

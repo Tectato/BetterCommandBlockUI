@@ -1,5 +1,6 @@
 package bettercommandblockui.main.ui;
 
+import net.minecraft.client.gui.Click;
 import net.minecraft.text.Text;
 
 public class TextFieldScrollbarWidget extends ScrollbarWidget{
@@ -11,8 +12,8 @@ public class TextFieldScrollbarWidget extends ScrollbarWidget{
     }
 
     @Override
-    public void onDrag(double mouseX, double mouseY, double distX, double distY){
-        super.onDrag(mouseX, mouseY, distX, distY);
+    public void onDrag(Click click, double distX, double distY){
+        super.onDrag(click, distX, distY);
         if (horizontal) {
             textField.setHorizontalOffset(pos);
         } else {

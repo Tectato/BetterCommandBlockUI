@@ -7,12 +7,14 @@ import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.CheckboxWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
@@ -246,46 +248,48 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button){
-        if(commandSuggestor.mouseClicked(mouseX, mouseY, button)) return true;
-        if(textField.mouseClicked(mouseX,mouseY,button)) {
+    public boolean mouseClicked(Click click, boolean doubled){
+        if(commandSuggestor.mouseClicked(click)) return true;
+        if(textField.mouseClicked(click, doubled)) {
             setFocused(textField);
             return true;
         }
-        return super.mouseClicked(mouseX,mouseY,button);
+        return super.mouseClicked(click, doubled);
     }
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
-        if(button == 0) {
-            return this.textField.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    public boolean mouseDragged(Click click, double deltaX, double deltaY){
+        if(click.button() == 0) {
+            return this.textField.mouseDragged(click, deltaX, deltaY);
         }
         return false;
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button){
-        if(button == 0){
-            return this.textField.mouseReleased(mouseX, mouseY, button);
+    public boolean mouseReleased(Click click){
+        if(click.button() == 0){
+            return this.textField.mouseReleased(click);
         }
         return false;
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyInput input) {
+        int keyCode = input.getKeycode();
         if(keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
-            this.textField.keyPressed(keyCode, scanCode, modifiers);
+            this.textField.keyPressed(input);
         }
-        if (this.commandSuggestor.keyPressed(keyCode, scanCode, modifiers)) {
+        if (this.commandSuggestor.keyPressed(input)) {
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(input);
     }
 
     @Override
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+    public boolean keyReleased(KeyInput input) {
+        int keyCode = input.getKeycode();
         if(keyCode == 340 || keyCode == 344){
-            this.textField.keyReleased(keyCode, scanCode, modifiers);
+            this.textField.keyReleased(input);
         }
-        return super.keyReleased(keyCode, scanCode, modifiers);
+        return super.keyReleased(input);
     }
 }

@@ -3,6 +3,7 @@ package bettercommandblockui.main.ui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -118,24 +119,16 @@ public class NotchedSlider extends ClickableWidget {
         pos = snap(Math.min(Math.max(value, 0.0d), 1.0d), 1.0d/subdivisions);
     }
 
-    /*@Override
-    protected boolean clicked(double mouseX, double mouseY){
-        if (!this.visible) {
-            return false;
-        }
-        return checkHovered(mouseX, mouseY);
-    }*/
-
     private boolean checkHovered(double mouseX, double mouseY){
         return mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + length && mouseY < this.getY() + this.height;
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button) && checkHovered(mouseX, mouseY) && this.visible) {
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (this.isValidClickButton(click.buttonInfo()) && checkHovered(click.x(), click.y()) && this.visible) {
             this.dragging = true;
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
-            this.onClick(mouseX, mouseY);
+            this.onClick(click, doubled);
             return true;
         }
         this.dragging = false;
@@ -143,40 +136,30 @@ public class NotchedSlider extends ClickableWidget {
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button)) {
+    public void onRelease(Click click) {
+        if (this.visible && this.isValidClickButton(click.buttonInfo())) {
             this.dragging = false;
-            this.onRelease(mouseX, mouseY);
-            return true;
+            super.onRelease(click);
         }
-        return false;
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
-        if (!this.visible || !checkHovered(mouseX, mouseY)) {
+    public void onClick(Click click, boolean doubled) {
+        if (!this.visible || !checkHovered(click.x(), click.y())) {
             dragging = false;
             return;
         }
         dragging = true;
-        prevMouseX = mouseX;
-        prevMouseY = mouseY;
+        prevMouseX = click.x();
+        prevMouseY = click.y();
 
-        pos = snap(Math.min(Math.max((mouseX - getX()) / length, 0.0d), 1.0d), 1.0d/subdivisions);
+        pos = snap(Math.min(Math.max((click.x() - getX()) / length, 0.0d), 1.0d), 1.0d/subdivisions);
         if (changedListener != null){
             changedListener.accept(pos);
         }
     }
 
-    @Override
-    public void onRelease(double mouseX, double mouseY) {
-        if (!this.visible) {
-            return;
-        }
-        dragging = false;
-    }
-
-    @Override
+   /* @Override
     public void mouseMoved(double mouseX, double mouseY) {
         super.mouseMoved(mouseX, mouseY);
         if(dragging){
@@ -187,22 +170,22 @@ public class NotchedSlider extends ClickableWidget {
 
             onDrag(mouseX, mouseY, distX, distY);
         }
-    }
+    }*/
 
-    @Override
+    /*@Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
         if(dragging) {
             onDrag(mouseX, mouseY, deltaX, deltaY);
             return true;
         }
         return false;
-    }
+    }*/
 
     @Override
-    public void onDrag(double mouseX, double mouseY, double distX, double distY){
+    public void onDrag(Click click, double distX, double distY){
         if(dragging) {
             double posBefore = pos;
-            pos = snap(Math.min(Math.max((mouseX - getX()) / length, 0.0d), 1.0d), 1.0d/subdivisions);
+            pos = snap(Math.min(Math.max((click.x() - getX()) / length, 0.0d), 1.0d), 1.0d/subdivisions);
 
             if (changedListener != null && Math.abs(posBefore) > 0.0){
                 changedListener.accept(pos);

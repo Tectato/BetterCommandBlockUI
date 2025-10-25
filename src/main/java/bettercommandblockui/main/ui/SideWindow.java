@@ -5,12 +5,15 @@ import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.*;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -287,7 +290,7 @@ public class SideWindow implements Drawable, Element {
 
         context.fill(x, y, x+width, y+height, 0xB0000000);
 
-        context.drawBorder(x-1, y-1, width+4, height+2, 0xFFFFFFFF);
+        context.drawStrokedRectangle(x-1, y-1, width+4, height+2, 0xFFFFFFFF);
 
         context.drawTextWithShadow(this.textRenderer, "2π / ", x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
         this.piFractionInput.render(context, mouseX, mouseY, delta);
@@ -336,12 +339,12 @@ public class SideWindow implements Drawable, Element {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(Click click, boolean doubled) {
         if(!visible) return false;
         boolean widgetClicked = false;
         int index = 0;
         for(ClickableWidget w : widgets){
-            if(!widgetClicked && w.mouseClicked(mouseX, mouseY, button)){
+            if(!widgetClicked && w.mouseClicked(click, doubled)){
                 w.setFocused(true);
                 widgetClicked = true;
                 focusedWidget = index;
@@ -351,62 +354,64 @@ public class SideWindow implements Drawable, Element {
             index++;
         }
         boolean returnVal = widgetClicked;
-        if(mouseX > x && mouseY > y && mouseY < y + height) returnVal = true;
+        if(click.x() > x && click.y() > y && click.y() < y + height) returnVal = true;
         if (returnVal){
             ((AbstractBetterCommandBlockScreen)screen).sideWindowFocused();
-            return returnVal;
+            return true;
         }
         setFocused(false);
         return false;
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(Click click) {
         if(!visible) return false;
         for(ClickableWidget w : widgets){
-            w.mouseReleased(mouseX,mouseY,button);
+            w.onRelease(click);
         }
         return false;
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
+    public boolean mouseDragged(Click click, double deltaX, double deltaY){
         if(!visible) return false;
         for(ClickableWidget w : widgets){
-            w.mouseDragged(mouseX,mouseY,button,deltaX,deltaY);
+            if(!(w instanceof TextFieldWidget)) {
+                w.mouseDragged(click, deltaX, deltaY);
+            }
         }
-        return false;
+        return true;
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers){
+    public boolean keyPressed(KeyInput input){
         if(!visible) return false;
         for(ClickableWidget w : widgets){
-            if(w.keyPressed(keyCode,scanCode,modifiers)) return true;
+            if(w.keyPressed(input)) return true;
         }
-        if (keyCode == 258) {
-            focusedWidget += Screen.hasShiftDown() ? -1 : 1;
+        if (input.getKeycode() == 258) {
+            focusedWidget += MinecraftClient.getInstance().isShiftPressed() ? -1 : 1;
             focusedWidget %= widgets.size();
             if (focusedWidget < 0) focusedWidget = widgets.size() + focusedWidget;
 
-            if (widgets.get(focusedWidget) instanceof ColorScrollbarWidget){
-                keyPressed(keyCode, scanCode, modifiers); // Skip color sliders
+            /*if (widgets.get(focusedWidget) instanceof ColorScrollbarWidget){
+                keyPressed(input); // Skip color sliders
             } else {
                 int index = 0;
                 for(ClickableWidget w : widgets){
                     w.setFocused(index == focusedWidget);
                     index++;
                 }
-            }
+            }*/
         }
         return false;
     }
 
     @Override
-    public boolean charTyped(char c, int modifiers){
+    public boolean charTyped(CharInput input){
         if(!visible) return false;
         for(ClickableWidget w : widgets){
-            if(w.charTyped(c,modifiers)) return true;
+            if(w.charTyped(input)) return true;
         }
         return false;
     }

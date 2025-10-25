@@ -1,6 +1,7 @@
 package bettercommandblockui.main.ui;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
@@ -50,31 +51,31 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button) && this.checkHovered(mouseX, mouseY)) {
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (this.isValidClickButton(click.buttonInfo()) && this.checkHovered(click.x(), click.y())) {
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
-            this.onClick(mouseX, mouseY);
+            this.onClick(click, doubled);
             return true;
         }
         return false;
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(Click click, boolean doubled) {
         if (!this.visible) {
             return;
         }
-        pos = Math.min(Math.max((mouseX - getX())/width, 0), 1);
+        pos = Math.min(Math.max((click.x() - getX())/width, 0), 1);
         if ((changedListener != null)){
             changedListener.accept(pos);
         }
         dragging = true;
-        prevMouseX = mouseX;
-        prevMouseY = mouseY;
+        prevMouseX = click.x();
+        prevMouseY = click.y();
     }
 
     @Override
-    public void onDrag(double mouseX, double mouseY, double distX, double distY){
+    public void onDrag(Click click, double distX, double distY){
         if(dragging) {
             double posBefore = pos;
             pos = Math.min(Math.max(pos + distX/(length-barLength), 0), 1);

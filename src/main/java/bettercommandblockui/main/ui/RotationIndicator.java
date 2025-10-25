@@ -4,6 +4,7 @@ import bettercommandblockui.main.BetterCommandBlockUI;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -50,23 +51,19 @@ public class RotationIndicator extends ClickableWidget {
     protected void appendClickableNarrations(NarrationMessageBuilder builder) {}
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button) && this.clicked(mouseX, mouseY)) {
+    public void onClick(Click click, boolean doubled) {
+        if (this.isValidClickButton(click.buttonInfo()) && this.clicked(click.x(), click.y())) {
             this.playDownSound(MinecraftClient.getInstance().getSoundManager());
             dragging = true;
-            setAngleFromMousePos(mouseX, mouseY);
-            return true;
+            setAngleFromMousePos(click.x(), click.y());
         }
-        return false;
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (this.isValidClickButton(button)) {
+    public void onRelease(Click click) {
+        if (this.isValidClickButton(click.buttonInfo())) {
             dragging = false;
-            return true;
         }
-        return false;
     }
 
     public boolean clicked(double mouseX, double mouseY){
@@ -74,12 +71,10 @@ public class RotationIndicator extends ClickableWidget {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){
+    public void onDrag(Click click, double distX, double distY){
         if(dragging) {
-            setAngleFromMousePos(mouseX, mouseY);
-            return true;
+            setAngleFromMousePos(click.x(), click.y());
         }
-        return false;
     }
 
     private void setAngleFromMousePos(double mouseX, double mouseY){

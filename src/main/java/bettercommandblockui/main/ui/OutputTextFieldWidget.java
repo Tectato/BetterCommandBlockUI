@@ -2,6 +2,7 @@ package bettercommandblockui.main.ui;
 
 import bettercommandblockui.mixin.TextFieldWidgetAccessor;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
@@ -26,8 +27,8 @@ public class OutputTextFieldWidget extends TextFieldWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
-        super.onClick(mouseX, mouseY);
+    public void onClick(Click click, boolean doubled) {
+        super.onClick(click, doubled);
     }
 
     @Override
@@ -40,7 +41,7 @@ public class OutputTextFieldWidget extends TextFieldWidget {
                 accessor.setSelectionEnd(accessor.getText().length());
             }
         }
-        if (!this.isFocused() || !this.isNarratable()){
+        if (!this.isFocused()/* || !this.isNarratable()*/){
             accessor.setSelectionStart(0);
             accessor.setSelectionEnd(0);
         }
