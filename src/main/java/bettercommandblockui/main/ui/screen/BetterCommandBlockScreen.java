@@ -58,8 +58,8 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
     public BetterCommandBlockScreen(MinecraftClient client, CommandBlockBlockEntity blockEntity, CommandBlockExecutor commandExecutor) {
         this.blockEntity = blockEntity;
         this.commandExecutor = commandExecutor;
-        this.client = client;
-        this.chainHandler = new ChainHandler(this, this.commandExecutor);
+        //this.client = client;
+        this.chainHandler = new ChainHandler(this, this.blockEntity.getPos());
         this.chainPrior = new LinkedList<>();
         instance = this;
     }
@@ -131,7 +131,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
             List<Pair<BlockState,Direction>> prior = chainHandler.getPrior();
 
 
-            BlockPos position = BlockPos.ofFloored(commandExecutor.getPos());
+            BlockPos position = blockEntity.getPos();
             blockState = MinecraftClient.getInstance().world.getBlockState(position);
 
             if(next != null && next.getBlock().equals(Registries.BLOCK.get(Identifier.of("minecraft","chain_command_block")))){
@@ -173,7 +173,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         if(wasModified() && AUTOSAVE){
             commit();
         }
-        BlockPos position = BlockPos.ofFloored(commandExecutor.getPos());
+        BlockPos position = blockEntity.getPos();
         assert MinecraftClient.getInstance().interactionManager != null;
         MinecraftClient.getInstance().interactionManager.interactBlock(MinecraftClient.getInstance().player, Hand.MAIN_HAND, new BlockHitResult(
                 position.add(dir.getVector()).toCenterPos(), Direction.UP, position.add(dir.getVector()), false
@@ -241,7 +241,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         assert this.client != null;
         Objects.requireNonNull(this.client.getNetworkHandler()).sendPacket(
                 new UpdateCommandBlockC2SPacket(
-                        BlockPos.ofFloored(commandExecutor.getPos()),
+                        blockEntity.getPos(),
                         this.consoleCommandTextField.getText(),
                         this.mode,
                         this.trackOutput,

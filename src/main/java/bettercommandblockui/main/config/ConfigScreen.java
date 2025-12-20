@@ -50,10 +50,8 @@ public class ConfigScreen extends Screen {
     public ConfigScreen(Screen parent, MinecraftClient client, int width, int height){
         super(Text.translatable("bcbui.config.title"));
         this.parent = parent;
-        this.client = client;
         this.width = width;
         this.height = height;
-        this.textRenderer = client.textRenderer;
         setup();
     }
 
@@ -156,7 +154,7 @@ public class ConfigScreen extends Screen {
     @Override
     protected void init(){
         if (client != null && textRenderer == null){
-            super.init(client, width, height);
+            super.init(width, height);
         }
 
         int textBoxWidth = this.width - (2*screenMarginX + 2*buttonHeight + 2*buttonMargin);

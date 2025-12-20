@@ -10,7 +10,7 @@
     "ClientCommonNetworkHandlerAccessor",
     "ClientPlayerEntityAccessor",
     "ClientPlayNetworkHandlerMixin",
-    "CommandBlockExecutorMixin",
+    "CommandBlockMinecartMixin",
     "CommandBlockMixin",
     "CommandSuggestorAccessor",
     "MinecraftClientMixin",

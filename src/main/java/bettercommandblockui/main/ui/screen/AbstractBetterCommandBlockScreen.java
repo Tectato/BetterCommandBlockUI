@@ -268,9 +268,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     }
 
     @Override
-    public void resize(MinecraftClient client, int width, int height) {
+    public void resize(int width, int height) {
         String string = this.consoleCommandTextField.getText();
-        this.init(client, width, height);
+        this.init(width, height);
         ((MultiLineTextFieldWidget)this.consoleCommandTextField).setRawText(string);
         commandSuggestor.refresh();
         setButtonsActive(true);

@@ -196,7 +196,7 @@ public class MultiLineTextFieldWidget extends TextFieldWidget implements Element
             } else {
                 x2 += this.getInnerWidth();
             }
-            context.drawSelection(x1, y, x2, y + 10);
+            context.drawSelection(x1, y, x2, y + 10, true);
         }
 
         renderSuggestor(context, mouseX, mouseY);

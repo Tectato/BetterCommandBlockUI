@@ -73,7 +73,7 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
     }
 
     @Override
-    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void drawIcon(DrawContext context, int mouseX, int mouseY, float delta) {
         MinecraftClient minecraftClient = MinecraftClient.getInstance();
         TextRenderer textRenderer = minecraftClient.textRenderer;
         int i = this.active?(this.isHovered()?2:1):0;

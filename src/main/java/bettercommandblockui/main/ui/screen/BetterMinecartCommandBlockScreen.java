@@ -8,10 +8,12 @@ import net.minecraft.world.CommandBlockExecutor;
 public class BetterMinecartCommandBlockScreen extends AbstractBetterCommandBlockScreen{
 
     public static BetterMinecartCommandBlockScreen instance;
+    private CommandBlockMinecartEntity minecart;
 
-    public BetterMinecartCommandBlockScreen(MinecraftClient client, CommandBlockExecutor commandExecutor){
-        this.commandExecutor = commandExecutor;
-        this.client = client;
+    public BetterMinecartCommandBlockScreen(MinecraftClient client, CommandBlockMinecartEntity minecart){
+        this.commandExecutor = minecart.getCommandExecutor();
+        this.minecart = minecart;
+        //this.client = client;
         instance = this;
         updated = true;
     }
@@ -23,9 +25,6 @@ public class BetterMinecartCommandBlockScreen extends AbstractBetterCommandBlock
 
     @Override
     protected void syncSettingsToServer(CommandBlockExecutor commandExecutor) {
-        if (commandExecutor instanceof CommandBlockMinecartEntity.CommandExecutor) {
-            CommandBlockMinecartEntity.CommandExecutor commandExecutor2 = (CommandBlockMinecartEntity.CommandExecutor)commandExecutor;
-            this.client.getNetworkHandler().sendPacket(new UpdateCommandBlockMinecartC2SPacket(commandExecutor2.getMinecart().getId(), this.consoleCommandTextField.getText(), commandExecutor.isTrackingOutput()));
-        }
+        this.client.getNetworkHandler().sendPacket(new UpdateCommandBlockMinecartC2SPacket(minecart.getId(), this.consoleCommandTextField.getText(), commandExecutor.isTrackingOutput()));
     }
 }

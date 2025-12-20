@@ -26,11 +26,11 @@ public class ChainHandler {
     private List<Pair<BlockState, Direction>> prior;
     private World world;
 
-    public ChainHandler(BetterCommandBlockScreen screen, CommandBlockExecutor executor){
+    public ChainHandler(BetterCommandBlockScreen screen, BlockPos pos){
         this.screen = screen;
         assert MinecraftClient.getInstance().player != null;
         this.world = MinecraftClient.getInstance().player.getEntityWorld();
-        this.currentPos = BlockPos.ofFloored(executor.getPos());
+        this.currentPos = pos;//BlockPos.ofFloored(executor.getPos());
         this.current = world.getBlockState(currentPos);
         prior = new LinkedList<>();
         scanChain();
