@@ -6,16 +6,16 @@ import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.mixin.EditBoxAccessor;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.shurik.betterhighlighting.api.BuiltinGrammar;
+/*import me.shurik.betterhighlighting.api.BuiltinGrammar;
 import me.shurik.betterhighlighting.api.TextMateRegistry;
 import me.shurik.betterhighlighting.api.syntax.Tokenizer;
-import static me.shurik.betterhighlighting.api.syntax.Tokenizer.command;
+import static me.shurik.betterhighlighting.api.syntax.Tokenizer.command;*/
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.EditBox;
@@ -100,7 +100,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
     }
 
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta){
+    public void extractWidgetRenderState(final GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta){
         //TODO: render line at x of cursor if currently at parenthesis
         timeSinceClick += delta/20.0f;
         int color;
@@ -109,15 +109,15 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
         }
         if (accessor.getBordered()) {
             color = this.isFocused() ? -1 : -6250336;
-            context.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
-            context.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, -16777216);
+            graphics.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, color);
+            graphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, -16777216);
         }
 
         color = accessor.getIsEditable() ? accessor.getTextColor() : accessor.getTextColorUneditable();
 
         if(hasCommandSuggestor) {
             if(lines.isEmpty()){
-                renderSuggestor(context, mouseX, mouseY);
+                renderSuggestor(graphics, mouseX, mouseY);
                 return;
             }
 
@@ -127,15 +127,15 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                     line = line.substring(horizontalOffset);
                     line = accessor.getFont().plainSubstrByWidth(line, this.getInnerWidth());
 
-                    this.drawColoredLine(context, line, this.getX() + 5, this.getY() + 10 * (i - scrolledLines) + 5, i);
+                    this.drawColoredLine(graphics, line, this.getX() + 5, this.getY() + 10 * (i - scrolledLines) + 5, i);
                 }
             }
         } else {
-            this.drawRawText(context, accessor.getValue(), this.getX() + 5, this.getY() + 5, color);
+            this.drawRawText(graphics, accessor.getValue(), this.getX() + 5, this.getY() + 5, color);
         }
 
-        scrollX.render(context, mouseX, mouseY, delta);
-        scrollY.render(context, mouseX, mouseY, delta);
+        scrollX.extractRenderState(graphics, mouseX, mouseY, delta);
+        scrollY.extractRenderState(graphics, mouseX, mouseY, delta);
 
         if(!hasCommandSuggestor) return;
 
@@ -179,9 +179,9 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
 
                 if (verticalCursorVisible && !selectingBackwards) {
                     if (renderVerticalCursor) {
-                        context.fill(x1, y - 1, x1 + 1, y + 1 + accessor.getFont().lineHeight, -3092272);
+                        graphics.fill(x1, y - 1, x1 + 1, y + 1 + accessor.getFont().lineHeight, -3092272);
                     } else {
-                        context.drawString(accessor.getFont(), "_", x1, y, -3092272);
+                        graphics.text(accessor.getFont(), "_", x1, y, -3092272);
                     }
                 }
             }
@@ -190,25 +190,25 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                 x2 += accessor.getFont().width(visibleLine.substring(0, Math.min(selectionEndOffset,visibleLine.length())));
 
                 if (verticalCursorVisible && renderVerticalCursor && selectingBackwards) {
-                    context.fill(x2, y - 1, x2 + 1, y + 1 + accessor.getFont().lineHeight, -3092272);
+                    graphics.fill(x2, y - 1, x2 + 1, y + 1 + accessor.getFont().lineHeight, -3092272);
                 }
 
             } else {
                 x2 += this.getInnerWidth();
             }
-            context.textHighlight(x1, y, x2, y + 10, true);
+            graphics.textHighlight(x1, y, x2, y + 10, true);
         }
 
-        renderSuggestor(context, mouseX, mouseY);
+        renderSuggestor(graphics, mouseX, mouseY);
     }
 
-    private void renderSuggestor(GuiGraphics context, int mouseX, int mouseY){
+    private void renderSuggestor(GuiGraphicsExtractor graphics, int mouseX, int mouseY){
         if(suggestor.getY() > getY() + getHeight() || suggestor.getY() < getY()) return;
         if(suggestor.getX() > getX() + getWidth() || suggestor.getX() < getX()) return;
-        suggestor.render(context, mouseX, mouseY);
+        suggestor.extractRenderState(graphics, mouseX, mouseY);
     }
 
-    private void drawColoredLine(GuiGraphics context, String content, int x, int y, int lineIndex){
+    private void drawColoredLine(GuiGraphicsExtractor graphics, String content, int x, int y, int lineIndex){
         Font textRenderer = accessor.getFont();
         int renderOffset = 0;
         int startOffset = textOffsets.get(lineIndex); // start index of this line within command
@@ -231,7 +231,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                     }
                     color |= 0xFF000000;
 
-                    context.drawString(
+                    graphics.text(
                             textRenderer,
                             substring,
                             x + renderOffset,
@@ -252,15 +252,15 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                 color = TextColor.fromLegacyFormat(ChatFormatting.GRAY).getValue();
             }
             color |= 0xFF000000;
-            context.drawString(textRenderer, content, x, y, color);
+            graphics.text(textRenderer, content, x, y, color);
         }
     }
 
-    private void drawRawText(GuiGraphics context, String content, int x, int y, int color){
+    private void drawRawText(GuiGraphicsExtractor graphics, String content, int x, int y, int color){
         Font textRenderer = accessor.getFont();
         String line = content.substring(Math.max(Math.min(horizontalOffset, content.length() - 1),0));
         String trimmedLine = textRenderer.plainSubstrByWidth(line,this.getInnerWidth());
-        context.drawString(textRenderer, trimmedLine, x, y, color);
+        graphics.text(textRenderer, trimmedLine, x, y, color);
     }
 
     private int pointToIndex(double x, double y){
@@ -318,21 +318,22 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
 
     @Override
     public void insertText(String text) {
-        String string2;
         String string;
+        String string2;
         int l;
-        int i = Math.min(accessor.getCursorPos(), accessor.getHighlightPos());
-        int j = Math.max(accessor.getCursorPos(), accessor.getHighlightPos());
-        int k = accessor.invokeGetMaxLength() - accessor.getValue().length() - (i - j);
+        int start = Math.min(accessor.getCursorPos(), accessor.getHighlightPos());
+        int end = Math.max(accessor.getCursorPos(), accessor.getHighlightPos());
+        int k = accessor.invokeGetMaxLength() - accessor.getValue().length() - (start - end);
         if (k < (l = (string = StringUtil.filterText(text)).length())) {
             string = string.substring(0, k);
             l = k;
         }
-        if (!accessor.getFilter().test(string2 = new StringBuilder(accessor.getValue()).replace(i, j, string).toString())) {
+        /*if (!accessor.getFilter().test(string2 = new StringBuilder(accessor.getValue()).replace(start, end, string).toString())) {
             return;
-        }
+        }*/
+        string2 = new StringBuilder(accessor.getValue()).replace(start, end, string).toString();
         accessor.setTextVariable(string2);
-        this.setCursorPosition(i + l);
+        this.setCursorPosition(start + l);
         this.setHighlightPos(accessor.getCursorPos());
         this.onChanged(accessor.getValue(), true);
         this.updateScrollPositions();
@@ -418,9 +419,9 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
             return;
         }
         String string = new StringBuilder(accessor.getValue()).delete(j, k).toString();
-        if (!accessor.getFilter().test(string)) {
+        /*if (!accessor.getFilter().test(string)) {
             return;
-        }
+        }*/
         accessor.setTextVariable(string);
         this.moveCursorTo(j, false);
     }
@@ -554,9 +555,9 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
 
     @Override
     public void setValue(String text) {
-        if (!accessor.getFilter().test(text)) {
+        /*if (!accessor.getFilter().test(text)) {
             return;
-        }
+        }*/
         accessor.setTextVariable(text.length() > accessor.invokeGetMaxLength() ? text.substring(0, accessor.invokeGetMaxLength()) : text);
         this.moveCursorToEnd(Minecraft.getInstance().hasShiftDown());
         this.setHighlightPos(accessor.getCursorPos());
@@ -833,9 +834,9 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
             textColors.add(new Tuple<>(suggestor.getColor(p.getA()),p.getB()));
         }
 
-        if(!text.isEmpty() && FabricLoader.getInstance().isModLoaded("better-highlighting")){
+        /*if(!text.isEmpty() && FabricLoader.getInstance().isModLoaded("better-highlighting")){
             transformTokenOutput(Tokenizer.tokenizeAndFormatComponent(text, BuiltinGrammar.mcfunction(), TextMateRegistry.instance().getCurrentTheme()).getSiblings());
-        }
+        }*/
 
         maxLineWidth = 0;
         for(String line : lines){

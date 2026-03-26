@@ -5,10 +5,10 @@ import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.CharacterEvent;
@@ -284,31 +284,31 @@ public class SideWindow implements Renderable, GuiEventListener {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(final GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         if(!visible) return;
 
-        context.fill(x, y, x+width, y+height, 0xB0000000);
+        graphics.fill(x, y, x+width, y+height, 0xB0000000);
 
-        context.renderOutline(x-1, y-1, width+4, height+2, 0xFFFFFFFF);
+        graphics.outline(x-1, y-1, width+4, height+2, 0xFFFFFFFF);
 
-        context.drawString(this.textRenderer, "2π / ", x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
-        this.piFractionInput.render(context, mouseX, mouseY, delta);
-        this.piSlider.render(context, mouseX, mouseY, delta);
-        this.piOutput.render(context, mouseX, mouseY, delta);
-        this.piRotationIndicator.render(context, mouseX, mouseY, delta);
-        this.configButton.render(context, mouseX, mouseY, delta);
-        context.drawString(this.textRenderer, "R:", x + leftMargin, colorTextR.getY(), 0xFFFF0000);
-        this.colorTextR.render(context, mouseX, mouseY, delta);
-        this.colorSliderR.render(context, mouseX, mouseY, delta);
-        context.drawString(this.textRenderer, "G:", x + leftMargin, colorTextG.getY(), 0xFF00FF00);
-        this.colorTextG.render(context, mouseX, mouseY, delta);
-        this.colorSliderG.render(context, mouseX, mouseY, delta);
-        context.drawString(this.textRenderer, "B:", x + leftMargin, colorTextB.getY(), 0xFF0000FF);
-        this.colorTextB.render(context, mouseX, mouseY, delta);
-        this.colorSliderB.render(context, mouseX, mouseY, delta);
-        context.fill(x + leftMargin, colorHex.getY(), x + leftMargin + 7, colorHex.getY() + 24, 0xFF000000 | ColorPicker.getInteger());
-        this.colorHex.render(context, mouseX, mouseY, delta);
-        this.colorInt.render(context, mouseX, mouseY, delta);
+        graphics.text(this.textRenderer, "2π / ", x + leftMargin, piFractionInput.getY(), 0xFFFFFFFF);
+        this.piFractionInput.extractRenderState(graphics, mouseX, mouseY, delta);
+        this.piSlider.extractRenderState(graphics, mouseX, mouseY, delta);
+        this.piOutput.extractRenderState(graphics, mouseX, mouseY, delta);
+        this.piRotationIndicator.extractRenderState(graphics, mouseX, mouseY, delta);
+        this.configButton.extractRenderState(graphics, mouseX, mouseY, delta);
+        graphics.text(this.textRenderer, "R:", x + leftMargin, colorTextR.getY(), 0xFFFF0000);
+        this.colorTextR.extractRenderState(graphics, mouseX, mouseY, delta);
+        this.colorSliderR.extractRenderState(graphics, mouseX, mouseY, delta);
+        graphics.text(this.textRenderer, "G:", x + leftMargin, colorTextG.getY(), 0xFF00FF00);
+        this.colorTextG.extractRenderState(graphics, mouseX, mouseY, delta);
+        this.colorSliderG.extractRenderState(graphics, mouseX, mouseY, delta);
+        graphics.text(this.textRenderer, "B:", x + leftMargin, colorTextB.getY(), 0xFF0000FF);
+        this.colorTextB.extractRenderState(graphics, mouseX, mouseY, delta);
+        this.colorSliderB.extractRenderState(graphics, mouseX, mouseY, delta);
+        graphics.fill(x + leftMargin, colorHex.getY(), x + leftMargin + 7, colorHex.getY() + 24, 0xFF000000 | ColorPicker.getInteger());
+        this.colorHex.extractRenderState(graphics, mouseX, mouseY, delta);
+        this.colorInt.extractRenderState(graphics, mouseX, mouseY, delta);
     }
 
     LayoutElement addWidget(AbstractWidget widget){

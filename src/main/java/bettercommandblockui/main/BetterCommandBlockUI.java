@@ -4,7 +4,7 @@ import bettercommandblockui.main.config.ConfigScreen;
 import bettercommandblockui.main.config.SimpleConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.CommandBlock;
@@ -177,7 +177,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     public void onInitializeClient() {
 
         keybindCategory = KeyMapping.Category.register(Identifier.parse("key.category.bcbui.keybinds"));
-        areaSelectionInput = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+        areaSelectionInput = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.bcbui.areaselectioninput",
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_SEMICOLON,
@@ -186,7 +186,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (areaSelectionInput.consumeClick()) {
                 boolean startedSelection = AreaSelectionHandler.areaSelectionInput();
-                client.player.displayClientMessage(startedSelection ? Component.translatable("bcbui.areaSelection.start") : Component.translatable("bcbui.areaSelection.end"), true);
+                client.player.sendOverlayMessage(startedSelection ? Component.translatable("bcbui.areaSelection.start") : Component.translatable("bcbui.areaSelection.end"));
             }
         });
 

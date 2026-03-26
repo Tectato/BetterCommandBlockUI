@@ -9,6 +9,7 @@ import bettercommandblockui.main.ui.SideWindow;
 import bettercommandblockui.mixin.ScreenAccessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
@@ -17,7 +18,6 @@ import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.world.level.block.entity.CommandBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -416,43 +416,43 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     abstract protected void syncSettingsToServer(BaseCommandBlock commandExecutor);
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
+    public void extractRenderState(final GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
         //this.renderBackground(context, mouseX, mouseY, delta);
-        context.drawCenteredString(this.font, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFFFF);
+        graphics.centeredText(this.font, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFFFF);
         if(showOutput){
-            context.drawString(this.font, PREVIOUS_OUTPUT_TEXT, this.previousOutputTextField.getX(), 40, 0xFFA0A0A0);
-            this.previousOutputTextField.render(context, mouseX, mouseY, delta);
+            graphics.text(this.font, PREVIOUS_OUTPUT_TEXT, this.previousOutputTextField.getX(), 40, 0xFFA0A0A0);
+            this.previousOutputTextField.extractRenderState(graphics, mouseX, mouseY, delta);
         } else {
-            context.drawString(this.font, COMMAND_TEXT, this.consoleCommandTextField.getX(), 40, 0xFFA0A0A0);
-            this.consoleCommandTextField.render(context, mouseX, mouseY, delta);
+            graphics.text(this.font, COMMAND_TEXT, this.consoleCommandTextField.getX(), 40, 0xFFA0A0A0);
+            this.consoleCommandTextField.extractRenderState(graphics, mouseX, mouseY, delta);
         }
-        renderAsterisk(context, toggleTrackingOutputButton, toggleTrackingOutputButton.getValue() != priorState.trackOutput);
+        renderAsterisk(graphics, toggleTrackingOutputButton, toggleTrackingOutputButton.getValue() != priorState.trackOutput);
         for (Renderable drawable : ((ScreenAccessor)this).getRenderables()) {
-            if(!drawable.equals(sideWindow)) drawable.render(context, mouseX, mouseY, delta);
+            if(!drawable.equals(sideWindow)) drawable.extractRenderState(graphics, mouseX, mouseY, delta);
         }
-        darkenCheckbox(context, setTrackingOutputDefaultCheckbox);
-        darkenCheckbox(context, setShowOutputDefaultCheckbox);
+        darkenCheckbox(graphics, setTrackingOutputDefaultCheckbox);
+        darkenCheckbox(graphics, setShowOutputDefaultCheckbox);
 
         /*Matrix3x2fStack matrixStack = context.getMatrices();
         matrixStack.pushMatrix();
         matrixStack.translate(0,0,1);*/
-        sideWindow.render(context, mouseX, mouseY, delta);
+        sideWindow.extractRenderState(graphics, mouseX, mouseY, delta);
         //matrixStack.popMatrix();
     }
 
-    private void darkenCheckbox(GuiGraphics context, Checkbox checkbox){
+    private void darkenCheckbox(final GuiGraphicsExtractor graphics, Checkbox checkbox){
         if(checkbox.active) return;
-        context.fill(checkbox.getX(), checkbox.getY(), checkbox.getX() + checkbox.getWidth() - 4, checkbox.getY() + checkbox.getHeight(), 0xA0000000);
+        graphics.fill(checkbox.getX(), checkbox.getY(), checkbox.getX() + checkbox.getWidth() - 4, checkbox.getY() + checkbox.getHeight(), 0xA0000000);
     }
 
-    protected void renderAsterisk(GuiGraphics context, LayoutElement widget, boolean draw){
+    protected void renderAsterisk(final GuiGraphicsExtractor graphics, LayoutElement widget, boolean draw){
         if(!draw) return;
-        renderAsterisk(context, widget.getX() + widget.getWidth(), widget.getY() - 4, draw);
+        renderAsterisk(graphics, widget.getX() + widget.getWidth(), widget.getY() - 4, draw);
     }
 
-    protected void renderAsterisk(GuiGraphics context, int x, int y, boolean draw){
+    protected void renderAsterisk(final GuiGraphicsExtractor graphics, int x, int y, boolean draw){
         if(!draw) return;
-        context.drawString(font, "*", x, y, 0xFFFFC000);
+        graphics.text(font, "*", x, y, 0xFFFFC000);
     }
 }

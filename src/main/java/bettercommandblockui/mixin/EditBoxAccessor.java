@@ -64,9 +64,6 @@ public interface EditBoxAccessor {
     String getSuggestion();
 
     @Accessor
-    Predicate<String> getFilter();
-
-    @Accessor
     Font getFont();
 
     @Accessor

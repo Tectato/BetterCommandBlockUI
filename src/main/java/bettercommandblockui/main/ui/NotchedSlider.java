@@ -2,9 +2,9 @@ package bettercommandblockui.main.ui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -31,9 +31,9 @@ public class NotchedSlider extends AbstractWidget {
     }
 
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         //RenderSystem.setShaderTexture(0, SLIDER);
-        context.blitSprite(
+        graphics.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
                 SLIDER,
                 512,
@@ -45,7 +45,7 @@ public class NotchedSlider extends AbstractWidget {
                 4,
                 16
         );
-        context.blitSprite(
+        graphics.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
                 SLIDER,
                 512,
@@ -57,7 +57,7 @@ public class NotchedSlider extends AbstractWidget {
                 getWidth()-4,
                 16
         );
-        context.blitSprite(
+        graphics.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
                 SLIDER,
                 512,
@@ -73,7 +73,7 @@ public class NotchedSlider extends AbstractWidget {
         //RenderSystem.setShaderTexture(0, SLIDER_NOTCH);
         float step = 1.0f/((float)subdivisions);
         for(int i=1; i<subdivisions; i++){
-            context.blitSprite(
+            graphics.blitSprite(
                     RenderPipelines.GUI_TEXTURED,
                     SLIDER_NOTCH,
                     4,
@@ -88,7 +88,7 @@ public class NotchedSlider extends AbstractWidget {
         }
 
         //RenderSystem.setShaderTexture(0, SLIDER_PICK);
-        context.blitSprite(
+        graphics.blitSprite(
                 RenderPipelines.GUI_TEXTURED,
                 SLIDER_PICK.get(true, isHovered),
                 (int) (getX() + (pos * getWidth()) - 4),

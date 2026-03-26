@@ -7,6 +7,7 @@ import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
@@ -14,7 +15,6 @@ import net.minecraft.world.level.block.CommandBlock;
 import net.minecraft.world.level.block.entity.CommandBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
@@ -251,37 +251,37 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        renderAsterisk(context, modeButton, modeButton.getValue() != priorState.type);
-        renderAsterisk(context, conditionalModeButton, conditionalModeButton.getValue() != priorState.conditional);
-        renderAsterisk(context, redstoneTriggerButton, redstoneTriggerButton.getValue() != priorState.needsRedstone);
+    public void extractRenderState(final GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
+        renderAsterisk(graphics, modeButton, modeButton.getValue() != priorState.type);
+        renderAsterisk(graphics, conditionalModeButton, conditionalModeButton.getValue() != priorState.conditional);
+        renderAsterisk(graphics, redstoneTriggerButton, redstoneTriggerButton.getValue() != priorState.needsRedstone);
 
         if(chainHandler.isInChain()){
             //context.fill(28,6,46,24, 0xFF000000);
             //context.drawBorder(27, 5, 20, 20, 0xFFA0A0A0);
             Identifier texture = BlockStateToButtonTextures(blockState).enabled();
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, texture, 27, 5, 20, 20);
-            context.fill(27,5,46,24, 0x8F000000);
-            renderAsterisk(context, 47, 1, wasModified());
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, texture, 27, 5, 20, 20);
+            graphics.fill(27,5,46,24, 0x8F000000);
+            renderAsterisk(graphics, 47, 1, wasModified());
 
             if(!updated){
                 if(showOutput){
-                    context.fill(
+                    graphics.fill(
                             previousOutputTextField.getX(),
                             previousOutputTextField.getY(),
                             previousOutputTextField.getX() + previousOutputTextField.getWidth(),
                             previousOutputTextField.getY() + previousOutputTextField.getHeight(),
                             0x8F000000);
                 } else {
-                    context.fill(
+                    graphics.fill(
                             consoleCommandTextField.getX(),
                             consoleCommandTextField.getY(),
                             consoleCommandTextField.getX() + consoleCommandTextField.getWidth(),
                             consoleCommandTextField.getY() + consoleCommandTextField.getHeight(),
                             0x8F000000);
                 }
-                context.drawCenteredString(font, Component.translatable("bcbui.chain.tooFar"), width/2, height/2, 0xFFA0A0A0);
+                graphics.centeredText(font, Component.translatable("bcbui.chain.tooFar"), width/2, height/2, 0xFFA0A0A0);
             }
         }
     }

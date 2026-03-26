@@ -1,8 +1,8 @@
 package bettercommandblockui.main.ui;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -27,21 +27,21 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
     }
 
     @Override
-    protected void renderFrame(GuiGraphics context){
-        context.pose().pushMatrix();
-        context.pose().translate(getX() + getWidth()/2.0f, getY() + getHeight()/2.0f);
-        context.pose().rotate((float) (0.5f * Math.PI));
-        context.fillGradient(-getHeight()/2, -getWidth()/2, getHeight()/2, getWidth()/2, color, 0xFF000000);
-        context.pose().popMatrix();
+    protected void renderFrame(GuiGraphicsExtractor graphics){
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(getX() + getWidth()/2.0f, getY() + getHeight()/2.0f);
+        graphics.pose().rotate((float) (0.5f * Math.PI));
+        graphics.fillGradient(-getHeight()/2, -getWidth()/2, getHeight()/2, getWidth()/2, color, 0xFF000000);
+        graphics.pose().popMatrix();
     }
 
     @Override
-    protected void renderSlider(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    protected void renderSlider(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         boolean highlighted = (this.checkHovered(mouseX, mouseY) || this.dragging);
         int posX = this.getX() + (int)(pos * (length - barLength));
         int posY = this.getY();
-        context.fill(posX, posY, posX + 1, posY + 9, highlighted ? 0xFFFFFFFF : 0xFFA0A0A0);
-        context.fill(posX + 1, posY + 1, posX + 2, posY + 10, 0xFF000000);
+        graphics.fill(posX, posY, posX + 1, posY + 9, highlighted ? 0xFFFFFFFF : 0xFFA0A0A0);
+        graphics.fill(posX + 1, posY + 1, posX + 2, posY + 10, 0xFF000000);
     }
 
     @Override

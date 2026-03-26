@@ -3,9 +3,9 @@ package bettercommandblockui.main.ui;
 import bettercommandblockui.main.BetterCommandBlockUI;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -38,13 +38,13 @@ public class RotationIndicator extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        context.blitSprite(RenderPipelines.GUI_TEXTURED, BetterCommandBlockUI.COMPASS_FRAME, getX(), getY(), 32, 32);
-        context.pose().pushMatrix();
-        context.pose().translate(getX() + 16, getY() + 16);
-        context.pose().rotate((float) ((angle + 1) * Math.PI));
-        context.blitSprite(RenderPipelines.GUI_TEXTURED, BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32);
-        context.pose().popMatrix();
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BetterCommandBlockUI.COMPASS_FRAME, getX(), getY(), 32, 32);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(getX() + 16, getY() + 16);
+        graphics.pose().rotate((float) ((angle + 1) * Math.PI));
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32);
+        graphics.pose().popMatrix();
     }
 
     @Override

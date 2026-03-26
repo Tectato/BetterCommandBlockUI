@@ -3,9 +3,9 @@ package bettercommandblockui.main.ui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -45,41 +45,41 @@ public class ScrollbarWidget extends AbstractWidget {
     }
 
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         if (!this.visible) {
             return;
         }
         this.isHovered = checkHovered(mouseX, mouseY);
 
-        this.renderFrame(context);
-        this.renderSlider(context, mouseX, mouseY, delta);
+        this.renderFrame(graphics);
+        this.renderSlider(graphics, mouseX, mouseY, delta);
     }
 
-    protected void renderFrame(GuiGraphics context){
-        renderLongBox(context, false, false, 0, horizontal ? width : height, frameRepeatLength);
+    protected void renderFrame(GuiGraphicsExtractor graphics){
+        renderLongBox(graphics, false, false, 0, horizontal ? width : height, frameRepeatLength);
     }
 
-    protected void renderSlider(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        renderLongBox(context, true, isHovered, (int)(pos * (length - barLength)), barLength, barRepeatLength);
+    protected void renderSlider(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        renderLongBox(graphics, true, isHovered, (int)(pos * (length - barLength)), barLength, barRepeatLength);
     }
 
-    protected void renderLongBox(GuiGraphics context, boolean enabled, boolean hovered, int position, int boxLength, int repeatLength){
+    protected void renderLongBox(GuiGraphicsExtractor graphics, boolean enabled, boolean hovered, int position, int boxLength, int repeatLength){
         if(horizontal){
             Identifier textures = SCROLLBAR_HORIZONTAL.get(enabled,hovered);
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, textures, textureLength, 10, 0, 0, this.getX() + position, this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, textures, textureLength, 10, Math.max(textureLength/2, textureLength - boxLength / 2), 0, Math.max(this.getX() + position + boxLength/2, this.getX() + position + boxLength - textureLength/2), this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, textures, textureLength, 10, 0, 0, this.getX() + position, this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, textures, textureLength, 10, Math.max(textureLength/2, textureLength - boxLength / 2), 0, Math.max(this.getX() + position + boxLength/2, this.getX() + position + boxLength - textureLength/2), this.getY(), Math.min(boxLength / 2, textureLength / 2), this.height);
             int drawX = this.getX() + position + textureLength/2;
             for (int i=0; i<(repeatLength/(textureLength/2))+1; i++){
-                context.blitSprite(RenderPipelines.GUI_TEXTURED, textures, textureLength, 10, textureLength/4, 0, drawX, this.getY(), Math.min((repeatLength - i*textureLength/2), textureLength/2), this.height);
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, textures, textureLength, 10, textureLength/4, 0, drawX, this.getY(), Math.min((repeatLength - i*textureLength/2), textureLength/2), this.height);
                 drawX += textureLength/2;
             }
         } else {
             Identifier textures = SCROLLBAR_VERTICAL.get(enabled,hovered);
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, textures, 10 , textureLength, 0, 0, this.getX(), this.getY() + position,  this.width, Math.min(boxLength / 2, textureLength / 2));
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, textures, 10 , textureLength, 0, Math.max(textureLength/2, textureLength - boxLength / 2), this.getX(), Math.max(this.getY() + position + boxLength/2, this.getY() + position + boxLength - textureLength/2), this.width, Math.min(boxLength / 2, textureLength / 2));
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, textures, 10 , textureLength, 0, 0, this.getX(), this.getY() + position,  this.width, Math.min(boxLength / 2, textureLength / 2));
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, textures, 10 , textureLength, 0, Math.max(textureLength/2, textureLength - boxLength / 2), this.getX(), Math.max(this.getY() + position + boxLength/2, this.getY() + position + boxLength - textureLength/2), this.width, Math.min(boxLength / 2, textureLength / 2));
             int drawY = this.getY() + textureLength/2;
             for (int i=0; i<(repeatLength/(textureLength/2))+1; i++){
-                context.blitSprite(RenderPipelines.GUI_TEXTURED, textures, 10, textureLength, 0, textureLength/4, this.getX(), drawY, this.width, Math.min((repeatLength - i*textureLength/2), textureLength/2));
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, textures, 10, textureLength, 0, textureLength/4, this.getX(), drawY, this.width, Math.min((repeatLength - i*textureLength/2), textureLength/2));
                 drawY += textureLength/2;
             }
         }

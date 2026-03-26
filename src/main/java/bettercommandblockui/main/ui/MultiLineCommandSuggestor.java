@@ -10,7 +10,7 @@ import com.mojang.brigadier.context.ParsedArgument;
 import com.mojang.brigadier.context.SuggestionContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.CommandSuggestions;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.EditBox;
@@ -40,16 +40,16 @@ public class MultiLineCommandSuggestor extends CommandSuggestions {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY) {
-        context.fill(this.x - 1, this.y - 1, this.x + 1, this.y + 1, 0xff8000);
+    public void extractRenderState(final GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        graphics.fill(this.x - 1, this.y - 1, this.x + 1, this.y + 1, 0xff8000);
         if (accessor.getSuggestions() != null) {
-            accessor.getSuggestions().render(context, mouseX, mouseY);
+            accessor.getSuggestions().extractRenderState(graphics, mouseX, mouseY);
         } else {
             int i = 0;
             for (FormattedCharSequence orderedText : accessor.getCommandUsage()) {
                 int j = i * 10;
-                context.fill(this.x - 1, j + this.y, this.x + accessor.getCommandUsageWidth() + 1, j + 12 + this.y, accessor.getFillColor());
-                context.drawString(accessor.getFont(), orderedText, this.x, (this.y + j + 2), -1);
+                graphics.fill(this.x - 1, j + this.y, this.x + accessor.getCommandUsageWidth() + 1, j + 12 + this.y, accessor.getFillColor());
+                graphics.text(accessor.getFont(), orderedText, this.x, (this.y + j + 2), -1);
                 ++i;
             }
         }
