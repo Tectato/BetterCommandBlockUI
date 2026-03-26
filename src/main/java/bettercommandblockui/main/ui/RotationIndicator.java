@@ -2,25 +2,25 @@ package bettercommandblockui.main.ui;
 
 import bettercommandblockui.main.BetterCommandBlockUI;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.network.chat.Component;
 import org.joml.AxisAngle4d;
 import org.joml.Quaternionf;
 import org.joml.Vector2d;
 
-public class RotationIndicator extends ClickableWidget {
+public class RotationIndicator extends AbstractWidget {
     private boolean dragging = false;
     private double angle = -1.0d;
     private Vector2d midPos;
     private java.util.function.Consumer<Double> changedListener;
 
-    public RotationIndicator(int x, int y, Text message) {
+    public RotationIndicator(int x, int y, Component message) {
         super(x, y, 32, 32, message);
         midPos = new Vector2d(getX() + getWidth()/2.0d, getY() + getHeight()/2.0d);
     }
@@ -38,29 +38,29 @@ public class RotationIndicator extends ClickableWidget {
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, BetterCommandBlockUI.COMPASS_FRAME, getX(), getY(), 32, 32);
-        context.getMatrices().pushMatrix();
-        context.getMatrices().translate(getX() + 16, getY() + 16);
-        context.getMatrices().rotate((float) ((angle + 1) * Math.PI));
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32);
-        context.getMatrices().popMatrix();
+    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, BetterCommandBlockUI.COMPASS_FRAME, getX(), getY(), 32, 32);
+        context.pose().pushMatrix();
+        context.pose().translate(getX() + 16, getY() + 16);
+        context.pose().rotate((float) ((angle + 1) * Math.PI));
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, BetterCommandBlockUI.COMPASS_NEEDLE, -16, -16, 32, 32);
+        context.pose().popMatrix();
     }
 
     @Override
-    protected void appendClickableNarrations(NarrationMessageBuilder builder) {}
+    protected void updateWidgetNarration(NarrationElementOutput builder) {}
 
     @Override
-    public void onClick(Click click, boolean doubled) {
+    public void onClick(MouseButtonEvent click, boolean doubled) {
         if (this.isValidClickButton(click.buttonInfo()) && this.clicked(click.x(), click.y())) {
-            this.playDownSound(MinecraftClient.getInstance().getSoundManager());
+            this.playDownSound(Minecraft.getInstance().getSoundManager());
             dragging = true;
             setAngleFromMousePos(click.x(), click.y());
         }
     }
 
     @Override
-    public void onRelease(Click click) {
+    public void onRelease(MouseButtonEvent click) {
         if (this.isValidClickButton(click.buttonInfo())) {
             dragging = false;
         }
@@ -71,7 +71,7 @@ public class RotationIndicator extends ClickableWidget {
     }
 
     @Override
-    public void onDrag(Click click, double distX, double distY){
+    public void onDrag(MouseButtonEvent click, double distX, double distY){
         if(dragging) {
             setAngleFromMousePos(click.x(), click.y());
         }

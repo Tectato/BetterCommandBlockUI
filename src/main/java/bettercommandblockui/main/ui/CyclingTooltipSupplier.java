@@ -1,22 +1,22 @@
 package bettercommandblockui.main.ui;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextContent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.Button;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentContents;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class CyclingTooltipSupplier {
     private Screen screen;
-    private Text[] tooltips;
+    private Component[] tooltips;
     private int currentIndex;
 
-    public CyclingTooltipSupplier(Screen screen, int initialIndex, Text[] tooltips){
+    public CyclingTooltipSupplier(Screen screen, int initialIndex, Component[] tooltips){
         this.screen = screen;
         this.tooltips = tooltips;
         this.currentIndex = initialIndex;
@@ -35,7 +35,7 @@ public class CyclingTooltipSupplier {
     }
 
     public Tooltip getTooltip() {
-        return Tooltip.of(tooltips[currentIndex]);
+        return Tooltip.create(tooltips[currentIndex]);
     }
 
 }

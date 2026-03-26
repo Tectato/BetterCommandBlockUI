@@ -6,19 +6,19 @@
   "mixins": [
   ],
   "client": [
-    "AbstractCommandBlockScreenAccessor",
-    "ClientCommonNetworkHandlerAccessor",
-    "ClientPlayerEntityAccessor",
-    "ClientPlayNetworkHandlerMixin",
+    "AbstractCommandBlockEditScreenAccessor",
+    "ClientCommonPacketListenerImplAccessor",
+    "LocalPlayerAccessor",
+    "ClientPacketListenerMixin",
     "CommandBlockMinecartMixin",
     "CommandBlockMixin",
     "CommandSuggestorAccessor",
-    "MinecraftClientMixin",
+    "MinecraftMixin",
     "ScreenAccessor",
-    "ServerPlayerEntityAccessor",
+    "ServerPlayerAccessor",
     "SuggestionWindowAccessor",
-    "TextFieldWidgetAccessor",
-    "TextRendererAccessor"
+    "EditBoxAccessor",
+    "FontAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

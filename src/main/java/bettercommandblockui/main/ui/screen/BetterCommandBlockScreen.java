@@ -7,59 +7,60 @@ import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CommandBlock;
-import net.minecraft.block.entity.CommandBlockBlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TexturedButtonWidget;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.network.packet.c2s.play.UpdateCommandBlockC2SPacket;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.*;
-import net.minecraft.world.CommandBlockExecutor;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.CommandBlock;
+import net.minecraft.world.level.block.entity.CommandBlockEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.protocol.game.ServerboundSetCommandBlockPacket;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BaseCommandBlock;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 import static bettercommandblockui.main.BetterCommandBlockUI.*;
-import static net.minecraft.block.entity.CommandBlockBlockEntity.Type.REDSTONE;
-import static net.minecraft.block.entity.CommandBlockBlockEntity.Type.SEQUENCE;
-import static net.minecraft.block.entity.CommandBlockBlockEntity.Type.AUTO;
+import static net.minecraft.world.level.block.entity.CommandBlockEntity.Mode.REDSTONE;
+import static net.minecraft.world.level.block.entity.CommandBlockEntity.Mode.SEQUENCE;
+import static net.minecraft.world.level.block.entity.CommandBlockEntity.Mode.AUTO;
 
 @Environment(value= EnvType.CLIENT)
 public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
-    private CyclingTexturedButtonWidget<CommandBlockBlockEntity.Type> modeButton;
+    private CyclingTexturedButtonWidget<CommandBlockEntity.Mode> modeButton;
     private CyclingTexturedButtonWidget<Boolean> conditionalModeButton;
     private CyclingTexturedButtonWidget<Boolean> redstoneTriggerButton;
-    private CommandBlockBlockEntity.Type mode = REDSTONE;
+    private CommandBlockEntity.Mode mode = REDSTONE;
 
     private BlockState blockState;
     private ChainHandler chainHandler;
-    private ButtonWidget chainNext;
-    private List<ButtonWidget> chainPrior;
-    CommandBlockBlockEntity blockEntity;
+    private Button chainNext;
+    private List<Button> chainPrior;
+    CommandBlockEntity blockEntity;
     private boolean conditional;
     private boolean autoActivate;
 
     public static BetterCommandBlockScreen instance;
 
-    public BetterCommandBlockScreen(MinecraftClient client, CommandBlockBlockEntity blockEntity, CommandBlockExecutor commandExecutor) {
+    public BetterCommandBlockScreen(Minecraft client, CommandBlockEntity blockEntity, BaseCommandBlock commandExecutor) {
         this.blockEntity = blockEntity;
         this.commandExecutor = commandExecutor;
         //this.client = client;
-        this.chainHandler = new ChainHandler(this, this.blockEntity.getPos());
+        this.chainHandler = new ChainHandler(this, this.blockEntity.getBlockPos());
         this.chainPrior = new LinkedList<>();
         instance = this;
     }
@@ -71,56 +72,56 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         int textBoxWidth = this.width - (2*screenMarginX + 2*cycleButtonWidth + 2*buttonMargin);
         int sideButtonX = this.width / 2 - (cycleButtonWidth + buttonMargin + textBoxWidth/2);
 
-        Text[] modeTooltips = {
-                Text.translatable("advMode.mode.redstone"),
-                Text.translatable("advMode.mode.sequence"),
-                Text.translatable("advMode.mode.auto")};
-        this.modeButton = this.addDrawableChild(
-                new CyclingTexturedButtonWidget<CommandBlockBlockEntity.Type>(
+        Component[] modeTooltips = {
+                Component.translatable("advMode.mode.redstone"),
+                Component.translatable("advMode.mode.sequence"),
+                Component.translatable("advMode.mode.auto")};
+        this.modeButton = this.addRenderableWidget(
+                new CyclingTexturedButtonWidget<CommandBlockEntity.Mode>(
                         sideButtonX,
                         this.height/2 - (buttonHeight + buttonHeight/2 + buttonMargin),
                         cycleButtonWidth,
                         buttonHeight,
-                        Text.of(""),
-                        (button -> this.mode = ((CyclingTexturedButtonWidget<CommandBlockBlockEntity.Type>)button).getValue()),
-                        client.currentScreen,
-                        new net.minecraft.client.gui.screen.ButtonTextures[]{BUTTON_IMPULSE, BUTTON_CHAIN, BUTTON_REPEAT},
+                        Component.nullToEmpty(""),
+                        (button -> this.mode = ((CyclingTexturedButtonWidget<CommandBlockEntity.Mode>)button).getValue()),
+                        minecraft.screen,
+                        new net.minecraft.client.gui.components.WidgetSprites[]{BUTTON_IMPULSE, BUTTON_CHAIN, BUTTON_REPEAT},
                         0,
-                        new CommandBlockBlockEntity.Type[]{REDSTONE, SEQUENCE, AUTO},
+                        new CommandBlockEntity.Mode[]{REDSTONE, SEQUENCE, AUTO},
                         modeTooltips
                 ));
 
-        Text[] conditionalTooltips = {
-                Text.translatable("advMode.mode.unconditional"),
-                Text.translatable("advMode.mode.conditional")};
-        this.conditionalModeButton = this.addDrawableChild(
+        Component[] conditionalTooltips = {
+                Component.translatable("advMode.mode.unconditional"),
+                Component.translatable("advMode.mode.conditional")};
+        this.conditionalModeButton = this.addRenderableWidget(
                 new CyclingTexturedButtonWidget<Boolean>(
                         sideButtonX,
                         this.height/2 - buttonHeight/2,
                         cycleButtonWidth,
                         buttonHeight,
-                        Text.of(""),
+                        Component.nullToEmpty(""),
                         (button -> this.conditional = ((CyclingTexturedButtonWidget<Boolean>)button).getValue()),
-                        client.currentScreen,
-                        new net.minecraft.client.gui.screen.ButtonTextures[]{BUTTON_UNCONDITIONAL, BUTTON_CONDITIONAL},
+                        minecraft.screen,
+                        new net.minecraft.client.gui.components.WidgetSprites[]{BUTTON_UNCONDITIONAL, BUTTON_CONDITIONAL},
                         0,
                         new Boolean[]{false, true},
                         conditionalTooltips
                 ));
 
-        Text[] activeTooltips = {
-                Text.translatable("advMode.mode.redstoneTriggered"),
-                Text.translatable("advMode.mode.autoexec.bat")};
-        this.redstoneTriggerButton = this.addDrawableChild(
+        Component[] activeTooltips = {
+                Component.translatable("advMode.mode.redstoneTriggered"),
+                Component.translatable("advMode.mode.autoexec.bat")};
+        this.redstoneTriggerButton = this.addRenderableWidget(
                 new CyclingTexturedButtonWidget<Boolean>(
                         sideButtonX,
                         this.height/2 + buttonHeight/2 + buttonMargin,
                         cycleButtonWidth,
                         buttonHeight,
-                        Text.of(""),
+                        Component.nullToEmpty(""),
                         (button -> this.autoActivate = ((CyclingTexturedButtonWidget<Boolean>)button).getValue()),
-                        client.currentScreen,
-                        new net.minecraft.client.gui.screen.ButtonTextures[]{BUTTON_POWER_INACTIVE, BUTTON_POWER_ACTIVE},
+                        minecraft.screen,
+                        new net.minecraft.client.gui.components.WidgetSprites[]{BUTTON_POWER_INACTIVE, BUTTON_POWER_ACTIVE},
                         0,
                         new Boolean[]{false, true},
                         activeTooltips
@@ -128,31 +129,31 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
 
         if(chainHandler.isInChain()){
             BlockState next = chainHandler.getNext();
-            List<Pair<BlockState,Direction>> prior = chainHandler.getPrior();
+            List<Tuple<BlockState, Direction>> prior = chainHandler.getPrior();
 
 
-            BlockPos position = blockEntity.getPos();
-            blockState = MinecraftClient.getInstance().world.getBlockState(position);
+            BlockPos position = blockEntity.getBlockPos();
+            blockState = Minecraft.getInstance().level.getBlockState(position);
 
-            if(next != null && next.getBlock().equals(Registries.BLOCK.get(Identifier.of("minecraft","chain_command_block")))){
-                Direction dir = MinecraftClient.getInstance().world.getBlockState(position).get(CommandBlock.FACING);
-                chainNext = this.addDrawableChild(
-                        new TexturedButtonWidget( 49, 5, 20, 20, BlockStateToButtonTextures(next), (button -> {
+            if(next != null && next.getBlock().equals(BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("minecraft","chain_command_block")))){
+                Direction dir = Minecraft.getInstance().level.getBlockState(position).getValue(CommandBlock.FACING);
+                chainNext = this.addRenderableWidget(
+                        new ImageButton( 49, 5, 20, 20, BlockStateToButtonTextures(next), (button -> {
                             moveAlongChain(dir);
-                        }), Text.of(""))
+                        }), Component.nullToEmpty(""))
                 );
-                chainNext.setTooltip(Tooltip.of(Text.translatable("bcbui.chain.next")));
+                chainNext.setTooltip(Tooltip.create(Component.translatable("bcbui.chain.next")));
             }
 
             if(!prior.isEmpty()){
                 int y = 5;
-                for(Pair<BlockState,Direction> entry : prior){
-                    chainPrior.add(this.addDrawableChild(
-                            new TexturedButtonWidget( 5, y, 20, 20, BlockStateToButtonTextures(entry.getLeft()), (button -> {
-                                moveAlongChain(entry.getRight());
-                            }), Text.of(""))
+                for(Tuple<BlockState, Direction> entry : prior){
+                    chainPrior.add(this.addRenderableWidget(
+                            new ImageButton( 5, y, 20, 20, BlockStateToButtonTextures(entry.getA()), (button -> {
+                                moveAlongChain(entry.getB());
+                            }), Component.nullToEmpty(""))
                     ));
-                    chainPrior.get(chainPrior.size()-1).setTooltip(Tooltip.of(DirectionToText(entry.getRight())));
+                    chainPrior.get(chainPrior.size()-1).setTooltip(Tooltip.create(DirectionToText(entry.getB())));
                     y += 22;
                 }
             }
@@ -173,10 +174,10 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         if(wasModified() && AUTOSAVE){
             commit();
         }
-        BlockPos position = blockEntity.getPos();
-        assert MinecraftClient.getInstance().interactionManager != null;
-        MinecraftClient.getInstance().interactionManager.interactBlock(MinecraftClient.getInstance().player, Hand.MAIN_HAND, new BlockHitResult(
-                position.add(dir.getVector()).toCenterPos(), Direction.UP, position.add(dir.getVector()), false
+        BlockPos position = blockEntity.getBlockPos();
+        assert Minecraft.getInstance().gameMode != null;
+        Minecraft.getInstance().gameMode.useItemOn(Minecraft.getInstance().player, InteractionHand.MAIN_HAND, new BlockHitResult(
+                position.offset(dir.getUnitVec3i()).getCenter(), Direction.UP, position.offset(dir.getUnitVec3i()), false
         ));
     }
 
@@ -197,12 +198,12 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
 
     public void updateCommandBlock() {
         updated = true;
-        CommandBlockExecutor commandBlockExecutor = this.blockEntity.getCommandExecutor();
+        BaseCommandBlock commandBlockExecutor = this.blockEntity.getCommandBlock();
         ((MultiLineTextFieldWidget)this.consoleCommandTextField).setRawText(commandBlockExecutor.getCommand());
-        this.trackOutput = commandBlockExecutor.isTrackingOutput();
-        this.mode = this.blockEntity.getCommandBlockType();
-        this.conditional = this.blockEntity.isConditionalCommandBlock();
-        this.autoActivate = this.blockEntity.isAuto();
+        this.trackOutput = commandBlockExecutor.isTrackOutput();
+        this.mode = this.blockEntity.getMode();
+        this.conditional = this.blockEntity.isConditional();
+        this.autoActivate = this.blockEntity.isAutomatic();
 
         this.priorState = new CommandBlockState(mode, conditional, autoActivate, trackOutput);
 
@@ -212,7 +213,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         }
 
         int modeIndex = 0;
-        this.mode = blockEntity.getCommandBlockType();
+        this.mode = blockEntity.getMode();
         switch (this.mode) {
             case SEQUENCE -> modeIndex = 1;
             case AUTO -> modeIndex = 2;
@@ -237,12 +238,12 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         priorState.conditional = conditional;
     }
 
-    protected void syncSettingsToServer(CommandBlockExecutor commandExecutor) {
-        assert this.client != null;
-        Objects.requireNonNull(this.client.getNetworkHandler()).sendPacket(
-                new UpdateCommandBlockC2SPacket(
-                        blockEntity.getPos(),
-                        this.consoleCommandTextField.getText(),
+    protected void syncSettingsToServer(BaseCommandBlock commandExecutor) {
+        assert this.minecraft != null;
+        Objects.requireNonNull(this.minecraft.getConnection()).send(
+                new ServerboundSetCommandBlockPacket(
+                        blockEntity.getBlockPos(),
+                        this.consoleCommandTextField.getValue(),
                         this.mode,
                         this.trackOutput,
                         this.conditional,
@@ -250,7 +251,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         renderAsterisk(context, modeButton, modeButton.getValue() != priorState.type);
         renderAsterisk(context, conditionalModeButton, conditionalModeButton.getValue() != priorState.conditional);
@@ -260,7 +261,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
             //context.fill(28,6,46,24, 0xFF000000);
             //context.drawBorder(27, 5, 20, 20, 0xFFA0A0A0);
             Identifier texture = BlockStateToButtonTextures(blockState).enabled();
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, 27, 5, 20, 20);
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, texture, 27, 5, 20, 20);
             context.fill(27,5,46,24, 0x8F000000);
             renderAsterisk(context, 47, 1, wasModified());
 
@@ -280,7 +281,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                             consoleCommandTextField.getY() + consoleCommandTextField.getHeight(),
                             0x8F000000);
                 }
-                context.drawCenteredTextWithShadow(textRenderer, Text.translatable("bcbui.chain.tooFar"), width/2, height/2, 0xFFA0A0A0);
+                context.drawCenteredString(font, Component.translatable("bcbui.chain.tooFar"), width/2, height/2, 0xFFA0A0A0);
             }
         }
     }

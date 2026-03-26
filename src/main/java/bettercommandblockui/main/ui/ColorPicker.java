@@ -1,6 +1,6 @@
 package bettercommandblockui.main.ui;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class ColorPicker {
 

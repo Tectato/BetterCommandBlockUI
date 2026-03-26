@@ -6,17 +6,17 @@ import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
 import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.CheckboxWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.input.KeyInput;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.CommandSuggestions;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
@@ -37,18 +37,18 @@ public class ConfigScreen extends Screen {
     private static int screenMarginX = 40;
     private static int screenMarginY = 12;
     private static int numberInputWidth = 40;
-    private CheckboxWidget newLinePreOpen, newLinePostOpen, newLinePreClose, newLinePostClose, //newLinePostLastClose,
+    private Checkbox newLinePreOpen, newLinePostOpen, newLinePreClose, newLinePostClose, //newLinePostLastClose,
             newLinePostComma, avoidDoubleNewline, formatStrings, ignoreEnter, autosave;//, bracketAutocomplete;
-    private TextFieldWidget indentationFac, wraparound, scrollSpeedX, scrollSpeedY;
-    private ButtonWidget back;
+    private EditBox indentationFac, wraparound, scrollSpeedX, scrollSpeedY;
+    private Button back;
 
     public ConfigScreen() {
-        super(Text.translatable("bcbui.config.title"));
+        super(Component.translatable("bcbui.config.title"));
         setup();
     }
 
-    public ConfigScreen(Screen parent, MinecraftClient client, int width, int height){
-        super(Text.translatable("bcbui.config.title"));
+    public ConfigScreen(Screen parent, Minecraft client, int width, int height){
+        super(Component.translatable("bcbui.config.title"));
         this.parent = parent;
         this.width = width;
         this.height = height;
@@ -57,46 +57,46 @@ public class ConfigScreen extends Screen {
 
     private void setup(){
         if (parent != null){
-            back = ButtonWidget.builder(ScreenTexts.BACK,
-                button -> close())
-                .dimensions(8, 8, 50, 20)
+            back = Button.builder(CommonComponents.GUI_BACK,
+                button -> onClose())
+                .bounds(8, 8, 50, 20)
                 .build();
         }
 
         int textBoxWidth = this.width - (2*screenMarginX + 2*buttonHeight + 2*buttonMargin);
         int textBoxHeight = this.height / 2;// - (2*screenMarginY + textHeight + textMargin + buttonHeight + 2*buttonMargin + sliderHeight);
-        textField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2,screenMarginY,textBoxWidth,textBoxHeight, Text.literal(sampleText), null);
+        textField = new MultiLineTextFieldWidget(this.font, this.width/2 - textBoxWidth/2,screenMarginY,textBoxWidth,textBoxHeight, Component.literal(sampleText), null);
         textField.setMaxLength(32500);
 
-        commandSuggestor = new MultiLineCommandSuggestor(this.client, this, this.textField, this.textRenderer, true, true, 0, 7, false, Integer.MIN_VALUE);
-        commandSuggestor.setWindowActive(true);
-        if (client != null && client.player != null) commandSuggestor.refresh();
+        commandSuggestor = new MultiLineCommandSuggestor(this.minecraft, this, this.textField, this.font, true, true, 0, 7, false, Integer.MIN_VALUE);
+        commandSuggestor.setAllowSuggestions(true);
+        if (minecraft != null && minecraft.player != null) commandSuggestor.updateCommandInfo();
 
         textField.setCommandSuggestor(commandSuggestor);
-        textField.setChangedListener(this::onCommandChanged);
+        textField.setResponder(this::onCommandChanged);
         textField.setRawText(sampleText);
 
-        CheckboxWidget.Callback callback = new CheckboxWidget.Callback() {
+        Checkbox.OnValueChange callback = new Checkbox.OnValueChange() {
             @Override
-            public void onValueChange(CheckboxWidget checkbox, boolean checked) {
+            public void onValueChange(Checkbox checkbox, boolean checked) {
                 checkboxCallback(checkbox, checked);
             }
         };
-        newLinePreOpen = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET).callback(callback).build();
-        newLinePostOpen = CheckboxWidget.builder(Text.translatable("bcbui.config.after"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET).callback(callback).build();
-        newLinePreClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET).callback(callback).build();
-        newLinePostClose = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET).callback(callback).build();
+        newLinePreOpen = Checkbox.builder(Component.literal(""), font).selected(BetterCommandBlockUI.NEWLINE_PRE_OPEN_BRACKET).onValueChange(callback).build();
+        newLinePostOpen = Checkbox.builder(Component.translatable("bcbui.config.after"), font).selected(BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET).onValueChange(callback).build();
+        newLinePreClose = Checkbox.builder(Component.literal(""), font).selected(BetterCommandBlockUI.NEWLINE_PRE_CLOSE_BRACKET).onValueChange(callback).build();
+        newLinePostClose = Checkbox.builder(Component.literal(""), font).selected(BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET).onValueChange(callback).build();
         //newLinePostLastClose = CheckboxWidget.builder(Text.literal("After last closing bracket"), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_LAST_CLOSE_BRACKET).callback(callback).build();
-        newLinePostComma = CheckboxWidget.builder(Text.literal(""), textRenderer).checked(BetterCommandBlockUI.NEWLINE_POST_COMMA).callback(callback).build();
-        avoidDoubleNewline = CheckboxWidget.builder(Text.translatable("bcbui.config.avoidEmpty"), textRenderer).checked(BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE).callback(callback).build();
+        newLinePostComma = Checkbox.builder(Component.literal(""), font).selected(BetterCommandBlockUI.NEWLINE_POST_COMMA).onValueChange(callback).build();
+        avoidDoubleNewline = Checkbox.builder(Component.translatable("bcbui.config.avoidEmpty"), font).selected(BetterCommandBlockUI.AVOID_DOUBLE_NEWLINE).onValueChange(callback).build();
         //bracketAutocomplete = CheckboxWidget.builder(Text.literal("Bracket autocomplete"), textRenderer).checked(BetterCommandBlockUI.BRACKET_AUTOCOMPLETE).callback(callback).build();
-        formatStrings = CheckboxWidget.builder(Text.translatable("bcbui.config.formatStrings"), textRenderer).checked(BetterCommandBlockUI.FORMAT_STRINGS).callback(callback).build();
-        ignoreEnter = CheckboxWidget.builder(Text.translatable("bcbui.config.ignoreEnter"), textRenderer).checked(BetterCommandBlockUI.IGNORE_ENTER).callback(callback).build();
-        autosave = CheckboxWidget.builder(Text.translatable("bcbui.config.autosave"), textRenderer).checked(BetterCommandBlockUI.AUTOSAVE).callback(callback).build();
+        formatStrings = Checkbox.builder(Component.translatable("bcbui.config.formatStrings"), font).selected(BetterCommandBlockUI.FORMAT_STRINGS).onValueChange(callback).build();
+        ignoreEnter = Checkbox.builder(Component.translatable("bcbui.config.ignoreEnter"), font).selected(BetterCommandBlockUI.IGNORE_ENTER).onValueChange(callback).build();
+        autosave = Checkbox.builder(Component.translatable("bcbui.config.autosave"), font).selected(BetterCommandBlockUI.AUTOSAVE).onValueChange(callback).build();
 
-        indentationFac = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.translatable("bcbui.config.indentation"));
-        indentationFac.setText(String.valueOf(BetterCommandBlockUI.INDENTATION_FACTOR));
-        indentationFac.setChangedListener((input) -> {
+        indentationFac = new EditBox(font, 0, 0, numberInputWidth, 10, Component.translatable("bcbui.config.indentation"));
+        indentationFac.setValue(String.valueOf(BetterCommandBlockUI.INDENTATION_FACTOR));
+        indentationFac.setResponder((input) -> {
             try {
                 int inputInt = Math.min(Math.max(Integer.parseInt(input),1),16);
                 BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_INDENTATION, String.valueOf(inputInt));
@@ -105,9 +105,9 @@ public class ConfigScreen extends Screen {
                 BetterCommandBlockUI.INDENTATION_FACTOR = 2;
             }
         });
-        wraparound = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.translatable("bcbui.config.wraparoundWidth"));
-        wraparound.setText(String.valueOf(BetterCommandBlockUI.WRAPAROUND_WIDTH));
-        wraparound.setChangedListener((input) -> {
+        wraparound = new EditBox(font, 0, 0, numberInputWidth, 10, Component.translatable("bcbui.config.wraparoundWidth"));
+        wraparound.setValue(String.valueOf(BetterCommandBlockUI.WRAPAROUND_WIDTH));
+        wraparound.setResponder((input) -> {
             try {
                 int inputInt = Math.min(Math.max(Integer.parseInt(input),10),6400);
                 BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_WRAPAROUND, String.valueOf(inputInt));
@@ -116,9 +116,9 @@ public class ConfigScreen extends Screen {
                 BetterCommandBlockUI.WRAPAROUND_WIDTH = 200;
             }
         });
-        scrollSpeedX = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.translatable("bcbui.config.scrollX"));
-        scrollSpeedX.setText(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_X));
-        scrollSpeedX.setChangedListener((input) -> {
+        scrollSpeedX = new EditBox(font, 0, 0, numberInputWidth, 10, Component.translatable("bcbui.config.scrollX"));
+        scrollSpeedX.setValue(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_X));
+        scrollSpeedX.setResponder((input) -> {
             try {
                 int inputInt = Math.min(Math.max(Integer.parseInt(input),1),64);
                 BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_SCROLL_X, String.valueOf(inputInt));
@@ -126,9 +126,9 @@ public class ConfigScreen extends Screen {
                 BetterCommandBlockUI.SCROLL_STEP_X = 4;
             }
         });
-        scrollSpeedY = new TextFieldWidget(textRenderer, 0, 0, numberInputWidth, 10, Text.translatable("bcbui.config.scrollY"));
-        scrollSpeedY.setText(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_Y));
-        scrollSpeedY.setChangedListener((input) -> {
+        scrollSpeedY = new EditBox(font, 0, 0, numberInputWidth, 10, Component.translatable("bcbui.config.scrollY"));
+        scrollSpeedY.setValue(String.valueOf(BetterCommandBlockUI.SCROLL_STEP_Y));
+        scrollSpeedY.setResponder((input) -> {
             try {
                 int inputInt = Math.min(Math.max(Integer.parseInt(input),1),64);
                 BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_SCROLL_Y, String.valueOf(inputInt));
@@ -141,10 +141,10 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public void close() {
-        if (parent != null && client != null) {
+    public void onClose() {
+        if (parent != null && minecraft != null) {
             BetterCommandBlockUI.writeConfig();
-            client.setScreen(parent);
+            minecraft.setScreen(parent);
             if (parent instanceof AbstractBetterCommandBlockScreen) {
                 ((AbstractBetterCommandBlockScreen) parent).returnFromConfig();
             }
@@ -153,7 +153,7 @@ public class ConfigScreen extends Screen {
 
     @Override
     protected void init(){
-        if (client != null && textRenderer == null){
+        if (minecraft != null && font == null){
             super.init(width, height);
         }
 
@@ -181,56 +181,56 @@ public class ConfigScreen extends Screen {
         scrollSpeedY.setPosition(scrollSpeedX.getX(), scrollSpeedX.getY() + 12);
 
         if (parent != null){
-            addDrawableChild(back);
+            addRenderableWidget(back);
         }
-        addDrawableChild(textField);
+        addRenderableWidget(textField);
         this.setInitialFocus(this.textField);
         textField.setFocused(true);
-        addDrawableChild(newLinePreOpen);
-        addDrawableChild(newLinePostOpen);
-        addDrawableChild(newLinePreClose);
-        addDrawableChild(newLinePostClose);
+        addRenderableWidget(newLinePreOpen);
+        addRenderableWidget(newLinePostOpen);
+        addRenderableWidget(newLinePreClose);
+        addRenderableWidget(newLinePostClose);
         //addDrawableChild(newLinePostLastClose);
-        addDrawableChild(newLinePostComma);
-        addDrawableChild(formatStrings);
-        addDrawableChild(avoidDoubleNewline);
-        addDrawableChild(ignoreEnter);
-        addDrawableChild(autosave);
+        addRenderableWidget(newLinePostComma);
+        addRenderableWidget(formatStrings);
+        addRenderableWidget(avoidDoubleNewline);
+        addRenderableWidget(ignoreEnter);
+        addRenderableWidget(autosave);
         //addDrawableChild(bracketAutocomplete);
-        addDrawableChild(indentationFac);
-        addDrawableChild(wraparound);
-        addDrawableChild(scrollSpeedX);
-        addDrawableChild(scrollSpeedY);
+        addRenderableWidget(indentationFac);
+        addRenderableWidget(wraparound);
+        addRenderableWidget(scrollSpeedX);
+        addRenderableWidget(scrollSpeedY);
     }
 
     protected void onCommandChanged(String s){
-        if (client != null && client.player != null) commandSuggestor.refresh();
+        if (minecraft != null && minecraft.player != null) commandSuggestor.updateCommandInfo();
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         if(parent != null){
             back.render(context, mouseX, mouseY, delta);
         }
-        if(client == null || client.player == null){
-            context.drawCenteredTextWithShadow(textRenderer, Text.translatable("bcbui.config.colorError"), width/2, 4, 0xffe0e0e0);
+        if(minecraft == null || minecraft.player == null){
+            context.drawCenteredString(font, Component.translatable("bcbui.config.colorError"), width/2, 4, 0xffe0e0e0);
         }
-        context.drawCenteredTextWithShadow(textRenderer, Text.translatable("bcbui.config.lineBreaks"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() - 12, 0xffffff);
-        String beforeText = Text.translatable("bcbui.config.before").getString();
-        int beforeTextWidth = textRenderer.getWidth(Text.translatable("bcbui.config.before").getString());
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.before"), newLinePreOpen.getX() - (beforeTextWidth + 2), newLinePreOpen.getY() + 4, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.literal("{"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() + 6, 0xffffff);
-        context.drawTextWithShadow(textRenderer, Text.literal("}"), newLinePreClose.getX() + 20, newLinePreClose.getY() + 6, 0xffffff);
-        context.drawTextWithShadow(textRenderer, Text.literal(","), newLinePreClose.getX() + 20, newLinePostComma.getY() + 6, 0xffffff);
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.indentation"), indentationFac.getX() + numberInputWidth + 4, indentationFac.getY() + 2, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.wraparoundWidth"), wraparound.getX() + numberInputWidth + 4, wraparound.getY() + 2, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.scrollX"), scrollSpeedX.getX() + numberInputWidth + 4, scrollSpeedX.getY() + 2, 0xFFE0E0E0);
-        context.drawTextWithShadow(textRenderer, Text.translatable("bcbui.config.scrollY"), scrollSpeedY.getX() + numberInputWidth + 4, scrollSpeedY.getY() + 2, 0xFFE0E0E0);
+        context.drawCenteredString(font, Component.translatable("bcbui.config.lineBreaks"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() - 12, 0xffffff);
+        String beforeText = Component.translatable("bcbui.config.before").getString();
+        int beforeTextWidth = font.width(Component.translatable("bcbui.config.before").getString());
+        context.drawString(font, Component.translatable("bcbui.config.before"), newLinePreOpen.getX() - (beforeTextWidth + 2), newLinePreOpen.getY() + 4, 0xFFE0E0E0);
+        context.drawString(font, Component.literal("{"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() + 6, 0xffffff);
+        context.drawString(font, Component.literal("}"), newLinePreClose.getX() + 20, newLinePreClose.getY() + 6, 0xffffff);
+        context.drawString(font, Component.literal(","), newLinePreClose.getX() + 20, newLinePostComma.getY() + 6, 0xffffff);
+        context.drawString(font, Component.translatable("bcbui.config.indentation"), indentationFac.getX() + numberInputWidth + 4, indentationFac.getY() + 2, 0xFFE0E0E0);
+        context.drawString(font, Component.translatable("bcbui.config.wraparoundWidth"), wraparound.getX() + numberInputWidth + 4, wraparound.getY() + 2, 0xFFE0E0E0);
+        context.drawString(font, Component.translatable("bcbui.config.scrollX"), scrollSpeedX.getX() + numberInputWidth + 4, scrollSpeedX.getY() + 2, 0xFFE0E0E0);
+        context.drawString(font, Component.translatable("bcbui.config.scrollY"), scrollSpeedY.getX() + numberInputWidth + 4, scrollSpeedY.getY() + 2, 0xFFE0E0E0);
         textField.render(context, mouseX, mouseY, delta);
     }
 
-    public void checkboxCallback(CheckboxWidget source, boolean checked){
+    public void checkboxCallback(Checkbox source, boolean checked){
         if (source.equals(newLinePreOpen)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_NEWLINE_PRE_OPEN_BRACKET, String.valueOf(checked));
         if (source.equals(newLinePostOpen)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_NEWLINE_POST_OPEN_BRACKET, String.valueOf(checked));
         if (source.equals(newLinePreClose)) BetterCommandBlockUI.setConfig(BetterCommandBlockUI.VAR_NEWLINE_PRE_CLOSE_BRACKET, String.valueOf(checked));
@@ -246,7 +246,7 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(Click click, boolean doubled){
+    public boolean mouseClicked(MouseButtonEvent click, boolean doubled){
         if(commandSuggestor.mouseClicked(click)) return true;
         if(textField.mouseClicked(click, doubled)) {
             setFocused(textField);
@@ -255,7 +255,7 @@ public class ConfigScreen extends Screen {
         return super.mouseClicked(click, doubled);
     }
     @Override
-    public boolean mouseDragged(Click click, double deltaX, double deltaY){
+    public boolean mouseDragged(MouseButtonEvent click, double deltaX, double deltaY){
         if(click.button() == 0) {
             return this.textField.mouseDragged(click, deltaX, deltaY);
         }
@@ -263,7 +263,7 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseReleased(Click click){
+    public boolean mouseReleased(MouseButtonEvent click){
         if(click.button() == 0){
             return this.textField.mouseReleased(click);
         }
@@ -271,8 +271,8 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(KeyInput input) {
-        int keyCode = input.getKeycode();
+    public boolean keyPressed(KeyEvent input) {
+        int keyCode = input.input();
         if(keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
             this.textField.keyPressed(input);
         }
@@ -283,8 +283,8 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public boolean keyReleased(KeyInput input) {
-        int keyCode = input.getKeycode();
+    public boolean keyReleased(KeyEvent input) {
+        int keyCode = input.input();
         if(keyCode == 340 || keyCode == 344){
             this.textField.keyReleased(input);
         }

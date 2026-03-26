@@ -1,66 +1,52 @@
 package bettercommandblockui.mixin;
 
 import com.mojang.brigadier.ParseResults;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.command.CommandSource;
-import net.minecraft.text.OrderedText;
-import net.minecraft.text.Style;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.CommandSuggestions;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.network.chat.Style;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 import java.util.List;
 
-@Mixin(ChatInputSuggestor.class)
+@Mixin(CommandSuggestions.class)
 public interface CommandSuggestorAccessor{
-    @Invoker("provideRenderText")
-    OrderedText invokeProvideRenderText(String original, int firstCharacterIndex);
+    @Invoker("formatChat")
+    FormattedCharSequence invokeFormatChat(String original, int firstCharacterIndex);
 
     @Accessor
-    ChatInputSuggestor.SuggestionWindow getWindow();
+    CommandSuggestions.SuggestionsList getSuggestions();
 
     @Accessor
-    List<OrderedText> getMessages();
+    List<FormattedCharSequence> getCommandUsage();
+
 
     @Accessor
-    static List<Style> getHIGHLIGHT_STYLES() {
-        throw new AssertionError();
-    }
+    Screen getScreen();
 
     @Accessor
-    static Style getINFO_STYLE() {
-        throw new AssertionError();
-    }
+    Font getFont();
 
     @Accessor
-    static Style getERROR_STYLE() {
-        throw new AssertionError();
-    }
+    EditBox getInput();
 
     @Accessor
-    Screen getOwner();
+    ParseResults<SharedSuggestionProvider> getCurrentParse();
 
     @Accessor
-    TextRenderer getTextRenderer();
+    boolean getAnchorToBottom();
 
     @Accessor
-    TextFieldWidget getTextField();
+    boolean getKeepSuggestions();
 
     @Accessor
-    ParseResults<CommandSource> getParse();
+    int getFillColor();
 
     @Accessor
-    boolean getChatScreenSized();
-
-    @Accessor
-    boolean getCompletingSuggestions();
-
-    @Accessor
-    int getColor();
-
-    @Accessor
-    int getWidth();
+    int getCommandUsageWidth();
 }

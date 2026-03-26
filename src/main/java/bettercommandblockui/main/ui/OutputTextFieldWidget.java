@@ -1,49 +1,49 @@
 package bettercommandblockui.main.ui;
 
-import bettercommandblockui.mixin.TextFieldWidgetAccessor;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
+import bettercommandblockui.mixin.EditBoxAccessor;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
-public class OutputTextFieldWidget extends TextFieldWidget {
+public class OutputTextFieldWidget extends EditBox {
 
-    private TextFieldWidgetAccessor accessor = (TextFieldWidgetAccessor)this;
+    private EditBoxAccessor accessor = (EditBoxAccessor)this;
 
-    public OutputTextFieldWidget(TextRenderer textRenderer, int width, int height, Text text) {
+    public OutputTextFieldWidget(Font textRenderer, int width, int height, Component text) {
         super(textRenderer, width, height, text);
     }
 
-    public OutputTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, Text text) {
+    public OutputTextFieldWidget(Font textRenderer, int x, int y, int width, int height, Component text) {
         super(textRenderer, x, y, width, height, text);
     }
 
-    public OutputTextFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, @Nullable TextFieldWidget copyFrom, Text text) {
+    public OutputTextFieldWidget(Font textRenderer, int x, int y, int width, int height, @Nullable EditBox copyFrom, Component text) {
         super(textRenderer, x, y, width, height, copyFrom, text);
     }
 
     @Override
-    public void onClick(Click click, boolean doubled) {
+    public void onClick(MouseButtonEvent click, boolean doubled) {
         super.onClick(click, doubled);
     }
 
     @Override
     public void setFocused(boolean focused) {
-        if (accessor.getFocusUnlocked() || focused) {
+        if (accessor.getCanLoseFocus() || focused) {
             super.setFocused(focused);
             if (focused) {
-                accessor.setLastSwitchFocusTime(Util.getMeasuringTimeMs());
-                accessor.setSelectionStart(0);
-                accessor.setSelectionEnd(accessor.getText().length());
+                accessor.setFocusedTime(Util.getMillis());
+                accessor.setCursorPos(0);
+                accessor.setHighlightPos(accessor.getValue().length());
             }
         }
         if (!this.isFocused()/* || !this.isNarratable()*/){
-            accessor.setSelectionStart(0);
-            accessor.setSelectionEnd(0);
+            accessor.setCursorPos(0);
+            accessor.setHighlightPos(0);
         }
     }
 }

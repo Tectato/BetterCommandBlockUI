@@ -1,38 +1,38 @@
 package bettercommandblockui.main.ui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ButtonTextures;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.PressableWidget;
-import net.minecraft.client.input.AbstractInput;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 
-public class CyclingTexturedButtonWidget<T> extends PressableWidget {
-    ButtonTextures[] textures;
+public class CyclingTexturedButtonWidget<T> extends AbstractButton {
+    WidgetSprites[] textures;
     T[] values;
     CyclingTooltipSupplier tooltipSupplier;
     PressAction action;
 
-    public CyclingTexturedButtonWidget(int x, int y, int width, int height, Text message, PressAction onPress, Screen screen, ButtonTextures[] textures, int initialIndex, T[] values) {
+    public CyclingTexturedButtonWidget(int x, int y, int width, int height, Component message, PressAction onPress, Screen screen, WidgetSprites[] textures, int initialIndex, T[] values) {
         super(x, y, width, height, message);
         this.textures = textures;
         this.values = values;
-        this.tooltipSupplier = new CyclingTooltipSupplier(screen, initialIndex, new Text[values.length]);
+        this.tooltipSupplier = new CyclingTooltipSupplier(screen, initialIndex, new Component[values.length]);
         this.action = onPress;
         this.setTooltip(tooltipSupplier.getTooltip());
     }
 
-    public CyclingTexturedButtonWidget(int x, int y, int width, int height, Text message, PressAction onPress, Screen screen, ButtonTextures[] textures, int initialIndex, T[] values, Text[] tooltips) {
+    public CyclingTexturedButtonWidget(int x, int y, int width, int height, Component message, PressAction onPress, Screen screen, WidgetSprites[] textures, int initialIndex, T[] values, Component[] tooltips) {
         super(x, y, width, height, message);
         this.textures = textures;
         this.values = values;
@@ -42,7 +42,7 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
     }
 
     @Override
-    public void onPress(AbstractInput input){
+    public void onPress(InputWithModifiers input){
         if(!active) return;
         this.tooltipSupplier.incrementIndex();
         this.setTooltip(tooltipSupplier.getTooltip());
@@ -50,7 +50,7 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
     }
 
     @Override
-    public void onClick(Click click, boolean doubled) {
+    public void onClick(MouseButtonEvent click, boolean doubled) {
         if(!active) return;
         if(click.x() > getX() && click.x() <= getX() + getWidth() && click.y() > getY() && click.y() <= getY() + getHeight()){
             this.tooltipSupplier.incrementIndex();
@@ -73,18 +73,18 @@ public class CyclingTexturedButtonWidget<T> extends PressableWidget {
     }
 
     @Override
-    public void drawIcon(DrawContext context, int mouseX, int mouseY, float delta) {
-        MinecraftClient minecraftClient = MinecraftClient.getInstance();
-        TextRenderer textRenderer = minecraftClient.textRenderer;
+    public void renderContents(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        Minecraft minecraftClient = Minecraft.getInstance();
+        Font textRenderer = minecraftClient.font;
         int i = this.active?(this.isHovered()?2:1):0;
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.textures[this.tooltipSupplier.getCurrentIndex()].get(this.active,this.isHovered()), this.getX(), this.getY(), 20, 20);
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, this.textures[this.tooltipSupplier.getCurrentIndex()].get(this.active,this.isHovered()), this.getX(), this.getY(), 20, 20);
         //this.renderBackground(matrices, minecraftClient, mouseX, mouseY);
         int j = this.active ? 0xFFFFFF : 0xA0A0A0;
-        context.drawCenteredTextWithShadow(textRenderer, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0f) << 24);
+        context.drawCenteredString(textRenderer, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, j | Mth.ceil(this.alpha * 255.0f) << 24);
     }
 
     @Override
-    protected void appendClickableNarrations(NarrationMessageBuilder builder) {
+    protected void updateWidgetNarration(NarrationElementOutput builder) {
 
     }
 

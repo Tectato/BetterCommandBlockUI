@@ -1,20 +1,20 @@
 package bettercommandblockui.main.ui;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
 import org.joml.AxisAngle4d;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
 public class ColorScrollbarWidget extends ScrollbarWidget{
     int color;
-    public ColorScrollbarWidget(int x, int y, int width, int height, Text message, ColorPicker.COLOR color) {
+    public ColorScrollbarWidget(int x, int y, int width, int height, Component message, ColorPicker.COLOR color) {
         super(x, y, width, height, message, true);
         int colorInt = switch (color) {
             case RED -> 0xFF0000;
@@ -27,16 +27,16 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
     }
 
     @Override
-    protected void renderFrame(DrawContext context){
-        context.getMatrices().pushMatrix();
-        context.getMatrices().translate(getX() + getWidth()/2.0f, getY() + getHeight()/2.0f);
-        context.getMatrices().rotate((float) (0.5f * Math.PI));
+    protected void renderFrame(GuiGraphics context){
+        context.pose().pushMatrix();
+        context.pose().translate(getX() + getWidth()/2.0f, getY() + getHeight()/2.0f);
+        context.pose().rotate((float) (0.5f * Math.PI));
         context.fillGradient(-getHeight()/2, -getWidth()/2, getHeight()/2, getWidth()/2, color, 0xFF000000);
-        context.getMatrices().popMatrix();
+        context.pose().popMatrix();
     }
 
     @Override
-    protected void renderSlider(DrawContext context, int mouseX, int mouseY, float delta) {
+    protected void renderSlider(GuiGraphics context, int mouseX, int mouseY, float delta) {
         boolean highlighted = (this.checkHovered(mouseX, mouseY) || this.dragging);
         int posX = this.getX() + (int)(pos * (length - barLength));
         int posY = this.getY();
@@ -51,9 +51,9 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
     }
 
     @Override
-    public boolean mouseClicked(Click click, boolean doubled) {
+    public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
         if (this.isValidClickButton(click.buttonInfo()) && this.checkHovered(click.x(), click.y())) {
-            this.playDownSound(MinecraftClient.getInstance().getSoundManager());
+            this.playDownSound(Minecraft.getInstance().getSoundManager());
             this.onClick(click, doubled);
             return true;
         }
@@ -61,7 +61,7 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
     }
 
     @Override
-    public void onClick(Click click, boolean doubled) {
+    public void onClick(MouseButtonEvent click, boolean doubled) {
         if (!this.visible) {
             return;
         }
@@ -75,7 +75,7 @@ public class ColorScrollbarWidget extends ScrollbarWidget{
     }
 
     @Override
-    public void onDrag(Click click, double distX, double distY){
+    public void onDrag(MouseButtonEvent click, double distX, double distY){
         if(dragging) {
             double posBefore = pos;
             pos = Math.min(Math.max(pos + distX/(length-barLength), 0), 1);

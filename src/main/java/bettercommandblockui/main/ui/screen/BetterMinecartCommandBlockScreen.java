@@ -1,17 +1,17 @@
 package bettercommandblockui.main.ui.screen;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.vehicle.CommandBlockMinecartEntity;
-import net.minecraft.network.packet.c2s.play.UpdateCommandBlockMinecartC2SPacket;
-import net.minecraft.world.CommandBlockExecutor;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.vehicle.minecart.MinecartCommandBlock;
+import net.minecraft.network.protocol.game.ServerboundSetCommandMinecartPacket;
+import net.minecraft.world.level.BaseCommandBlock;
 
 public class BetterMinecartCommandBlockScreen extends AbstractBetterCommandBlockScreen{
 
     public static BetterMinecartCommandBlockScreen instance;
-    private CommandBlockMinecartEntity minecart;
+    private MinecartCommandBlock minecart;
 
-    public BetterMinecartCommandBlockScreen(MinecraftClient client, CommandBlockMinecartEntity minecart){
-        this.commandExecutor = minecart.getCommandExecutor();
+    public BetterMinecartCommandBlockScreen(Minecraft client, MinecartCommandBlock minecart){
+        this.commandExecutor = minecart.getCommandBlock();
         this.minecart = minecart;
         //this.client = client;
         instance = this;
@@ -20,11 +20,11 @@ public class BetterMinecartCommandBlockScreen extends AbstractBetterCommandBlock
 
     public void init(){
         super.init();
-        consoleCommandTextField.setText(commandExecutor.getCommand());
+        consoleCommandTextField.setValue(commandExecutor.getCommand());
     }
 
     @Override
-    protected void syncSettingsToServer(CommandBlockExecutor commandExecutor) {
-        this.client.getNetworkHandler().sendPacket(new UpdateCommandBlockMinecartC2SPacket(minecart.getId(), this.consoleCommandTextField.getText(), commandExecutor.isTrackingOutput()));
+    protected void syncSettingsToServer(BaseCommandBlock commandExecutor) {
+        this.minecraft.getConnection().send(new ServerboundSetCommandMinecartPacket(minecart.getId(), this.consoleCommandTextField.getValue(), commandExecutor.isTrackOutput()));
     }
 }

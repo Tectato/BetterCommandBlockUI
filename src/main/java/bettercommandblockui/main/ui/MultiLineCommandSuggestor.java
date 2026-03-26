@@ -8,65 +8,65 @@ import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.context.CommandContextBuilder;
 import com.mojang.brigadier.context.ParsedArgument;
 import com.mojang.brigadier.context.SuggestionContext;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.util.math.Rect2i;
-import net.minecraft.command.CommandSource;
-import net.minecraft.text.OrderedText;
-import net.minecraft.text.Style;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Pair;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.CommandSuggestions;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.EditBox;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.network.chat.Style;
+import net.minecraft.ChatFormatting;
+import net.minecraft.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class MultiLineCommandSuggestor extends ChatInputSuggestor {
-    private static final List<Style> HIGHLIGHT_STYLES = Stream.of(Formatting.RED, Formatting.GRAY, Formatting.AQUA, Formatting.YELLOW, Formatting.GREEN, Formatting.LIGHT_PURPLE, Formatting.GOLD).map(Style.EMPTY::withColor).collect(ImmutableList.toImmutableList());
+public class MultiLineCommandSuggestor extends CommandSuggestions {
+    private static final List<Style> HIGHLIGHT_STYLES = Stream.of(ChatFormatting.RED, ChatFormatting.GRAY, ChatFormatting.AQUA, ChatFormatting.YELLOW, ChatFormatting.GREEN, ChatFormatting.LIGHT_PURPLE, ChatFormatting.GOLD).map(Style.EMPTY::withColor).collect(ImmutableList.toImmutableList());
 
     private CommandSuggestorAccessor accessor;
-    private Pair<Integer, Integer> startPos;
+    private Tuple<Integer, Integer> startPos;
     private int x, y;
 
-    public MultiLineCommandSuggestor(MinecraftClient client, Screen owner, TextFieldWidget textField, TextRenderer textRenderer, boolean slashOptional, boolean suggestingWhenEmpty, int inWindowIndexOffset, int maxSuggestionSize, boolean chatScreenSized, int color) {
+    public MultiLineCommandSuggestor(Minecraft client, Screen owner, EditBox textField, Font textRenderer, boolean slashOptional, boolean suggestingWhenEmpty, int inWindowIndexOffset, int maxSuggestionSize, boolean chatScreenSized, int color) {
         super(client, owner, textField, textRenderer, slashOptional, suggestingWhenEmpty, inWindowIndexOffset, maxSuggestionSize, chatScreenSized, color);
         accessor = (CommandSuggestorAccessor) this;
-        startPos = ((MultiLineTextFieldWidget)accessor.getTextField()).getCharacterPos(0);
+        startPos = ((MultiLineTextFieldWidget)accessor.getInput()).getCharacterPos(0);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY) {
+    public void render(GuiGraphics context, int mouseX, int mouseY) {
         context.fill(this.x - 1, this.y - 1, this.x + 1, this.y + 1, 0xff8000);
-        if (accessor.getWindow() != null) {
-            accessor.getWindow().render(context, mouseX, mouseY);
+        if (accessor.getSuggestions() != null) {
+            accessor.getSuggestions().render(context, mouseX, mouseY);
         } else {
             int i = 0;
-            for (OrderedText orderedText : accessor.getMessages()) {
+            for (FormattedCharSequence orderedText : accessor.getCommandUsage()) {
                 int j = i * 10;
-                context.fill(this.x - 1, j + this.y, this.x + accessor.getWidth() + 1, j + 12 + this.y, accessor.getColor());
-                context.drawTextWithShadow(accessor.getTextRenderer(), orderedText, this.x, (this.y + j + 2), -1);
+                context.fill(this.x - 1, j + this.y, this.x + accessor.getCommandUsageWidth() + 1, j + 12 + this.y, accessor.getFillColor());
+                context.drawString(accessor.getFont(), orderedText, this.x, (this.y + j + 2), -1);
                 ++i;
             }
         }
     }
 
     @Override
-    public void refresh(){
-        super.refresh();
+    public void updateCommandInfo(){
+        super.updateCommandInfo();
         this.refreshRenderPos();
     }
 
     public void refreshRenderPos(){
         try {
-            SuggestionWindowAccessor window = (SuggestionWindowAccessor) accessor.getWindow();
+            SuggestionWindowAccessor window = (SuggestionWindowAccessor) accessor.getSuggestions();
             if(window != null){
-                Rect2i area = new Rect2i(this.x, this.y, window.getArea().getWidth(), window.getArea().getHeight());
-                window.setArea(area);
+                Rect2i area = new Rect2i(this.x, this.y, window.getRect().getWidth(), window.getRect().getHeight());
+                window.setRect(area);
             }
         } catch (Exception e){
             System.out.println("[MLCS::refreshRenderPos] Error:");
@@ -87,27 +87,27 @@ public class MultiLineCommandSuggestor extends ChatInputSuggestor {
      *  1   - Info
      *  2-7 - Highlight
      */
-    public List<Pair<Integer,Integer>> getColors(String original, int firstCharacterIndex) {
-        if(accessor.getParse() == null){
-            return new ArrayList<Pair<Integer,Integer>>();
+    public List<Tuple<Integer,Integer>> getColors(String original, int firstCharacterIndex) {
+        if(accessor.getCurrentParse() == null){
+            return new ArrayList<Tuple<Integer,Integer>>();
         }
-        ParseResults<CommandSource> parse = accessor.getParse();
+        ParseResults<SharedSuggestionProvider> parse = accessor.getCurrentParse();
 
         int m;
-        ArrayList<Pair<Integer,Integer>> list = Lists.newArrayList();
-        list.add(new Pair<>(1,0));
+        ArrayList<Tuple<Integer,Integer>> list = Lists.newArrayList();
+        list.add(new Tuple<>(1,0));
         int colorIndex = -1;
-        CommandContextBuilder<CommandSource> commandContextBuilder = parse.getContext();
+        CommandContextBuilder<SharedSuggestionProvider> commandContextBuilder = parse.getContext();
         do {
-            for (ParsedArgument<CommandSource, ?> parsedArgument : commandContextBuilder.getArguments().values()) {
+            for (ParsedArgument<SharedSuggestionProvider, ?> parsedArgument : commandContextBuilder.getArguments().values()) {
                 int k;
                 colorIndex = bumpColorIndex(colorIndex);
                 if ((k = Math.max(parsedArgument.getRange().getStart() - firstCharacterIndex, 0)) >= original.length())
                     break;
                 int l = Math.min(parsedArgument.getRange().getEnd() - firstCharacterIndex, original.length());
                 if (l <= 0) continue;
-                list.add(new Pair<>(colorIndex + 2, k));
-                list.add(new Pair<>(1, l));
+                list.add(new Tuple<>(colorIndex + 2, k));
+                list.add(new Tuple<>(1, l));
             }
             commandContextBuilder = commandContextBuilder.getChild();
         } while (commandContextBuilder != null);
@@ -115,7 +115,7 @@ public class MultiLineCommandSuggestor extends ChatInputSuggestor {
 
         if (parse.getReader().canRead() && (m = Math.max(parse.getReader().getCursor() - firstCharacterIndex, 0)) < original.length()) {
             int n = Math.min(m + parse.getReader().getRemainingLength(), original.length());
-            list.add(new Pair<>(0, m));
+            list.add(new Tuple<>(0, m));
         }
         return list;
     }

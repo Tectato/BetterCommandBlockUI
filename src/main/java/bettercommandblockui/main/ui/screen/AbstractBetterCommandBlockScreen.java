@@ -9,26 +9,26 @@ import bettercommandblockui.main.ui.SideWindow;
 import bettercommandblockui.mixin.ScreenAccessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.entity.CommandBlockBlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.screen.ButtonTextures;
-import net.minecraft.client.gui.screen.ChatInputSuggestor;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.*;
-import net.minecraft.client.input.CharInput;
-import net.minecraft.client.input.KeyInput;
-import net.minecraft.client.util.NarratorManager;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.CommandBlockExecutor;
+import net.minecraft.client.gui.components.*;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.world.level.block.entity.CommandBlockEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.GameNarrator;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.BaseCommandBlock;
 import org.joml.Matrix3x2fStack;
 import org.lwjgl.glfw.GLFW;
 
@@ -40,12 +40,12 @@ import static bettercommandblockui.main.BetterCommandBlockUI.*;
 public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     protected class CommandBlockState{
-        public CommandBlockBlockEntity.Type type = CommandBlockBlockEntity.Type.REDSTONE;
+        public CommandBlockEntity.Mode type = CommandBlockEntity.Mode.REDSTONE;
         boolean conditional = false;
         public boolean needsRedstone = true;
         public boolean trackOutput = true;
 
-        public CommandBlockState(CommandBlockBlockEntity.Type type, boolean conditional, boolean needsRedstone, boolean trackOutput){
+        public CommandBlockState(CommandBlockEntity.Mode type, boolean conditional, boolean needsRedstone, boolean trackOutput){
             this.type = type;
             this.conditional = conditional;
             this.needsRedstone = needsRedstone;
@@ -53,39 +53,39 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         }
     }
 
-    protected static final Text SET_COMMAND_TEXT = Text.translatable("advMode.setCommand");
-    protected static final Text COMMAND_TEXT = Text.translatable("advMode.command");
-    protected static final Text PREVIOUS_OUTPUT_TEXT = Text.translatable("advMode.previousOutput");
-    protected static final ButtonTextures SIDE_WINDOW_BUTTON_TEXTURES = new ButtonTextures(
-            Identifier.of("bettercommandblockui:button_side_window_enabled"),
-            Identifier.of("bettercommandblockui:button_side_window_disabled"),
-            Identifier.of("bettercommandblockui:button_side_window_focused")
+    protected static final Component SET_COMMAND_TEXT = Component.translatable("advMode.setCommand");
+    protected static final Component COMMAND_TEXT = Component.translatable("advMode.command");
+    protected static final Component PREVIOUS_OUTPUT_TEXT = Component.translatable("advMode.previousOutput");
+    protected static final WidgetSprites SIDE_WINDOW_BUTTON_TEXTURES = new WidgetSprites(
+            Identifier.parse("bettercommandblockui:button_side_window_enabled"),
+            Identifier.parse("bettercommandblockui:button_side_window_disabled"),
+            Identifier.parse("bettercommandblockui:button_side_window_focused")
     );
 
-    protected static final ButtonTextures SAVE_BUTTON_TEXTURES = new ButtonTextures(
-            Identifier.of("bettercommandblockui:button_save_enabled"),
-            Identifier.of("bettercommandblockui:button_save_disabled"),
-            Identifier.of("bettercommandblockui:button_save_focused")
+    protected static final WidgetSprites SAVE_BUTTON_TEXTURES = new WidgetSprites(
+            Identifier.parse("bettercommandblockui:button_save_enabled"),
+            Identifier.parse("bettercommandblockui:button_save_disabled"),
+            Identifier.parse("bettercommandblockui:button_save_focused")
     );
 
     protected CommandBlockState priorState;
 
-    protected TextFieldWidget consoleCommandTextField;
-    protected TextFieldWidget previousOutputTextField;
+    protected EditBox consoleCommandTextField;
+    protected EditBox previousOutputTextField;
 
-    protected ButtonWidget doneButton;
-    protected ButtonWidget cancelButton;
+    protected Button doneButton;
+    protected Button cancelButton;
     //protected ButtonWidget configButton;
     protected CyclingTexturedButtonWidget<Boolean> toggleTrackingOutputButton;
-    protected CheckboxWidget setTrackingOutputDefaultCheckbox;
+    protected Checkbox setTrackingOutputDefaultCheckbox;
     protected CyclingTexturedButtonWidget<Boolean> showOutputButton;
-    protected CheckboxWidget setShowOutputDefaultCheckbox;
-    protected TexturedButtonWidget showSideWindowButton, saveButton;
+    protected Checkbox setShowOutputDefaultCheckbox;
+    protected ImageButton showSideWindowButton, saveButton;
 
     protected SideWindow sideWindow;
 
-    protected CommandBlockExecutor commandExecutor;
-    protected ChatInputSuggestor commandSuggestor;
+    protected BaseCommandBlock commandExecutor;
+    protected CommandSuggestions commandSuggestor;
     protected boolean trackOutput = true;
     protected boolean showOutput = SHOW_OUTPUT_DEFAULT;
     protected boolean updated = false;
@@ -104,83 +104,83 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected static int screenMarginY = 20;
 
     protected AbstractBetterCommandBlockScreen() {
-        super(NarratorManager.EMPTY);
+        super(GameNarrator.NO_TITLE);
     }
 
     @Override
     public void init(){
-        assert this.client != null;
+        assert this.minecraft != null;
 
-        this.priorState = new CommandBlockState(CommandBlockBlockEntity.Type.REDSTONE, false, false, commandExecutor.isTrackingOutput());
+        this.priorState = new CommandBlockState(CommandBlockEntity.Mode.REDSTONE, false, false, commandExecutor.isTrackOutput());
 
         int textBoxHeight = this.height - (2*screenMarginY + textHeight + textMargin + buttonHeight + 2*buttonMargin + sliderHeight);
         int textBoxWidth = this.width - (2*screenMarginX + 2*cycleButtonWidth + 2*buttonMargin);
 
         int lowerButtonWidth = Math.min((textBoxWidth/2) - buttonMargin/2, 160);
-        this.doneButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> this.commitAndClose()).dimensions(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
-        this.cancelButton = this.addDrawableChild(ButtonWidget.builder(ScreenTexts.CANCEL, button -> this.close()).dimensions(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
+        this.doneButton = this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> this.commitAndClose()).bounds(this.width / 2 - (lowerButtonWidth + buttonMargin/2), this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
+        this.cancelButton = this.addRenderableWidget(Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose()).bounds(this.width / 2 + buttonMargin/2, this.height / 2 + (5 + buttonMargin + textBoxHeight/2), lowerButtonWidth, buttonHeight).build());
         //this.configButton = this.addDrawableChild(ButtonWidget.builder(Text.literal("Config"), button -> this.openConfig()).dimensions(16, 16, 2*buttonHeight, buttonHeight).build());
 
-        this.trackOutput = this.commandExecutor.isTrackingOutput();
+        this.trackOutput = this.commandExecutor.isTrackOutput();
         if(TRACK_OUTPUT_DEFAULT_USED){
             trackOutput = TRACK_OUTPUT_DEFAULT_VALUE;
         }
 
-        Text[] trackOutputTooltips = {
-                Text.translatable("bcbui.trackOutput.true"),
-                Text.translatable("bcbui.trackOutput.false")
+        Component[] trackOutputTooltips = {
+                Component.translatable("bcbui.trackOutput.true"),
+                Component.translatable("bcbui.trackOutput.false")
         };
 
-        this.toggleTrackingOutputButton = this.addDrawableChild(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + (textBoxWidth/2 + buttonMargin + buttonMargin/2), this.height/2 - (buttonHeight + buttonMargin), cycleButtonWidth, buttonHeight, Text.of(""), (button) -> {
+        this.toggleTrackingOutputButton = this.addRenderableWidget(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + (textBoxWidth/2 + buttonMargin + buttonMargin/2), this.height/2 - (buttonHeight + buttonMargin), cycleButtonWidth, buttonHeight, Component.nullToEmpty(""), (button) -> {
             this.trackOutput = ((CyclingTexturedButtonWidget<Boolean>)button).getValue();
             this.commandExecutor.setTrackOutput(trackOutput);
             this.setPreviousOutputText(trackOutput);
             this.setTrackingOutputDefaultCheckbox.active =
-                    (!setTrackingOutputDefaultCheckbox.isChecked()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
-        }, client.currentScreen, new ButtonTextures[]{BUTTON_TRACK_OUTPUT, BUTTON_IGNORE_OUTPUT}, trackOutput?0:1, new Boolean[]{true, false}, trackOutputTooltips));
+                    (!setTrackingOutputDefaultCheckbox.selected()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
+        }, minecraft.screen, new WidgetSprites[]{BUTTON_TRACK_OUTPUT, BUTTON_IGNORE_OUTPUT}, trackOutput?0:1, new Boolean[]{true, false}, trackOutputTooltips));
 
-        this.setTrackingOutputDefaultCheckbox = this.addDrawableChild(
-                CheckboxWidget.builder(Text.of(""), textRenderer)
+        this.setTrackingOutputDefaultCheckbox = this.addRenderableWidget(
+                Checkbox.builder(Component.nullToEmpty(""), font)
                         .pos(toggleTrackingOutputButton.getX() + toggleTrackingOutputButton.getWidth() + 2, toggleTrackingOutputButton.getY() + 2)
-                        .checked(TRACK_OUTPUT_DEFAULT_USED)
-                        .callback(new CheckboxWidget.Callback() {
+                        .selected(TRACK_OUTPUT_DEFAULT_USED)
+                        .onValueChange(new Checkbox.OnValueChange() {
                             @Override
-                            public void onValueChange(CheckboxWidget checkbox, boolean checked) {
+                            public void onValueChange(Checkbox checkbox, boolean checked) {
                                 BetterCommandBlockUI.setConfig(VAR_TRACK_OUTPUT_DEFAULT_USED, ""+checked);
                                 BetterCommandBlockUI.setConfig(VAR_TRACK_OUTPUT_DEFAULT_VALUE, ""+trackOutput);
                             }
                         })
-                        .tooltip(Tooltip.of(Text.translatable("bcbui.trackOutput.setDefault")))
+                        .tooltip(Tooltip.create(Component.translatable("bcbui.trackOutput.setDefault")))
                         .build());
         this.setTrackingOutputDefaultCheckbox.active =
-                (!setTrackingOutputDefaultCheckbox.isChecked()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
+                (!setTrackingOutputDefaultCheckbox.selected()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
 
-        Text[] outputTooltips = {
-                Text.translatable("bcbui.view.command"),
-                Text.translatable("bcbui.view.output")
+        Component[] outputTooltips = {
+                Component.translatable("bcbui.view.command"),
+                Component.translatable("bcbui.view.output")
         };
-        this.showOutputButton = this.addDrawableChild(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + (textBoxWidth/2 + buttonMargin + buttonMargin/2), this.height/2, cycleButtonWidth, buttonHeight, Text.of(""), (button) -> {
+        this.showOutputButton = this.addRenderableWidget(new CyclingTexturedButtonWidget<Boolean>(this.width / 2 + (textBoxWidth/2 + buttonMargin + buttonMargin/2), this.height/2, cycleButtonWidth, buttonHeight, Component.nullToEmpty(""), (button) -> {
             this.showOutput = ((CyclingTexturedButtonWidget<Boolean>)button).getValue();
             this.consoleCommandTextField.setVisible(!showOutput);
             this.previousOutputTextField.setVisible(showOutput);
             this.setShowOutputDefaultCheckbox.active = showOutput;
-        }, client.currentScreen, new ButtonTextures[]{BUTTON_COMMAND, BUTTON_OUTPUT}, SHOW_OUTPUT_DEFAULT?1:0, new Boolean[]{false, true}, outputTooltips));
+        }, minecraft.screen, new WidgetSprites[]{BUTTON_COMMAND, BUTTON_OUTPUT}, SHOW_OUTPUT_DEFAULT?1:0, new Boolean[]{false, true}, outputTooltips));
 
-        this.setShowOutputDefaultCheckbox = this.addDrawableChild(
-                CheckboxWidget.builder(Text.of(""), textRenderer)
+        this.setShowOutputDefaultCheckbox = this.addRenderableWidget(
+                Checkbox.builder(Component.nullToEmpty(""), font)
                         .pos(showOutputButton.getX() + showOutputButton.getWidth() + 2, showOutputButton.getY() + 2)
-                        .checked(SHOW_OUTPUT_DEFAULT)
-                        .callback(new CheckboxWidget.Callback() {
+                        .selected(SHOW_OUTPUT_DEFAULT)
+                        .onValueChange(new Checkbox.OnValueChange() {
                             @Override
-                            public void onValueChange(CheckboxWidget checkbox, boolean checked) {
+                            public void onValueChange(Checkbox checkbox, boolean checked) {
                                 BetterCommandBlockUI.setConfig(VAR_SHOW_OUTPUT_DEFAULT, ""+checked);
                             }
                         })
-                        .tooltip(Tooltip.of(Text.translatable("bcbui.view.outputDefault")))
+                        .tooltip(Tooltip.create(Component.translatable("bcbui.view.outputDefault")))
                         .build());
         this.setShowOutputDefaultCheckbox.active = showOutput;
 
-        this.showSideWindowButton = this.addDrawableChild(new TexturedButtonWidget(
+        this.showSideWindowButton = this.addRenderableWidget(new ImageButton(
                 this.width - (buttonMargin + cycleButtonWidth),
                 this.height - (buttonMargin + cycleButtonWidth),
                 cycleButtonWidth,
@@ -195,36 +195,36 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                     this.toggleTrackingOutputButton.setTooltipVisible(!showSideWindow);
                     this.setTrackingOutputDefaultCheckbox.setTooltipDelay(showSideWindow ? Duration.ofDays(Integer.MAX_VALUE) : Duration.ofSeconds(0));
                 },
-                Text.translatable("bcbui.tools"))
+                Component.translatable("bcbui.tools"))
         );
-        Tooltip showSideWindowTooltip = Tooltip.of(Text.translatable("bcbui.tools"));
+        Tooltip showSideWindowTooltip = Tooltip.create(Component.translatable("bcbui.tools"));
         this.showSideWindowButton.setTooltip(showSideWindowTooltip);
 
-        this.consoleCommandTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, (Text)Text.translatable("advMode.command"), this){
+        this.consoleCommandTextField = new MultiLineTextFieldWidget(this.font, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, textBoxHeight, (Component) Component.translatable("advMode.command"), this){
             @Override
-            protected MutableText getNarrationMessage() {
-                return super.getNarrationMessage().append(commandSuggestor.getNarration());
+            protected MutableComponent createNarrationMessage() {
+                return super.createNarrationMessage().append(commandSuggestor.getNarrationMessage());
             }
         };
 
-        commandSuggestor = new MultiLineCommandSuggestor(this.client, this, this.consoleCommandTextField, this.textRenderer, true, true, 0, 7, false, Integer.MIN_VALUE);
-        commandSuggestor.setWindowActive(true);
-        commandSuggestor.refresh();
+        commandSuggestor = new MultiLineCommandSuggestor(this.minecraft, this, this.consoleCommandTextField, this.font, true, true, 0, 7, false, Integer.MIN_VALUE);
+        commandSuggestor.setAllowSuggestions(true);
+        commandSuggestor.updateCommandInfo();
         ((MultiLineTextFieldWidget)this.consoleCommandTextField).setCommandSuggestor((MultiLineCommandSuggestor) commandSuggestor);
 
         this.consoleCommandTextField.setMaxLength(32500);
-        this.consoleCommandTextField.setChangedListener(this::onCommandChanged);
-        this.addSelectableChild(this.consoleCommandTextField);
-        this.previousOutputTextField = new MultiLineTextFieldWidget(this.textRenderer, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, Text.translatable("advMode.previousOutput"), this);
+        this.consoleCommandTextField.setResponder(this::onCommandChanged);
+        this.addWidget(this.consoleCommandTextField);
+        this.previousOutputTextField = new MultiLineTextFieldWidget(this.font, this.width/2 - textBoxWidth/2, this.height/2 - textBoxHeight/2, textBoxWidth, 16, Component.translatable("advMode.previousOutput"), this);
         this.previousOutputTextField.setMaxLength(32500);
         this.previousOutputTextField.setEditable(false);
         ((MultiLineTextFieldWidget)this.consoleCommandTextField).setRawText("-");
-        this.addSelectableChild(this.previousOutputTextField);
+        this.addWidget(this.previousOutputTextField);
         this.setPreviousOutputText(trackOutput);
 
-        this.consoleCommandTextField.setText(commandExecutor.getCommand());
+        this.consoleCommandTextField.setValue(commandExecutor.getCommand());
 
-        this.sideWindow = this.addDrawable(new SideWindow(3*this.width/4, 20, this.width/4, 7*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
+        this.sideWindow = this.addRenderableOnly(new SideWindow(3*this.width/4, 20, this.width/4, 7*this.height/10, (MultiLineTextFieldWidget) consoleCommandTextField, this));
         this.sideWindow.setVisible(showSideWindow);
         this.sideWindow.setFocused(false);
         this.showOutputButton.setTooltipVisible(!showSideWindow);
@@ -242,7 +242,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.consoleCommandTextField.setFocused(true);
         }
 
-        this.saveButton = this.addDrawableChild(new TexturedButtonWidget(
+        this.saveButton = this.addRenderableWidget(new ImageButton(
                 27,
                 27,
                 cycleButtonWidth,
@@ -253,37 +253,37 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
                         commit();
                     }
                 },
-                Text.translatable("bcbui.save"))
+                Component.translatable("bcbui.save"))
         );
-        Tooltip saveTooltip = Tooltip.of(Text.translatable("bcbui.save"));
+        Tooltip saveTooltip = Tooltip.create(Component.translatable("bcbui.save"));
         this.saveButton.setTooltip(saveTooltip);
     }
 
     @Override
-    public void close(){
+    public void onClose(){
         if (!closing && AUTOSAVE && wasModified()){
             commit();
         }
-        super.close();
+        super.onClose();
     }
 
     @Override
     public void resize(int width, int height) {
-        String string = this.consoleCommandTextField.getText();
+        String string = this.consoleCommandTextField.getValue();
         this.init(width, height);
         ((MultiLineTextFieldWidget)this.consoleCommandTextField).setRawText(string);
-        commandSuggestor.refresh();
+        commandSuggestor.updateCommandInfo();
         setButtonsActive(true);
     }
 
     public void openConfig(){
-        assert client != null;
-        commandBuffer = this.consoleCommandTextField.getText();
-        client.setScreen(new ConfigScreen(this, client, width, height));
+        assert minecraft != null;
+        commandBuffer = this.consoleCommandTextField.getValue();
+        minecraft.setScreen(new ConfigScreen(this, minecraft, width, height));
     }
 
     public void returnFromConfig(){
-        this.consoleCommandTextField.setText(commandBuffer);
+        this.consoleCommandTextField.setValue(commandBuffer);
     }
 
     public void sideWindowFocused(){
@@ -291,12 +291,12 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     }
 
     public boolean scroll(double amount){
-        return commandSuggestor.mouseScrolled(MathHelper.clamp(amount, -1.0, 1.0));
+        return commandSuggestor.mouseScrolled(Mth.clamp(amount, -1.0, 1.0));
     }
 
-    public boolean mouseClicked(Click click, boolean doubled){
+    public boolean mouseClicked(MouseButtonEvent click, boolean doubled){
         if(showSideWindow && sideWindow.mouseClicked(click, doubled)) return true;
-        if(commandSuggestor.isOpen() && commandSuggestor.mouseClicked(click)) return true;
+        if(commandSuggestor.isVisible() && commandSuggestor.mouseClicked(click)) return true;
         consoleCommandTextField.onClick(click, doubled);
         /*if(consoleCommandTextField.mouseClicked(mouseX,mouseY,button)) {
             setFocused(consoleCommandTextField);
@@ -306,7 +306,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(Click click, double deltaX, double deltaY){
+    public boolean mouseDragged(MouseButtonEvent click, double deltaX, double deltaY){
         if(click.button() == 0) {
             if(showSideWindow && sideWindow.mouseDragged(click, deltaX, deltaY)) return true;
             if(showOutput){
@@ -318,7 +318,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     }
 
     @Override
-    public boolean mouseReleased(Click click){
+    public boolean mouseReleased(MouseButtonEvent click){
         if(showSideWindow && sideWindow.mouseReleased(click)) return true;
         if(click.button() == 0){
             if(showOutput){
@@ -330,9 +330,9 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(KeyInput input) {
+    public boolean keyPressed(KeyEvent input) {
         if(showSideWindow && sideWindow.isFocused() && sideWindow.keyPressed(input)) return true;
-        int keyCode = input.getKeycode();
+        int keyCode = input.input();
         if(keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT) {
             if (showOutput) {
                 this.previousOutputTextField.keyPressed(input);
@@ -351,15 +351,15 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.commitAndClose();
             return true;
         }
-        if (keyCode == 83 && MinecraftClient.getInstance().isCtrlPressed() && ((MultiLineTextFieldWidget)this.consoleCommandTextField).wasModified()){ // CTRL + S
+        if (keyCode == 83 && Minecraft.getInstance().hasControlDown() && ((MultiLineTextFieldWidget)this.consoleCommandTextField).wasModified()){ // CTRL + S
             this.commit();
         }
         return false;
     }
 
     @Override
-    public boolean keyReleased(KeyInput input) {
-        int keyCode = input.getKeycode();
+    public boolean keyReleased(KeyEvent input) {
+        int keyCode = input.input();
         if(keyCode == 340 || keyCode == 344){
             if(showOutput){
                 this.previousOutputTextField.keyReleased(input);
@@ -371,14 +371,14 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     }
 
     @Override
-    public boolean charTyped(CharInput input){
+    public boolean charTyped(CharacterEvent input){
         if(showSideWindow && sideWindow.charTyped(input)) return true;
         if(showOutput) return false;
         return this.consoleCommandTextField.charTyped(input);
     }
 
     protected void onCommandChanged(String s){
-        commandSuggestor.refresh();
+        commandSuggestor.updateCommandInfo();
     }
 
     protected void setButtonsActive(boolean active) {
@@ -395,7 +395,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     protected void commit(){
         trackOutput = toggleTrackingOutputButton.getValue();
         this.syncSettingsToServer(commandExecutor);
-        if (!commandExecutor.isTrackingOutput()) {
+        if (!commandExecutor.isTrackOutput()) {
             commandExecutor.setLastOutput(null);
         }
         ((MultiLineTextFieldWidget)consoleCommandTextField).resetModified();
@@ -404,31 +404,31 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
 
     protected void commitAndClose() {
         commit();
-        assert this.client != null;
+        assert this.minecraft != null;
         closing = true;
-        close();
+        onClose();
     }
 
     protected boolean wasModified(){
         return ((MultiLineTextFieldWidget)consoleCommandTextField).wasModified() || toggleTrackingOutputButton.getValue() != priorState.trackOutput;
     }
 
-    abstract protected void syncSettingsToServer(CommandBlockExecutor commandExecutor);
+    abstract protected void syncSettingsToServer(BaseCommandBlock commandExecutor);
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         //this.renderBackground(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(this.textRenderer, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFFFF);
+        context.drawCenteredString(this.font, SET_COMMAND_TEXT, this.width / 2, 20, 0xFFFFFFFF);
         if(showOutput){
-            context.drawTextWithShadow(this.textRenderer, PREVIOUS_OUTPUT_TEXT, this.previousOutputTextField.getX(), 40, 0xFFA0A0A0);
+            context.drawString(this.font, PREVIOUS_OUTPUT_TEXT, this.previousOutputTextField.getX(), 40, 0xFFA0A0A0);
             this.previousOutputTextField.render(context, mouseX, mouseY, delta);
         } else {
-            context.drawTextWithShadow(this.textRenderer, COMMAND_TEXT, this.consoleCommandTextField.getX(), 40, 0xFFA0A0A0);
+            context.drawString(this.font, COMMAND_TEXT, this.consoleCommandTextField.getX(), 40, 0xFFA0A0A0);
             this.consoleCommandTextField.render(context, mouseX, mouseY, delta);
         }
         renderAsterisk(context, toggleTrackingOutputButton, toggleTrackingOutputButton.getValue() != priorState.trackOutput);
-        for (Drawable drawable : ((ScreenAccessor)this).getDrawables()) {
+        for (Renderable drawable : ((ScreenAccessor)this).getRenderables()) {
             if(!drawable.equals(sideWindow)) drawable.render(context, mouseX, mouseY, delta);
         }
         darkenCheckbox(context, setTrackingOutputDefaultCheckbox);
@@ -441,18 +441,18 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
         //matrixStack.popMatrix();
     }
 
-    private void darkenCheckbox(DrawContext context, CheckboxWidget checkbox){
+    private void darkenCheckbox(GuiGraphics context, Checkbox checkbox){
         if(checkbox.active) return;
         context.fill(checkbox.getX(), checkbox.getY(), checkbox.getX() + checkbox.getWidth() - 4, checkbox.getY() + checkbox.getHeight(), 0xA0000000);
     }
 
-    protected void renderAsterisk(DrawContext context, Widget widget, boolean draw){
+    protected void renderAsterisk(GuiGraphics context, LayoutElement widget, boolean draw){
         if(!draw) return;
         renderAsterisk(context, widget.getX() + widget.getWidth(), widget.getY() - 4, draw);
     }
 
-    protected void renderAsterisk(DrawContext context, int x, int y, boolean draw){
+    protected void renderAsterisk(GuiGraphics context, int x, int y, boolean draw){
         if(!draw) return;
-        context.drawTextWithShadow(textRenderer, "*", x, y, 0xFFFFC000);
+        context.drawString(font, "*", x, y, 0xFFFFC000);
     }
 }
