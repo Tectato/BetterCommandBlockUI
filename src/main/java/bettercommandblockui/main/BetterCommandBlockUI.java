@@ -17,6 +17,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.Direction;
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BetterCommandBlockUI implements ClientModInitializer {
     public static final Identifier SLIDER = Identifier.parse("bettercommandblockui:slider");
@@ -126,6 +128,7 @@ public class BetterCommandBlockUI implements ClientModInitializer {
     }
 
     private static SimpleConfig CONFIG = SimpleConfig.of("betterCommandBlockUI").provider(BetterCommandBlockUI::provider).request();
+    private static final Logger LOGGER = LoggerFactory.getLogger("betterCommandBlockUI");
 
     public static final String VAR_SCROLL_X = "scroll_step_horizontal";
     public static final String VAR_SCROLL_Y = "scroll_step_vertical";
@@ -191,11 +194,11 @@ public class BetterCommandBlockUI implements ClientModInitializer {
         });
 
         if (CONFIG.isBroken()) {
-            System.out.println("[BCBUI] Config found to be corrupted or outdated, resetting...");
+            LOGGER.info("[BCBUI] Config found to be corrupted or outdated, resetting...");
             CONFIG.reconstructFile();
         }
 
-        System.out.println("[BCBUI] Initialized.");
+        LOGGER.info("[BCBUI] Initialized.");
     }
 
     public static void setConfig(String key, String value){

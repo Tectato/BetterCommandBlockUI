@@ -17,6 +17,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
@@ -144,7 +145,7 @@ public class ConfigScreen extends Screen {
     public void onClose() {
         if (parent != null && minecraft != null) {
             BetterCommandBlockUI.writeConfig();
-            minecraft.setScreen(parent);
+            minecraft.gui.setScreen(parent);
             if (parent instanceof AbstractBetterCommandBlockScreen) {
                 ((AbstractBetterCommandBlockScreen) parent).returnFromConfig();
             }
@@ -214,15 +215,14 @@ public class ConfigScreen extends Screen {
             back.extractRenderState(graphics, mouseX, mouseY, delta);
         }
         if(minecraft == null || minecraft.player == null){
-            graphics.centeredText(font, Component.translatable("bcbui.config.colorError"), width/2, 4, 0xffe0e0e0);
+            graphics.centeredText(font, Component.translatable("bcbui.config.colorError"), width/2, 2, 0xffe0e0e0);
         }
-        graphics.centeredText(font, Component.translatable("bcbui.config.lineBreaks"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() - 12, 0xffffff);
-        String beforeText = Component.translatable("bcbui.config.before").getString();
+        graphics.centeredText(font, Component.translatable("bcbui.config.lineBreaks"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() - 12, 0xFFFFFFFF);
         int beforeTextWidth = font.width(Component.translatable("bcbui.config.before").getString());
         graphics.text(font, Component.translatable("bcbui.config.before"), newLinePreOpen.getX() - (beforeTextWidth + 2), newLinePreOpen.getY() + 4, 0xFFE0E0E0);
-        graphics.text(font, Component.literal("{"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() + 6, 0xffffff);
-        graphics.text(font, Component.literal("}"), newLinePreClose.getX() + 20, newLinePreClose.getY() + 6, 0xffffff);
-        graphics.text(font, Component.literal(","), newLinePreClose.getX() + 20, newLinePostComma.getY() + 6, 0xffffff);
+        graphics.text(font, Component.literal("{"), newLinePreOpen.getX() + 20, newLinePreOpen.getY() + 6, 0xFFFFFFFF);
+        graphics.text(font, Component.literal("}"), newLinePreClose.getX() + 20, newLinePreClose.getY() + 6, 0xFFFFFFFF);
+        graphics.text(font, Component.literal(","), newLinePreClose.getX() + 20, newLinePostComma.getY() + 6, 0xFFFFFFFF);
         graphics.text(font, Component.translatable("bcbui.config.indentation"), indentationFac.getX() + numberInputWidth + 4, indentationFac.getY() + 2, 0xFFE0E0E0);
         graphics.text(font, Component.translatable("bcbui.config.wraparoundWidth"), wraparound.getX() + numberInputWidth + 4, wraparound.getY() + 2, 0xFFE0E0E0);
         graphics.text(font, Component.translatable("bcbui.config.scrollX"), scrollSpeedX.getX() + numberInputWidth + 4, scrollSpeedX.getY() + 2, 0xFFE0E0E0);
@@ -248,10 +248,11 @@ public class ConfigScreen extends Screen {
     @Override
     public boolean mouseClicked(MouseButtonEvent click, boolean doubled){
         if(commandSuggestor.mouseClicked(click)) return true;
-        if(textField.mouseClicked(click, doubled)) {
+        textField.onClick(click, doubled);
+        /*if(textField.mouseClicked(click, doubled)) {
             setFocused(textField);
             return true;
-        }
+        }*/
         return super.mouseClicked(click, doubled);
     }
     @Override

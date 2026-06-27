@@ -3,13 +3,14 @@ package bettercommandblockui.main.ui;
 import bettercommandblockui.main.ui.screen.AbstractBetterCommandBlockScreen;
 import bettercommandblockui.main.ui.screen.BetterCommandBlockScreen;
 import bettercommandblockui.main.BetterCommandBlockUI;
+import bettercommandblockui.main.util.Pair;
 import bettercommandblockui.mixin.EditBoxAccessor;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
-/*import me.shurik.betterhighlighting.api.BuiltinGrammar;
+import me.shurik.betterhighlighting.api.BuiltinGrammar;
 import me.shurik.betterhighlighting.api.TextMateRegistry;
 import me.shurik.betterhighlighting.api.syntax.Tokenizer;
-import static me.shurik.betterhighlighting.api.syntax.Tokenizer.command;*/
+import static me.shurik.betterhighlighting.api.syntax.Tokenizer.command;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
@@ -27,7 +28,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.ChatFormatting;
-import net.minecraft.util.Tuple;
 import net.minecraft.util.StringUtil;
 import net.minecraft.util.Util;
 //import org.eclipse.tm4e.core.grammar.IToken;
@@ -46,12 +46,12 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
     private ScrollbarWidget scrollX, scrollY;
     private List<String> lines;
     private List<Integer> lineOffsets, textOffsets;
-    private List<Tuple<Style, Integer>> textColors;
+    private List<Pair<Style, Integer>> textColors;
     private int visibleLines = 11;
     private int scrolledLines = 0;
     private int horizontalOffset = 0;
     private int maxLineWidth = 30;
-    private Tuple<Integer, Integer> cursorPosPreference;
+    private Pair<Integer, Integer> cursorPosPreference;
     private boolean LShiftPressed, RShiftPressed = false;
     private boolean hasCommandSuggestor = false;
     private boolean textModified = false;
@@ -69,7 +69,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
         this.screen = screen;
         this.scrollX = new TextFieldScrollbarWidget(x, y + height + 1, width, 10, Component.nullToEmpty(""), this, true);
         this.scrollY = new TextFieldScrollbarWidget(x + width + 1, y, 10, height, Component.nullToEmpty(""), this, false);
-        cursorPosPreference = new Tuple<>(0,0);
+        cursorPosPreference = new Pair<>(0,0);
     }
 
     @Override
@@ -150,8 +150,8 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
             selectingBackwards = true;
         }
 
-        Tuple<Integer, Integer> start = indexToLineAndOffset(selectionStart);
-        Tuple<Integer, Integer> end = indexToLineAndOffset(selectionEnd);
+        Pair<Integer, Integer> start = indexToLineAndOffset(selectionStart);
+        Pair<Integer, Integer> end = indexToLineAndOffset(selectionEnd);
 
         int firstSelectedLine = start.getA();
         int selectionStartOffset = start.getB();
@@ -287,8 +287,8 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
         return 0;
     }
 
-    private Tuple<Integer, Integer> indexToLineAndOffset(int index){
-        Tuple<Integer, Integer> output = new Tuple<>(0,0);
+    private Pair<Integer, Integer> indexToLineAndOffset(int index){
+        Pair<Integer, Integer> output = new Pair<>(0,0);
         for(int i=0; i<lines.size(); i++){
             if(textOffsets.get(i)+(lines.get(i).length()-lineOffsets.get(i))+1>index){
                 output.setA(i);
@@ -299,8 +299,8 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
         return output;
     }
 
-    public Tuple<Integer, Integer> getCharacterPos(int index){
-        Tuple<Integer,Integer> output = indexToLineAndOffset(index);
+    public Pair<Integer, Integer> getCharacterPos(int index){
+        Pair<Integer,Integer> output = indexToLineAndOffset(index);
         int x,y;
         try {
             x = this.getX() + 5 + accessor.getFont().width(lines.get(output.getA()).substring(horizontalOffset, output.getB()));
@@ -308,7 +308,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
             x = 0;
         }
         y = this.getY() + 5 + 10 * (output.getA()-scrolledLines);
-        return new Tuple<>(x,y);
+        return new Pair<>(x,y);
     }
 
     public void setCommandSuggestor(MultiLineCommandSuggestor newSuggestor){
@@ -588,7 +588,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
 
     private void setUnformattedText(String text){
         textColors = new LinkedList<>();
-        textColors.add(new Tuple<>(Style.EMPTY.withColor(ChatFormatting.GRAY), 0));
+        textColors.add(new Pair<>(Style.EMPTY.withColor(ChatFormatting.GRAY), 0));
 
         lines = new LinkedList<>();
         lines.add(text);
@@ -604,7 +604,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
     }
 
     private interface SpacePeeker {
-        Tuple<Integer,String> run(int startIndex);
+        Pair<Integer,String> run(int startIndex);
     }
 
     private void submitLine(String line, int indent){
@@ -634,7 +634,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
     private void formatText(String text) {
         Font textRenderer = Minecraft.getInstance().font;
         textColors = new LinkedList<>();
-        List<Tuple<Integer,Integer>> colorIndices = suggestor.getColors(text, 0);
+        List<Pair<Integer,Integer>> colorIndices = suggestor.getColors(text, 0);
         Stack<Integer> colorStack = new Stack<>();
         int currentColorListIndex = 0;
         int currentHighlightColor = 0;
@@ -657,7 +657,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
 
         SpacePeeker peeker = new SpacePeeker() {
             @Override
-            public Tuple<Integer,String> run(int startIndex) {
+            public Pair<Integer,String> run(int startIndex) {
                 // Check for following spaces, makes for consistent indentation
                 StringBuilder outputLine = new StringBuilder();
                 int tempCurrentIndex = startIndex + 1;
@@ -671,7 +671,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                     startIndex = tempCurrentIndex - 1;
                 }
 
-                return new Tuple<>(startIndex, outputLine.toString());
+                return new Pair<>(startIndex, outputLine.toString());
             }
         };
 
@@ -716,7 +716,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                     currentLine += current;
                     if (BetterCommandBlockUI.NEWLINE_POST_OPEN_BRACKET){
                         // Peek ahead for spaces
-                        Tuple<Integer,String> peekResult = peeker.run(currentIndex);
+                        Pair<Integer,String> peekResult = peeker.run(currentIndex);
                         currentIndex = peekResult.getA();
                         currentLine += peekResult.getB();
 
@@ -733,7 +733,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                         currentHighlightColor = colorIndices.get(currentColorListIndex - 1).getA();
                         colorStack.push(currentHighlightColor);
                         if (currentHighlightColor != 0) {
-                            colorIndices.add(currentColorListIndex, new Tuple<>(getHighlightColorIndex(currentHighlightColor + 1), colorStartIndex));
+                            colorIndices.add(currentColorListIndex, new Pair<>(getHighlightColorIndex(currentHighlightColor + 1), colorStartIndex));
                             currentColorListIndex++;
                         }
                     }
@@ -758,7 +758,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                     currentLine += current;
                     if (BetterCommandBlockUI.NEWLINE_POST_CLOSE_BRACKET){
                         // Peek ahead for spaces
-                        Tuple<Integer,String> peekResult = peeker.run(currentIndex);
+                        Pair<Integer,String> peekResult = peeker.run(currentIndex);
                         currentIndex = peekResult.getA();
                         currentLine += peekResult.getB();
 
@@ -771,7 +771,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                     }
 
                     if (currentColorListIndex > 0 && colorIndices.get(currentColorListIndex - 1).getA() != 0) {
-                        colorIndices.add(currentColorListIndex, new Tuple<>(colorStack.pop(), colorStartIndex + 1));
+                        colorIndices.add(currentColorListIndex, new Pair<>(colorStack.pop(), colorStartIndex + 1));
                         currentColorListIndex++;
                     }
                     break;
@@ -781,7 +781,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
                     lastWordStart = currentLine.length();
 
                     // Peek ahead for spaces
-                    Tuple<Integer,String> peekResult = peeker.run(currentIndex);
+                    Pair<Integer,String> peekResult = peeker.run(currentIndex);
                     currentIndex = peekResult.getA();
                     currentLine += peekResult.getB();
 
@@ -830,13 +830,13 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
             submitLine(currentLine, parenthesesDepth, true);
         }
 
-        for(Tuple<Integer,Integer> p : colorIndices){
-            textColors.add(new Tuple<>(suggestor.getColor(p.getA()),p.getB()));
+        for(Pair<Integer,Integer> p : colorIndices){
+            textColors.add(new Pair<>(suggestor.getColor(p.getA()),p.getB()));
         }
 
-        /*if(!text.isEmpty() && FabricLoader.getInstance().isModLoaded("better-highlighting")){
+        if(!text.isEmpty() && FabricLoader.getInstance().isModLoaded("better-highlighting")){
             transformTokenOutput(Tokenizer.tokenizeAndFormatComponent(text, BuiltinGrammar.mcfunction(), TextMateRegistry.instance().getCurrentTheme()).getSiblings());
-        }*/
+        }
 
         maxLineWidth = 0;
         for(String line : lines){
@@ -856,7 +856,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
         int index = 0;
         for(Component text : output) {
             if (text.getStyle().getColor() != null) {
-                textColors.add(new Tuple<>(text.getStyle(), index));
+                textColors.add(new Pair<>(text.getStyle(), index));
             }
             index += text.getString().length();
         }
@@ -884,7 +884,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
         if(this.isFocused() && hovered && click.button() == 0) {
             int previousIndex = accessor.getCursorPos();
             this.moveCursorTo(pointToIndex(mouseX, mouseY), Minecraft.getInstance().hasShiftDown());
-            cursorPosPreference = new Tuple<>((int)mouseX, (int)mouseY);
+            cursorPosPreference = new Pair<>((int)mouseX, (int)mouseY);
             if(doubled){
                 selectWord();
             }
@@ -945,7 +945,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
     }
 
     private void moveCursorVertical(int delta){
-        Tuple<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPos(0));
+        Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPos(0));
         int yPreference = getY() + 5 + (lineAndOffset.getA() - scrolledLines) * 10;
         cursorPosPreference.setB(yPreference + delta * 10);
         int index = pointToIndex(cursorPosPreference.getA(), cursorPosPreference.getB());
@@ -959,10 +959,10 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
         Font textRenderer = accessor.getFont();
         this.moveCursorTo(accessor.invokeGetCursorPos(offset), shiftKeyPressed);
         if(lines.isEmpty()) return;
-        Tuple<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPos(0));
+        Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPos(0));
         String line = lines.get(lineAndOffset.getA());
         int xPreference = getX() + textRenderer.width(line.substring(0,Math.min(line.length()-1,lineAndOffset.getB())));
-        cursorPosPreference = new Tuple<>(xPreference, this.getY() + 10 * (lineAndOffset.getA() - scrolledLines));
+        cursorPosPreference = new Pair<>(xPreference, this.getY() + 10 * (lineAndOffset.getA() - scrolledLines));
 
         updateScrollPositions();
     }
@@ -970,7 +970,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
     private void updateScrollPositions(){
         Font textRenderer = accessor.getFont();
 
-        Tuple<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPos(0));
+        Pair<Integer, Integer> lineAndOffset = indexToLineAndOffset(accessor.invokeGetCursorPos(0));
         if(lines.size() < 1){
             horizontalOffset = 0;
             scrollY.updatePos(0);
@@ -1054,7 +1054,7 @@ public class MultiLineTextFieldWidget extends EditBox implements GuiEventListene
         if(selectionStart > selectionEnd){
             selectionStart = selectionEnd;
         }
-        Tuple<Integer, Integer> cursor = indexToLineAndOffset(selectionStart);
+        Pair<Integer, Integer> cursor = indexToLineAndOffset(selectionStart);
         int selectionStartOffset = Math.max(cursor.getB() - horizontalOffset, 0);
         int fontHeight = accessor.getFont().lineHeight + 1;
         if(lines.isEmpty()){

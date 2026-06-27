@@ -1,6 +1,7 @@
 package bettercommandblockui.main;
 
 import bettercommandblockui.main.ui.screen.BetterCommandBlockScreen;
+import bettercommandblockui.main.util.Pair;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.CommandBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -8,7 +9,6 @@ import net.minecraft.world.level.block.entity.CommandBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Tuple;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -23,7 +23,7 @@ public class ChainHandler {
     private BetterCommandBlockScreen screen;
     private BlockState current, next;
     private BlockPos currentPos;
-    private List<Tuple<BlockState, Direction>> prior;
+    private List<Pair<BlockState, Direction>> prior;
     private Level world;
 
     public ChainHandler(BetterCommandBlockScreen screen, BlockPos pos){
@@ -66,17 +66,17 @@ public class ChainHandler {
             }
         }
 
-        if((up != null) && up.getValue(CommandBlock.FACING) == Direction.DOWN) prior.add(new Tuple<>(up, Direction.UP));
-        if((down != null) && down.getValue(CommandBlock.FACING) == Direction.UP) prior.add(new Tuple<>(down, Direction.DOWN));
-        if((north != null) && north.getValue(CommandBlock.FACING) == Direction.SOUTH) prior.add(new Tuple<>(north, Direction.NORTH));
-        if((south != null) && south.getValue(CommandBlock.FACING) == Direction.NORTH) prior.add(new Tuple<>(south, Direction.SOUTH));
-        if((east != null) && east.getValue(CommandBlock.FACING) == Direction.WEST) prior.add(new Tuple<>(east, Direction.EAST));
-        if((west != null) && west.getValue(CommandBlock.FACING) == Direction.EAST) prior.add(new Tuple<>(west, Direction.WEST));
+        if((up != null) && up.getValue(CommandBlock.FACING) == Direction.DOWN) prior.add(new Pair<>(up, Direction.UP));
+        if((down != null) && down.getValue(CommandBlock.FACING) == Direction.UP) prior.add(new Pair<>(down, Direction.DOWN));
+        if((north != null) && north.getValue(CommandBlock.FACING) == Direction.SOUTH) prior.add(new Pair<>(north, Direction.NORTH));
+        if((south != null) && south.getValue(CommandBlock.FACING) == Direction.NORTH) prior.add(new Pair<>(south, Direction.SOUTH));
+        if((east != null) && east.getValue(CommandBlock.FACING) == Direction.WEST) prior.add(new Pair<>(east, Direction.EAST));
+        if((west != null) && west.getValue(CommandBlock.FACING) == Direction.EAST) prior.add(new Pair<>(west, Direction.WEST));
 
         if(!prior.isEmpty()){
-            prior.sort(new Comparator<Tuple<BlockState, Direction>>() {
+            prior.sort(new Comparator<Pair<BlockState, Direction>>() {
                 @Override
-                public int compare(Tuple<BlockState, Direction> o1, Tuple<BlockState, Direction> o2) {
+                public int compare(Pair<BlockState, Direction> o1, Pair<BlockState, Direction> o2) {
                     if(o1.getA().getValue(CommandBlock.FACING) == currentDir) return -1;
                     if(o2.getA().getValue(CommandBlock.FACING) == currentDir) return 1;
                     return 0;
@@ -100,7 +100,7 @@ public class ChainHandler {
         return next;
     }
 
-    public List<Tuple<BlockState, Direction>> getPrior(){
+    public List<Pair<BlockState, Direction>> getPrior(){
         return prior;
     }
 

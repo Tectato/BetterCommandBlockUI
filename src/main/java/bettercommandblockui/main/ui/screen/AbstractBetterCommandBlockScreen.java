@@ -137,7 +137,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.setPreviousOutputText(trackOutput);
             this.setTrackingOutputDefaultCheckbox.active =
                     (!setTrackingOutputDefaultCheckbox.selected()) || trackOutput == TRACK_OUTPUT_DEFAULT_VALUE;
-        }, minecraft.screen, new WidgetSprites[]{BUTTON_TRACK_OUTPUT, BUTTON_IGNORE_OUTPUT}, trackOutput?0:1, new Boolean[]{true, false}, trackOutputTooltips));
+        }, new WidgetSprites[]{BUTTON_TRACK_OUTPUT, BUTTON_IGNORE_OUTPUT}, trackOutput?0:1, new Boolean[]{true, false}, trackOutputTooltips));
 
         this.setTrackingOutputDefaultCheckbox = this.addRenderableWidget(
                 Checkbox.builder(Component.nullToEmpty(""), font)
@@ -164,7 +164,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
             this.consoleCommandTextField.setVisible(!showOutput);
             this.previousOutputTextField.setVisible(showOutput);
             this.setShowOutputDefaultCheckbox.active = showOutput;
-        }, minecraft.screen, new WidgetSprites[]{BUTTON_COMMAND, BUTTON_OUTPUT}, SHOW_OUTPUT_DEFAULT?1:0, new Boolean[]{false, true}, outputTooltips));
+        }, new WidgetSprites[]{BUTTON_COMMAND, BUTTON_OUTPUT}, SHOW_OUTPUT_DEFAULT?1:0, new Boolean[]{false, true}, outputTooltips));
 
         this.setShowOutputDefaultCheckbox = this.addRenderableWidget(
                 Checkbox.builder(Component.nullToEmpty(""), font)
@@ -279,7 +279,7 @@ public abstract class AbstractBetterCommandBlockScreen extends Screen {
     public void openConfig(){
         assert minecraft != null;
         commandBuffer = this.consoleCommandTextField.getValue();
-        minecraft.setScreen(new ConfigScreen(this, minecraft, width, height));
+        minecraft.gui.setScreen(new ConfigScreen(this, minecraft, width, height));
     }
 
     public void returnFromConfig(){

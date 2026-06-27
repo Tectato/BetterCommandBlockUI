@@ -23,20 +23,20 @@ public class CyclingTexturedButtonWidget<T> extends AbstractButton {
     CyclingTooltipSupplier tooltipSupplier;
     PressAction action;
 
-    public CyclingTexturedButtonWidget(int x, int y, int width, int height, Component message, PressAction onPress, Screen screen, WidgetSprites[] textures, int initialIndex, T[] values) {
+    public CyclingTexturedButtonWidget(int x, int y, int width, int height, Component message, PressAction onPress, WidgetSprites[] textures, int initialIndex, T[] values) {
         super(x, y, width, height, message);
         this.textures = textures;
         this.values = values;
-        this.tooltipSupplier = new CyclingTooltipSupplier(screen, initialIndex, new Component[values.length]);
+        this.tooltipSupplier = new CyclingTooltipSupplier(initialIndex, new Component[values.length]);
         this.action = onPress;
         this.setTooltip(tooltipSupplier.getTooltip());
     }
 
-    public CyclingTexturedButtonWidget(int x, int y, int width, int height, Component message, PressAction onPress, Screen screen, WidgetSprites[] textures, int initialIndex, T[] values, Component[] tooltips) {
+    public CyclingTexturedButtonWidget(int x, int y, int width, int height, Component message, PressAction onPress, WidgetSprites[] textures, int initialIndex, T[] values, Component[] tooltips) {
         super(x, y, width, height, message);
         this.textures = textures;
         this.values = values;
-        this.tooltipSupplier = new CyclingTooltipSupplier(screen, initialIndex, tooltips);
+        this.tooltipSupplier = new CyclingTooltipSupplier(initialIndex, tooltips);
         this.action = onPress;
         this.setTooltip(tooltipSupplier.getTooltip());
     }

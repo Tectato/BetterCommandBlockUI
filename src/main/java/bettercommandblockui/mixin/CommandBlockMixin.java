@@ -23,7 +23,7 @@ public class CommandBlockMixin {
     public void openBetterCommandBlockScreen(Player instance, CommandBlockEntity commandBlock){
         if(instance instanceof LocalPlayer){
             Minecraft client = ((LocalPlayerAccessor)instance).getMinecraft();
-            client.setScreen(new BetterCommandBlockScreen(client, commandBlock, commandBlock.getCommandBlock()));
+            client.gui.setScreen(new BetterCommandBlockScreen(client, commandBlock, commandBlock.getCommandBlock()));
         } else if (instance instanceof ServerPlayer){
             ((ServerPlayerAccessor)instance).getConnection().send(ClientboundBlockEntityDataPacket.create(commandBlock, BlockEntity::saveWithoutMetadata));
         }

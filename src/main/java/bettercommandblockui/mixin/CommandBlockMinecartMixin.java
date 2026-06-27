@@ -18,7 +18,7 @@ public class CommandBlockMinecartMixin {
     public void openBetterMinecartCommandBlockScreen(Player instance, MinecartCommandBlock minecart){
         if(instance instanceof LocalPlayer){
             Minecraft client = ((LocalPlayerAccessor)instance).getMinecraft();
-            client.setScreen(new BetterMinecartCommandBlockScreen(client, minecart));
+            client.gui.setScreen(new BetterMinecartCommandBlockScreen(client, minecart));
         }
     }
 }

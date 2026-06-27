@@ -1,5 +1,6 @@
 package bettercommandblockui.main.ui;
 
+import bettercommandblockui.main.util.Pair;
 import bettercommandblockui.mixin.CommandSuggestorAccessor;
 import bettercommandblockui.mixin.SuggestionWindowAccessor;
 import com.google.common.collect.ImmutableList;
@@ -20,7 +21,6 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.network.chat.Style;
 import net.minecraft.ChatFormatting;
-import net.minecraft.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class MultiLineCommandSuggestor extends CommandSuggestions {
     private static final List<Style> HIGHLIGHT_STYLES = Stream.of(ChatFormatting.RED, ChatFormatting.GRAY, ChatFormatting.AQUA, ChatFormatting.YELLOW, ChatFormatting.GREEN, ChatFormatting.LIGHT_PURPLE, ChatFormatting.GOLD).map(Style.EMPTY::withColor).collect(ImmutableList.toImmutableList());
 
     private CommandSuggestorAccessor accessor;
-    private Tuple<Integer, Integer> startPos;
+    private Pair<Integer, Integer> startPos;
     private int x, y;
 
     public MultiLineCommandSuggestor(Minecraft client, Screen owner, EditBox textField, Font textRenderer, boolean slashOptional, boolean suggestingWhenEmpty, int inWindowIndexOffset, int maxSuggestionSize, boolean chatScreenSized, int color) {
@@ -87,15 +87,15 @@ public class MultiLineCommandSuggestor extends CommandSuggestions {
      *  1   - Info
      *  2-7 - Highlight
      */
-    public List<Tuple<Integer,Integer>> getColors(String original, int firstCharacterIndex) {
+    public List<Pair<Integer,Integer>> getColors(String original, int firstCharacterIndex) {
         if(accessor.getCurrentParse() == null){
-            return new ArrayList<Tuple<Integer,Integer>>();
+            return new ArrayList<Pair<Integer,Integer>>();
         }
         ParseResults<SharedSuggestionProvider> parse = accessor.getCurrentParse();
 
         int m;
-        ArrayList<Tuple<Integer,Integer>> list = Lists.newArrayList();
-        list.add(new Tuple<>(1,0));
+        ArrayList<Pair<Integer,Integer>> list = Lists.newArrayList();
+        list.add(new Pair<>(1,0));
         int colorIndex = -1;
         CommandContextBuilder<SharedSuggestionProvider> commandContextBuilder = parse.getContext();
         do {
@@ -106,8 +106,8 @@ public class MultiLineCommandSuggestor extends CommandSuggestions {
                     break;
                 int l = Math.min(parsedArgument.getRange().getEnd() - firstCharacterIndex, original.length());
                 if (l <= 0) continue;
-                list.add(new Tuple<>(colorIndex + 2, k));
-                list.add(new Tuple<>(1, l));
+                list.add(new Pair<>(colorIndex + 2, k));
+                list.add(new Pair<>(1, l));
             }
             commandContextBuilder = commandContextBuilder.getChild();
         } while (commandContextBuilder != null);
@@ -115,7 +115,7 @@ public class MultiLineCommandSuggestor extends CommandSuggestions {
 
         if (parse.getReader().canRead() && (m = Math.max(parse.getReader().getCursor() - firstCharacterIndex, 0)) < original.length()) {
             int n = Math.min(m + parse.getReader().getRemainingLength(), original.length());
-            list.add(new Tuple<>(0, m));
+            list.add(new Pair<>(0, m));
         }
         return list;
     }

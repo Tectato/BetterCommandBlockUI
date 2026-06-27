@@ -32,13 +32,13 @@ dependencies {
     //Fabric api
 	implementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}")
 	implementation("com.terraformersmc:modmenu:${project.modmenu_version}")
-	/*implementation("org.eclipse:org.eclipse.tm4e.core:0.12.1-SNAPSHOT")
+	implementation("org.eclipse:org.eclipse.tm4e.core:0.12.1-SNAPSHOT")
 	implementation("org.snakeyaml:snakeyaml-engine:2.7")
 	// Required dependencies for TM4E
 	implementation("org.jruby.joni:joni:2.2.1")
 	compileOnly("org.jruby.jcodings:jcodings:1.0.39")
 	compileOnly("me.shurik:better-highlighting:${project.better_highlighting_version}")
-	runtimeOnly("me.shurik:better-highlighting:${project.better_highlighting_version}")*/
+	runtimeOnly("me.shurik:better-highlighting:${project.better_highlighting_version}")
 }
 
 processResources {

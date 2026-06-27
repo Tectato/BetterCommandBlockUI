@@ -26,8 +26,8 @@ public class ClientPacketListenerMixin {
             /*if (nbtCompound != null) {
                 blockEntity.readNbt(nbtCompound);
             }*/
-            if (blockEntity instanceof CommandBlockEntity && client.screen instanceof BetterCommandBlockScreen) {
-                ((BetterCommandBlockScreen)client.screen).updateCommandBlock();
+            if (blockEntity instanceof CommandBlockEntity && client.gui.screen() instanceof BetterCommandBlockScreen) {
+                ((BetterCommandBlockScreen)client.gui.screen()).updateCommandBlock();
             }
         });
     }

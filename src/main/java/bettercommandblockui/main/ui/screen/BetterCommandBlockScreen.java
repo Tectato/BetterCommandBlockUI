@@ -4,6 +4,7 @@ import bettercommandblockui.main.BetterCommandBlockUI;
 import bettercommandblockui.main.ChainHandler;
 import bettercommandblockui.main.ui.CyclingTexturedButtonWidget;
 import bettercommandblockui.main.ui.MultiLineTextFieldWidget;
+import bettercommandblockui.main.util.Pair;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -26,9 +27,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BaseCommandBlock;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -84,7 +85,6 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                         buttonHeight,
                         Component.nullToEmpty(""),
                         (button -> this.mode = ((CyclingTexturedButtonWidget<CommandBlockEntity.Mode>)button).getValue()),
-                        minecraft.screen,
                         new net.minecraft.client.gui.components.WidgetSprites[]{BUTTON_IMPULSE, BUTTON_CHAIN, BUTTON_REPEAT},
                         0,
                         new CommandBlockEntity.Mode[]{REDSTONE, SEQUENCE, AUTO},
@@ -102,7 +102,6 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                         buttonHeight,
                         Component.nullToEmpty(""),
                         (button -> this.conditional = ((CyclingTexturedButtonWidget<Boolean>)button).getValue()),
-                        minecraft.screen,
                         new net.minecraft.client.gui.components.WidgetSprites[]{BUTTON_UNCONDITIONAL, BUTTON_CONDITIONAL},
                         0,
                         new Boolean[]{false, true},
@@ -120,7 +119,6 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
                         buttonHeight,
                         Component.nullToEmpty(""),
                         (button -> this.autoActivate = ((CyclingTexturedButtonWidget<Boolean>)button).getValue()),
-                        minecraft.screen,
                         new net.minecraft.client.gui.components.WidgetSprites[]{BUTTON_POWER_INACTIVE, BUTTON_POWER_ACTIVE},
                         0,
                         new Boolean[]{false, true},
@@ -129,7 +127,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
 
         if(chainHandler.isInChain()){
             BlockState next = chainHandler.getNext();
-            List<Tuple<BlockState, Direction>> prior = chainHandler.getPrior();
+            List<Pair<BlockState, Direction>> prior = chainHandler.getPrior();
 
 
             BlockPos position = blockEntity.getBlockPos();
@@ -147,7 +145,7 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
 
             if(!prior.isEmpty()){
                 int y = 5;
-                for(Tuple<BlockState, Direction> entry : prior){
+                for(Pair<BlockState, Direction> entry : prior){
                     chainPrior.add(this.addRenderableWidget(
                             new ImageButton( 5, y, 20, 20, BlockStateToButtonTextures(entry.getA()), (button -> {
                                 moveAlongChain(entry.getB());
@@ -174,10 +172,11 @@ public class BetterCommandBlockScreen extends AbstractBetterCommandBlockScreen {
         if(wasModified() && AUTOSAVE){
             commit();
         }
-        BlockPos position = blockEntity.getBlockPos();
+        BlockPos position = blockEntity.getBlockPos().offset(dir.getUnitVec3i());
+        Vec3 hitPos = (new Vec3(position.getX(), position.getY(), position.getZ())).add(new Vec3(0.5f, 0.5f, 0.5f)); // You'd think there was a method for turning a Vec3i into a Vec3, or a direct cast was possible
         assert Minecraft.getInstance().gameMode != null;
         Minecraft.getInstance().gameMode.useItemOn(Minecraft.getInstance().player, InteractionHand.MAIN_HAND, new BlockHitResult(
-                position.offset(dir.getUnitVec3i()).getCenter(), Direction.UP, position.offset(dir.getUnitVec3i()), false
+                hitPos, Direction.UP, position, false
         ));
     }
 

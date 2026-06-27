@@ -12,12 +12,10 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class CyclingTooltipSupplier {
-    private Screen screen;
     private Component[] tooltips;
     private int currentIndex;
 
-    public CyclingTooltipSupplier(Screen screen, int initialIndex, Component[] tooltips){
-        this.screen = screen;
+    public CyclingTooltipSupplier(int initialIndex, Component[] tooltips){
         this.tooltips = tooltips;
         this.currentIndex = initialIndex;
     }
